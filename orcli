@@ -186,65 +186,65 @@ inspect_args() {
 
 # :command.user_lib
 # :src/lib/error.sh
+#!/usr/bin/env bash
 # log error message to STDERR
-function error {
+function error() {
   echo >&2 "[$(date +'%Y-%m-%dT%H:%M:%S')]: ERROR $*"
 }
 
 # :src/lib/get_csrf.sh
+#!/usr/bin/env bash
 # get CSRF token (introduced in OpenRefine 3.3)
-function get_csrf {
-if [[ "${OPENREFINE_CSRF}" == true ]]; then
-  local response
-  response=$(curl -fs "${OPENREFINE_URL}/command/core/get-csrf-token")
-  if ! [[ "${response}" == '{"token":"'* ]]; then
-    error "getting CSRF token failed!"
-    exit 1
+function get_csrf() {
+  if [[ "${OPENREFINE_CSRF}" == true ]]; then
+    local response
+    response=$(curl -fs "${OPENREFINE_URL}/command/core/get-csrf-token")
+    if ! [[ "${response}" == '{"token":"'* ]]; then
+      error "getting CSRF token failed!"
+      exit 1
+    fi
+    echo "?csrf_token=$(echo "$response" | cut -d \" -f 4)"
   fi
-  echo "?csrf_token=$(echo "$response" | cut -d \" -f 4)"
-fi
 }
 
 # :src/lib/get_id.sh
+#!/usr/bin/env bash
 # get project id (derived from project name if needed)
-function get_id {
-local response
-local projects
-local ids
-if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
-  error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
-  exit 1
-fi
-if ! projects="$(echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"' | grep "${args[project]}")"; then
-  error "project ${args[project]} not found"
-  exit 1
-fi
-ids=$(echo "$projects" | cut -d : -f 1)
-if ! [[ "${#ids}" == 13 ]]; then
-  error "multiple projects found"
-  echo >&2 "$projects"
-  exit 1
-fi
-echo "$ids"
+function get_id() {
+  local response
+  local projects
+  local ids
+  if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
+    error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
+    exit 1
+  fi
+  if ! projects="$(echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"' | grep "${args[project]}")"; then
+    error "project ${args[project]} not found"
+    exit 1
+  fi
+  ids=$(echo "$projects" | cut -d : -f 1)
+  if ! [[ "${#ids}" == 13 ]]; then
+    error "multiple projects found"
+    echo >&2 "$projects"
+    exit 1
+  fi
+  echo "$ids"
 }
 
 # :command.command_functions
 # :command.function
 orcli_info_command() {
   # :src/info_command.sh
-  echo "# this file is located in 'src/info_command.sh'"
-  echo "# code for 'openrefine-cli.sh info' goes here"
-  echo "# you can edit it freely and regenerate (it will not be overwritten)"
-  inspect_args
+  #!/usr/bin/env bash
   get_id
 }
 
 # :command.function
 orcli_list_command() {
   # :src/list_command.sh
+  #!/usr/bin/env bash
   # get all project metadata and reshape json to print a list
-  if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"
-  then
+  if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
     error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
   else
     echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"'
@@ -432,6 +432,7 @@ initialize() {
   set -e
 
   # :src/initialize.sh
+  #!/usr/bin/env bash
 }
 
 # :command.run
