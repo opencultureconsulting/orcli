@@ -1,0 +1,9 @@
+# https://gitpod.io/#https://github.com/opencultureconsulting/orcli
+tasks:
+  - name: install bashly
+    init: gem install bashly
+  - name: install OpenRefine
+    init: |
+        wget -q -O openrefine.tar.gz https://github.com/OpenRefine/OpenRefine/releases/download/3.5.2/openrefine-linux-3.5.2.tar.gz
+        tar --exclude 'licenses' --exclude 'LICENSE.txt' --exclude 'README.md'  -xzf openrefine.tar.gz --strip 1
+        rm openrefine.tar.gz
