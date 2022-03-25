@@ -3,33 +3,32 @@ help: OpenRefine command-line interface written in Bash
 version: 0.1.0
 
 dependencies:
-- curl
-- jq
+  - curl
+  - jq
 
 environment_variables:
-- name: OPENREFINE_URL
-  help: URL to OpenRefine server
-  default: "http://localhost:3333"
-- name: OPENREFINE_CSRF
-  default: "true"
-  help: set to false for OpenRefine < 3.3
+  - name: OPENREFINE_URL
+    help: URL to OpenRefine server
+    default: "http://localhost:3333"
+  - name: OPENREFINE_CSRF
+    default: "true"
+    help: set to false for OpenRefine < 3.3
 
 examples:
-- orcli list
-- orcli info clipboard
-- orcli info 1234567890123
+  - orcli list
+  - orcli info clipboard
+  - orcli info 1234567890123
 
 commands:
+  - name: info
+    help: show project metadata
+    args:
+      - name: project
+        help: project name or id
+        required: true
+    examples:
+      - info clipboard
+      - info 1234567890123
 
-- name: info
-  help: show project metadata
-  args:
-  - name: project
-    help: project name or id
-    required: true
-  examples:
-  - info clipboard
-  - info 1234567890123
-
-- name: list
-  help: list projects on OpenRefine server
+  - name: list
+    help: list projects on OpenRefine server

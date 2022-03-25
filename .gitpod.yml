@@ -2,10 +2,10 @@
 tasks:
   - name: install bashly and OpenRefine
     init: |
-        gem install --silent bashly
-        wget -q -O openrefine.tar.gz https://github.com/OpenRefine/OpenRefine/releases/download/3.5.2/openrefine-linux-3.5.2.tar.gz
-        tar --exclude 'licenses' --exclude 'LICENSE.txt' --exclude 'README.md'  -xzf openrefine.tar.gz --strip 1
-        rm openrefine.tar.gz
+      gem install --silent bashly
+      wget -q -O openrefine.tar.gz https://github.com/OpenRefine/OpenRefine/releases/download/3.5.2/openrefine-linux-3.5.2.tar.gz
+      tar --exclude 'licenses' --exclude 'LICENSE.txt' --exclude 'README.md'  -xzf openrefine.tar.gz --strip 1
+      rm openrefine.tar.gz
 
 ports:
   - port: 3333
