@@ -1,2 +1,2 @@
-#!/usr/bin/env bash
+# shellcheck shell=bash
 get_id

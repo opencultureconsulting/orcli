@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
 # get project id (derived from project name if needed)
+# shellcheck shell=bash disable=SC2154
 function get_id() {
   local response
   local projects
