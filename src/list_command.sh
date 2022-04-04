@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
 # get all project metadata and reshape json to print a list
+# shellcheck shell=bash
 if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
   error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
 else
