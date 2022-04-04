@@ -1,6 +1,7 @@
 name: orcli
 help: OpenRefine command-line interface written in Bash
 version: 0.1.0
+footer: https://github.com/opencultureconsulting/orcli
 
 dependencies:
   - curl

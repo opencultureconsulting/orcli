@@ -69,6 +69,9 @@ orcli_usage() {
     printf "  orcli info clipboard\n"
     printf "  orcli info 1234567890123\n"
     echo
+    # :command.footer
+    printf "https://github.com/opencultureconsulting/orcli\n"
+    echo
 
   fi
 }

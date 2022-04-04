@@ -5,12 +5,12 @@ Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org
 ## Features
 
 * works with latest OpenRefine version (currently 3.5)
-* provides nested sub-commands with help screens and usage examples
-* supports batch processing (import, transform, export) with dedicated OpenRefine instances
-* import CSV, TSV, line-based TXT, fixed-width TXT, JSON or XML (and specify input options)
-* transform data either by directly calling operations or by providing a [undo/redo](https://docs.openrefine.org/manual/running#history-undoredo) JSON file
-* export to CSV, TSV, HTML, XLS, XLSX, ODS
-* [templating export](https://docs.openrefine.org/manual/exporting#templating-exporter) to additional formats like JSON or XML
+* nested sub-commands with help screens and usage examples
+* batch processing (import, transform, export) with temporary workspaces; your existing OpenRefine data will not be touched
+* import CSV~~, TSV, line-based TXT, fixed-width TXT, JSON or XML~~ (and specify input options)
+* transform data by providing an [undo/redo](https://docs.openrefine.org/manual/running#history-undoredo) JSON file; orcli calls specific endpoints for each operation to provide improved error handling and logging
+* export to ~~CSV,~~ TSV~~, HTML, XLS, XLSX, ODS~~
+* ~~[templating export](https://docs.openrefine.org/manual/exporting#templating-exporter) to additional formats like JSON or XML~~
 
 ## Requirements
 
@@ -42,7 +42,7 @@ Ensure you have OpenRefine running (i.e. available at http://localhost:3333 or a
 Use integrated help screens for available options and examples for each command.
 
 ```sh
-[felix@tux orcli]$ ./orcli --help
+$ orcli --help
 orcli - OpenRefine command-line interface written in Bash
 
 Usage:
@@ -74,6 +74,8 @@ Examples:
   orcli list
   orcli info clipboard
   orcli info 1234567890123
+
+https://github.com/opencultureconsulting/orcli
 ```
 
 ## Development
