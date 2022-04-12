@@ -11,9 +11,6 @@ environment_variables:
   - name: OPENREFINE_URL
     help: URL to OpenRefine server
     default: "http://localhost:3333"
-  - name: OPENREFINE_CSRF
-    default: "true"
-    help: set to false for OpenRefine < 3.3
 
 examples:
   - orcli list
@@ -30,6 +27,8 @@ commands:
     examples:
       - info clipboard
       - info 1234567890123
+
+  - name: import
 
   - name: list
     help: list projects on OpenRefine server

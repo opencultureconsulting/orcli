@@ -34,8 +34,9 @@ orcli_usage() {
   echo
   # :command.usage_commands
   printf "Commands:\n"
-  echo "  info   show project metadata"
-  echo "  list   list projects on OpenRefine server"
+  echo "  info     show project metadata"
+  echo "  import   "
+  echo "  list     list projects on OpenRefine server"
   echo
 
   if [[ -n $long_usage ]]; then
@@ -55,12 +56,6 @@ orcli_usage() {
     echo "  OPENREFINE_URL"
     printf "    URL to OpenRefine server\n"
     printf "    Default: http://localhost:3333\n"
-    echo
-
-    # :environment_variable.usage
-    echo "  OPENREFINE_CSRF"
-    printf "    set to false for OpenRefine < 3.3\n"
-    printf "    Default: true\n"
     echo
     # :command.usage_examples
     printf "Examples:\n"
@@ -113,6 +108,33 @@ orcli_info_usage() {
 
     printf "  info clipboard\n"
     printf "  info 1234567890123\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+orcli_import_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "orcli import - \n"
+    echo
+
+  else
+    printf "orcli import - \n"
+    echo
+
+  fi
+
+  printf "Usage:\n"
+  printf "  orcli import\n"
+  printf "  orcli import --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "Options:\n"
+    # :command.usage_fixed_flags
+    echo "  --help, -h"
+    printf "    Show this help\n"
     echo
 
   fi
@@ -201,9 +223,13 @@ function error() {
 # get CSRF token (introduced in OpenRefine 3.3)
 # shellcheck shell=bash
 function get_csrf() {
-  if [[ "${OPENREFINE_CSRF}" == true ]]; then
-    local response
-    response=$(curl -fs "${OPENREFINE_URL}/command/core/get-csrf-token")
+  local response
+  if ! response="$(curl -fs "${OPENREFINE_URL}/command/core/get-csrf-token")"; then
+    if ! response="$(curl -fs "${OPENREFINE_URL}/command/core/get-version")"; then
+      error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
+      exit 1
+    fi
+  else
     if ! [[ "${response}" == '{"token":"'* ]]; then
       error "getting CSRF token failed!"
       exit 1
@@ -245,6 +271,13 @@ orcli_info_command() {
 }
 
 # :command.function
+orcli_import_command() {
+  # src/import_command.sh
+  # shellcheck shell=bash
+  get_csrf
+}
+
+# :command.function
 orcli_list_command() {
   # src/list_command.sh
   # get all project metadata and reshape json to print a list
@@ -274,7 +307,6 @@ parse_requirements() {
   esac
   # :command.environment_variables_filter
   export OPENREFINE_URL="${OPENREFINE_URL:-http://localhost:3333}"
-  export OPENREFINE_CSRF="${OPENREFINE_CSRF:-true}"
   # :command.dependencies_filter
   if ! [[ -x "$(command -v curl)" ]]; then
     printf "missing dependency: curl\n"
@@ -295,6 +327,13 @@ parse_requirements() {
     action="info"
     shift
     orcli_info_parse_requirements "$@"
+    shift $#
+    ;;
+
+  import )
+    action="import"
+    shift
+    orcli_import_parse_requirements "$@"
     shift $#
     ;;
 
@@ -390,6 +429,47 @@ orcli_info_parse_requirements() {
 }
 
 # :command.parse_requirements
+orcli_import_parse_requirements() {
+  # :command.fixed_flags_filter
+  case "${1:-}" in
+  --help | -h )
+    long_usage=yes
+    orcli_import_usage
+    exit
+    ;;
+
+  esac
+  # :command.environment_variables_filter
+  # :command.dependencies_filter
+  # :command.command_filter
+  action="import"
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+    -?* )
+      printf "invalid option: %s\n" "$key"
+      exit 1
+      ;;
+
+    * )
+      # :command.parse_requirements_case
+      printf "invalid argument: %s\n" "$key"
+      exit 1
+      ;;
+
+    esac
+  done
+  # :command.required_args_filter
+  # :command.required_flags_filter
+  # :command.catch_all_filter
+  # :command.default_assignments
+  # :command.whitelist_filter
+  # :command.user_filter
+}
+
+# :command.parse_requirements
 orcli_list_parse_requirements() {
   # :command.fixed_flags_filter
   case "${1:-}" in
@@ -437,7 +517,6 @@ initialize() {
   set -e
 
   # src/initialize.sh
-  # shellcheck shell=bash
 }
 
 # :command.run
@@ -454,6 +533,14 @@ run() {
       orcli_info_usage
     else
       orcli_info_command
+    fi
+
+  elif [[ $action == "import" ]]; then
+    if [[ ${args[--help]:-} ]]; then
+      long_usage=yes
+      orcli_import_usage
+    else
+      orcli_import_command
     fi
 
   elif [[ $action == "list" ]]; then
