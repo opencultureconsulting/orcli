@@ -6,17 +6,13 @@ function get_id() {
   local ids
   if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
     error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
-    exit 1
   fi
-  if ! projects="$(echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"' | grep "${args[project]}")"; then
+  if ! projects="$(echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"' | grep ":${args[project]}$")"; then
     error "project ${args[project]} not found"
-    exit 1
   fi
   ids=$(echo "$projects" | cut -d : -f 1)
   if ! [[ "${#ids}" == 13 ]]; then
-    error "multiple projects found"
-    echo >&2 "$projects"
-    exit 1
+    error "multiple projects found" "$projects"
   fi
   echo "$ids"
 }
