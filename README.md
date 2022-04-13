@@ -51,8 +51,9 @@ Usage:
   orcli --version | -v
 
 Commands:
-  info   show project metadata
-  list   list projects on OpenRefine server
+  info     show project metadata
+  import   import commands
+  list     list projects on OpenRefine server
 
 Options:
   --help, -h
@@ -66,13 +67,12 @@ Environment Variables:
     URL to OpenRefine server
     Default: http://localhost:3333
 
-  OPENREFINE_CSRF
-    set to false for OpenRefine < 3.3
-    Default: true
-
 Examples:
   orcli list
-  orcli info clipboard
+  orcli import csv file
+  orcli import csv
+  "https://github.com/LibraryCarpentry/lc-open-refine/raw/gh-pages/data/doaj-article-sample.csv"
+  orcli info Clipboard
   orcli info 1234567890123
 
 https://github.com/opencultureconsulting/orcli

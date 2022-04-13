@@ -62,6 +62,7 @@ orcli_usage() {
 
     printf "  orcli list\n"
     printf "  orcli import csv file\n"
+    printf "  orcli import csv\n  \"https://github.com/LibraryCarpentry/lc-open-refine/raw/gh-pages/data/doaj-article-sample.csv\"\n"
     printf "  orcli info Clipboard\n"
     printf "  orcli info 1234567890123\n"
     echo
@@ -194,7 +195,7 @@ orcli_import_csv_usage() {
 
     # :argument.usage
     echo "  FILE..."
-    printf "    Path to one or more files. When FILE is -, read standard input.\n"
+    printf "    Path to one or more files or URLs. When FILE is -, read standard input.\n"
     printf "    Default: -\n"
     echo
 
@@ -203,7 +204,8 @@ orcli_import_csv_usage() {
 
     printf "  orcli import csv file\n"
     printf "  cat file | orcli import csv\n"
-    printf "  orcli import csv --separator ; --encoding ISO-8859-1 --trimStrings\n  --projectName example\n"
+    printf "  orcli import csv file --separator ; --encoding ISO-8859-1 --trimStrings\n  --projectName example\n"
+    printf "  orcli import csv\n  \"https://github.com/LibraryCarpentry/lc-open-refine/raw/gh-pages/data/doaj-article-sample.csv\"\n"
     echo
 
   fi
