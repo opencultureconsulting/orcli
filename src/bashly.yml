@@ -15,6 +15,7 @@ environment_variables:
 examples:
   - orcli list
   - orcli import csv file
+  - orcli import csv "https://github.com/LibraryCarpentry/lc-open-refine/raw/gh-pages/data/doaj-article-sample.csv" 
   - orcli info Clipboard
   - orcli info 1234567890123
 
@@ -33,31 +34,32 @@ commands:
     help: import commands
 
     commands:
-    - name: csv
-      help: import comma-separated values (CSV)
-      args:
-        - name: file
-          help: Path to one or more files. When FILE is -, read standard input.
-          default: "-"
-          repeatable: true
-      flags:
-        - long: --separator
-          help: character(s) that separates columns
-          arg: separator
-          default: ","
-        - long: --encoding
-          help: set character encoding
-          arg: encoding
-        - long: --trimStrings
-          help: trim leading & trailing whitespace from strings
-        - long: --projectName
-          arg: projectName
-          help: set a name for the OpenRefine project
+      - name: csv
+        help: import comma-separated values (CSV)
+        args:
+          - name: file
+            help: Path to one or more files or URLs. When FILE is -, read standard input.
+            default: "-"
+            repeatable: true
+        flags:
+          - long: --separator
+            help: character(s) that separates columns
+            arg: separator
+            default: ","
+          - long: --encoding
+            help: set character encoding
+            arg: encoding
+          - long: --trimStrings
+            help: trim leading & trailing whitespace from strings
+          - long: --projectName
+            arg: projectName
+            help: set a name for the OpenRefine project
 
-      examples:
-        - orcli import csv file
-        - cat file | orcli import csv
-        - orcli import csv --separator ; --encoding ISO-8859-1 --trimStrings --projectName example
+        examples:
+          - orcli import csv file
+          - cat file | orcli import csv
+          - orcli import csv file --separator ; --encoding ISO-8859-1 --trimStrings --projectName example
+          - orcli import csv "https://github.com/LibraryCarpentry/lc-open-refine/raw/gh-pages/data/doaj-article-sample.csv" 
 
   - name: list
     help: list projects on OpenRefine server

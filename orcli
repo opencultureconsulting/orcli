@@ -318,6 +318,56 @@ function get_id() {
   echo "$ids"
 }
 
+# src/lib/init_import.sh
+# common import tasks to support multiple files and URLs
+# shellcheck shell=bash
+function init_import() {
+    local files
+    local file
+    local tmpdir
+    # catch args, convert the space delimited string to an array
+    files=()
+    eval "files=(${args[file]})"
+    # create tmp directory
+    tmpdir="$(mktemp -d)"
+    trap 'rm -rf "$tmpdir"' 0 2 3 15
+    # download files if name starts with http:// or https://
+    for i in "${!files[@]}"; do
+        if [[ ${files[$i]} == "http://"* ]] || [[ ${files[$i]} == "https://"* ]]; then
+            if ! curl -fs --location "${files[$i]}" >"${tmpdir}/${files[$i]##*/}"; then
+                error "download of ${files[$i]} failed!"
+            fi
+            files[$i]="${tmpdir}/${files[$i]##*/}"
+        fi
+    done
+    # create a zip archive if there are multiple files
+    if [[ ${#files[@]} -gt 1 ]]; then
+        file="$tmpdir/Untitled.zip"
+        zip "$file" "${files[@]}"
+    else
+        file="${files[0]}"
+    fi
+    # basic post data
+    if [[ ${file} == "-" ]]; then
+        data+=("project-file=@-")
+    else
+        if ! path=$(readlink -e "${file}"); then
+            error "file ${file} not found!"
+        fi
+        data+=("project-file=@${path}")
+    fi
+    if [[ ${args[--projectName]} ]]; then
+        data+=("project-name=${args[--projectName]}")
+    else
+        if [[ ${file} == "-" ]]; then
+            name="Untitled"
+        else
+            name="$(basename "${path}" | tr '.' ' ')"
+        fi
+        data+=("project-name=${name}")
+    fi
+}
+
 # src/lib/logging.sh
 # print messages to STDERR
 # shellcheck shell=bash
@@ -333,6 +383,37 @@ function log() {
   for msg in "$@"; do echo >&2 "$msg"; done
 }
 
+# src/lib/post_import.sh
+# post to create-project endpoint and validate
+# shellcheck shell=bash disable=SC2154
+function post_import() {
+    local curloptions
+    local projectid
+    local projectname
+    local rows
+    # post
+    mapfile -t curloptions < <(for d in "$@"; do
+        echo "--form"
+        echo "$d"
+    done)
+    if ! redirect_url="$(curl -fs --write-out "%{redirect_url}\n" "${curloptions[@]}" "${OPENREFINE_URL}/command/core/create-project-from-upload$(get_csrf)")"; then
+        error "import of ${args[file]} failed!"
+    fi
+    # validate
+    projectid=$(cut -d '=' -f 2 <<<"$redirect_url")
+    if [[ ${#projectid} != 13 ]]; then
+        error "import of ${args[file]} failed!"
+    fi
+    projectname=$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-project-metadata" | tr "," "\n" | grep name | cut -d ":" -f 2)
+    projectname="${projectname:1:${#projectname}-2}"
+    rows=$(curl -fs --get --data project="$projectid" --data limit=0 "${OPENREFINE_URL}/command/core/get-rows" | tr "," "\n" | grep total | cut -d ":" -f 2)
+    if [[ "$rows" = "0" ]]; then
+        error "import of ${args[file]} contains 0 rows!" "${redirect_url}" "name:${projectname}" "rows:${rows}"
+    else
+        log "import of ${args[file]} successful" "${redirect_url}" "name:${projectname}" "rows:${rows}"
+    fi
+}
+
 # :command.command_functions
 # :command.function
 orcli_info_command() {
@@ -346,60 +427,32 @@ orcli_import_csv_command() {
   # src/import_csv_command.sh
   # shellcheck shell=bash
 
-  # catch args, convert the space delimited string to an array
-  files=()
-  eval "files=(${args[file]})"
-  if [ "${files[*]}" = "-" ] && [ -t 0 ]; then
-      printf "missing required argument or standard input\nusage: cli FILE...\n"
+  # call init_import function to eval args and to set basic post data
+  init_import
+
+  # check if stdin is present if selected
+  if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]] && [ -t 0 ]; then
+      orcli_import_csv_usage
       exit 1
   fi
 
-  # TODO: zip files if more than 1
-  file="${files[*]}"
-
-  # prepare input
-  data=()
-  data+=("--form" "format=text/line-based/*sv")
-  if [[ ${file} == "-" ]]; then
-      data+=("--form" "project-file=@-")
-  else
-      if ! path=$(readlink -e "${file}"); then
-          error "file ${file} not found!"
-      fi
-      data+=("--form" "project-file=@${path}")
-  fi
-  if [[ ${args[--projectName]} ]]; then
-      data+=("--form" "project-name=${args[--projectName]}")
-  else
-      name="$(basename "${path}" | tr '.' ' ')"
-      data+=("--form" "project-name=${name}")
-  fi
+  # assemble specific post data (some options require json format)
+  data+=("format=text/line-based/*sv")
   options='{ '
   options+="\"separator\": \"${args[--separator]}\""
   if [[ ${args[--encoding]} ]]; then
-      options+=", \"encoding\": \"${args[--encoding]}\""
+      options+=', '
+      options+="\"encoding\": \"${args[--encoding]}\""
   fi
   if [[ ${args[--trimStrings]} ]]; then
-      options+=", \"trimStrings\": true"
+      options+=', '
+      options+="\"trimStrings\": true"
   fi
   options+=' }'
+  data+=("options=${options}")
 
-  # execute curl
-  if ! redirect_url="$(curl -fs --write-out "%{redirect_url}\n" "${data[@]}" --form options="${options}" "${OPENREFINE_URL}/command/core/create-project-from-upload$(get_csrf)")"; then
-      error "import of ${files[*]} failed!"
-  fi
-
-  # validate import
-  projectid=$(cut -d '=' -f 2 <<< "$redirect_url")
-  if [[ ${#projectid} != 13 ]]; then
-      error "import of ${files[*]} failed!"
-  fi
-  rows=$(curl -fs --get --data project="$projectid" --data limit=0 "${OPENREFINE_URL}/command/core/get-rows" | tr "," "\n" | grep total | cut -d ":" -f 2)
-  if [[ "$rows" = "0" ]]; then
-      error "import of ${files[*]} contains 0 rows!" "${redirect_url}" "name:${name}" "rows:${rows}"
-  else
-      log "import of ${files[*]} successful" "${redirect_url}" "name:${name}" "rows:${rows}"
-  fi
+  # call post_import function to post data and validate results
+  post_import "${data[@]}"
 }
 
 # :command.function
