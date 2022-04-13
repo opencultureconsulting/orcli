@@ -35,7 +35,7 @@ orcli_usage() {
   # :command.usage_commands
   printf "Commands:\n"
   echo "  info     show project metadata"
-  echo "  import   "
+  echo "  import   import commands"
   echo "  list     list projects on OpenRefine server"
   echo
 
@@ -61,7 +61,8 @@ orcli_usage() {
     printf "Examples:\n"
 
     printf "  orcli list\n"
-    printf "  orcli info clipboard\n"
+    printf "  orcli import csv file\n"
+    printf "  orcli info Clipboard\n"
     printf "  orcli info 1234567890123\n"
     echo
     # :command.footer
@@ -106,7 +107,7 @@ orcli_info_usage() {
     # :command.usage_examples
     printf "Examples:\n"
 
-    printf "  info clipboard\n"
+    printf "  info Clipboard\n"
     printf "  info 1234567890123\n"
     echo
 
@@ -116,18 +117,22 @@ orcli_info_usage() {
 # :command.usage
 orcli_import_usage() {
   if [[ -n $long_usage ]]; then
-    printf "orcli import - \n"
+    printf "orcli import - import commands\n"
     echo
 
   else
-    printf "orcli import - \n"
+    printf "orcli import - import commands\n"
     echo
 
   fi
 
   printf "Usage:\n"
-  printf "  orcli import\n"
-  printf "  orcli import --help | -h\n"
+  printf "  orcli import [command]\n"
+  printf "  orcli import [command] --help | -h\n"
+  echo
+  # :command.usage_commands
+  printf "Commands:\n"
+  echo "  csv   import comma-separated values (CSV)"
   echo
 
   if [[ -n $long_usage ]]; then
@@ -135,6 +140,70 @@ orcli_import_usage() {
     # :command.usage_fixed_flags
     echo "  --help, -h"
     printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+orcli_import_csv_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "orcli import csv - import comma-separated values (CSV)\n"
+    echo
+
+  else
+    printf "orcli import csv - import comma-separated values (CSV)\n"
+    echo
+
+  fi
+
+  printf "Usage:\n"
+  printf "  orcli import csv [FILE...] [options]\n"
+  printf "  orcli import csv --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "Options:\n"
+    # :command.usage_fixed_flags
+    echo "  --help, -h"
+    printf "    Show this help\n"
+    echo
+    # :command.usage_flags
+    # :flag.usage
+    echo "  --separator SEPARATOR"
+    printf "    character(s) that separates columns\n"
+    printf "    Default: ,\n"
+    echo
+
+    # :flag.usage
+    echo "  --encoding ENCODING"
+    printf "    set character encoding\n"
+    echo
+
+    # :flag.usage
+    echo "  --trimStrings"
+    printf "    trim leading & trailing whitespace from strings\n"
+    echo
+
+    # :flag.usage
+    echo "  --projectName PROJECTNAME"
+    printf "    set a name for the OpenRefine project\n"
+    echo
+    # :command.usage_args
+    printf "Arguments:\n"
+
+    # :argument.usage
+    echo "  FILE..."
+    printf "    Path to one or more files. When FILE is -, read standard input.\n"
+    printf "    Default: -\n"
+    echo
+
+    # :command.usage_examples
+    printf "Examples:\n"
+
+    printf "  orcli import csv file\n"
+    printf "  cat file | orcli import csv\n"
+    printf "  orcli import csv --separator ; --encoding ISO-8859-1 --trimStrings\n  --projectName example\n"
     echo
 
   fi
@@ -273,10 +342,64 @@ orcli_info_command() {
 }
 
 # :command.function
-orcli_import_command() {
-  # src/import_command.sh
+orcli_import_csv_command() {
+  # src/import_csv_command.sh
   # shellcheck shell=bash
-  get_csrf
+
+  # catch args, convert the space delimited string to an array
+  files=()
+  eval "files=(${args[file]})"
+  if [ "${files[*]}" = "-" ] && [ -t 0 ]; then
+      printf "missing required argument or standard input\nusage: cli FILE...\n"
+      exit 1
+  fi
+
+  # TODO: zip files if more than 1
+  file="${files[*]}"
+
+  # prepare input
+  data=()
+  data+=("--form" "format=text/line-based/*sv")
+  if [[ ${file} == "-" ]]; then
+      data+=("--form" "project-file=@-")
+  else
+      if ! path=$(readlink -e "${file}"); then
+          error "file ${file} not found!"
+      fi
+      data+=("--form" "project-file=@${path}")
+  fi
+  if [[ ${args[--projectName]} ]]; then
+      data+=("--form" "project-name=${args[--projectName]}")
+  else
+      name="$(basename "${path}" | tr '.' ' ')"
+      data+=("--form" "project-name=${name}")
+  fi
+  options='{ '
+  options+="\"separator\": \"${args[--separator]}\""
+  if [[ ${args[--encoding]} ]]; then
+      options+=", \"encoding\": \"${args[--encoding]}\""
+  fi
+  if [[ ${args[--trimStrings]} ]]; then
+      options+=", \"trimStrings\": true"
+  fi
+  options+=' }'
+
+  # execute curl
+  if ! redirect_url="$(curl -fs --write-out "%{redirect_url}\n" "${data[@]}" --form options="${options}" "${OPENREFINE_URL}/command/core/create-project-from-upload$(get_csrf)")"; then
+      error "import of ${files[*]} failed!"
+  fi
+
+  # validate import
+  projectid=$(cut -d '=' -f 2 <<< "$redirect_url")
+  if [[ ${#projectid} != 13 ]]; then
+      error "import of ${files[*]} failed!"
+  fi
+  rows=$(curl -fs --get --data project="$projectid" --data limit=0 "${OPENREFINE_URL}/command/core/get-rows" | tr "," "\n" | grep total | cut -d ":" -f 2)
+  if [[ "$rows" = "0" ]]; then
+      error "import of ${files[*]} contains 0 rows!" "${redirect_url}" "name:${name}" "rows:${rows}"
+  else
+      log "import of ${files[*]} successful" "${redirect_url}" "name:${name}" "rows:${rows}"
+  fi
 }
 
 # :command.function
@@ -448,7 +571,26 @@ orcli_import_parse_requirements() {
   # :command.environment_variables_filter
   # :command.dependencies_filter
   # :command.command_filter
-  action="import"
+  action=${1:-}
+
+  case $action in
+  -* )
+    ;;
+
+  csv )
+    action="csv"
+    shift
+    orcli_import_csv_parse_requirements "$@"
+    shift $#
+    ;;
+
+  # :command.command_fallback
+  * )
+    orcli_import_usage
+    exit 1
+    ;;
+
+  esac
   # :command.parse_requirements_while
   while [[ $# -gt 0 ]]; do
     key="$1"
@@ -471,6 +613,103 @@ orcli_import_parse_requirements() {
   # :command.required_flags_filter
   # :command.catch_all_filter
   # :command.default_assignments
+  # :command.whitelist_filter
+  # :command.user_filter
+}
+
+# :command.parse_requirements
+orcli_import_csv_parse_requirements() {
+  # :command.fixed_flags_filter
+  case "${1:-}" in
+  --help | -h )
+    long_usage=yes
+    orcli_import_csv_usage
+    exit
+    ;;
+
+  esac
+  # :command.environment_variables_filter
+  # :command.dependencies_filter
+  # :command.command_filter
+  action="import csv"
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+    # :flag.case
+    --separator )
+      # :flag.conflicts
+      if [[ -n ${2+x} ]]; then
+        # :flag.validations
+        args[--separator]="$2"
+        shift
+        shift
+      else
+        printf "%s\n" "--separator requires an argument: --separator SEPARATOR"
+        exit 1
+      fi
+      ;;
+
+    # :flag.case
+    --encoding )
+      # :flag.conflicts
+      if [[ -n ${2+x} ]]; then
+        # :flag.validations
+        args[--encoding]="$2"
+        shift
+        shift
+      else
+        printf "%s\n" "--encoding requires an argument: --encoding ENCODING"
+        exit 1
+      fi
+      ;;
+
+    # :flag.case
+    --trimStrings )
+      # :flag.conflicts
+      args[--trimStrings]=1
+      shift
+      ;;
+
+    # :flag.case
+    --projectName )
+      # :flag.conflicts
+      if [[ -n ${2+x} ]]; then
+        # :flag.validations
+        args[--projectName]="$2"
+        shift
+        shift
+      else
+        printf "%s\n" "--projectName requires an argument: --projectName PROJECTNAME"
+        exit 1
+      fi
+      ;;
+
+    -?* )
+      printf "invalid option: %s\n" "$key"
+      exit 1
+      ;;
+
+    * )
+      # :command.parse_requirements_case
+      if [[ -z ${args[file]+x} ]]; then
+        # :argument.validations
+        args[file]="\"$1\""
+        shift
+      else
+        args[file]="${args[file]} \"$1\""
+        shift
+      fi
+      ;;
+
+    esac
+  done
+  # :command.required_args_filter
+  # :command.required_flags_filter
+  # :command.catch_all_filter
+  # :command.default_assignments
+  [[ -n ${args[file]:-} ]] || args[file]="-"
+  [[ -n ${args[--separator]:-} ]] || args[--separator]=","
   # :command.whitelist_filter
   # :command.user_filter
 }
@@ -547,6 +786,14 @@ run() {
       orcli_import_usage
     else
       orcli_import_command
+    fi
+
+  elif [[ $action == "import csv" ]]; then
+    if [[ ${args[--help]:-} ]]; then
+      long_usage=yes
+      orcli_import_csv_usage
+    else
+      orcli_import_csv_command
     fi
 
   elif [[ $action == "list" ]]; then
