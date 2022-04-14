@@ -34,9 +34,10 @@ orcli_usage() {
   echo
   # :command.usage_commands
   printf "Commands:\n"
-  echo "  info     show project metadata"
   echo "  import   import commands"
   echo "  list     list projects on OpenRefine server"
+  echo "  info     show project metadata"
+  echo "  export   export commands"
   echo
 
   if [[ -n $long_usage ]]; then
@@ -60,56 +61,15 @@ orcli_usage() {
     # :command.usage_examples
     printf "Examples:\n"
 
-    printf "  orcli list\n"
     printf "  orcli import csv file\n"
     printf "  orcli import csv\n  \"https://github.com/LibraryCarpentry/lc-open-refine/raw/gh-pages/data/doaj-article-sample.csv\"\n"
-    printf "  orcli info Clipboard\n"
-    printf "  orcli info 1234567890123\n"
+    printf "  orcli list\n"
+    printf "  orcli info \"doaj article sample csv\"\n"
+    printf "  orcli export tsv \"doaj article sample csv\"\n"
+    printf "  orcli export tsv \"doaj article sample csv\" --output doaj.tsv\n"
     echo
     # :command.footer
     printf "https://github.com/opencultureconsulting/orcli\n"
-    echo
-
-  fi
-}
-
-# :command.usage
-orcli_info_usage() {
-  if [[ -n $long_usage ]]; then
-    printf "orcli info - show project metadata\n"
-    echo
-
-  else
-    printf "orcli info - show project metadata\n"
-    echo
-
-  fi
-
-  printf "Usage:\n"
-  printf "  orcli info PROJECT\n"
-  printf "  orcli info --help | -h\n"
-  echo
-
-  if [[ -n $long_usage ]]; then
-    printf "Options:\n"
-    # :command.usage_fixed_flags
-    echo "  --help, -h"
-    printf "    Show this help\n"
-    echo
-
-    # :command.usage_args
-    printf "Arguments:\n"
-
-    # :argument.usage
-    echo "  PROJECT"
-    printf "    project name or id\n"
-    echo
-
-    # :command.usage_examples
-    printf "Examples:\n"
-
-    printf "  info Clipboard\n"
-    printf "  info 1234567890123\n"
     echo
 
   fi
@@ -238,6 +198,131 @@ orcli_list_usage() {
   fi
 }
 
+# :command.usage
+orcli_info_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "orcli info - show project metadata\n"
+    echo
+
+  else
+    printf "orcli info - show project metadata\n"
+    echo
+
+  fi
+
+  printf "Usage:\n"
+  printf "  orcli info PROJECT\n"
+  printf "  orcli info --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "Options:\n"
+    # :command.usage_fixed_flags
+    echo "  --help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_args
+    printf "Arguments:\n"
+
+    # :argument.usage
+    echo "  PROJECT"
+    printf "    project name or id\n"
+    echo
+
+    # :command.usage_examples
+    printf "Examples:\n"
+
+    printf "  info Clipboard\n"
+    printf "  info 1234567890123\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+orcli_export_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "orcli export - export commands\n"
+    echo
+
+  else
+    printf "orcli export - export commands\n"
+    echo
+
+  fi
+
+  printf "Usage:\n"
+  printf "  orcli export [command]\n"
+  printf "  orcli export [command] --help | -h\n"
+  echo
+  # :command.usage_commands
+  printf "Commands:\n"
+  echo "  tsv   export tab-separated values (TSV)"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "Options:\n"
+    # :command.usage_fixed_flags
+    echo "  --help, -h"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+orcli_export_tsv_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "orcli export tsv - export tab-separated values (TSV)\n"
+    echo
+
+  else
+    printf "orcli export tsv - export tab-separated values (TSV)\n"
+    echo
+
+  fi
+
+  printf "Usage:\n"
+  printf "  orcli export tsv PROJECT [options]\n"
+  printf "  orcli export tsv --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "Options:\n"
+    # :command.usage_fixed_flags
+    echo "  --help, -h"
+    printf "    Show this help\n"
+    echo
+    # :command.usage_flags
+    # :flag.usage
+    echo "  --output FILE"
+    printf "    Write to file instead of stdout\n"
+    echo
+
+    # :flag.usage
+    echo "  --encoding ENCODING"
+    printf "    set character encoding\n"
+    printf "    Default: UTF-8\n"
+    echo
+    # :command.usage_args
+    printf "Arguments:\n"
+
+    # :argument.usage
+    echo "  PROJECT"
+    printf "    project name or id\n"
+    echo
+
+    # :command.usage_examples
+    printf "Examples:\n"
+
+    printf "  orcli export tsv Clipboard\n"
+    printf "  orcli export tsv Clipboard --output clipboard.tsv\n"
+    echo
+
+  fi
+}
+
 # :command.normalize_input
 normalize_input() {
   local arg flags
@@ -302,7 +387,7 @@ function get_csrf() {
 
 # src/lib/get_id.sh
 # get project id (derived from project name if needed)
-# shellcheck shell=bash disable=SC2154
+# shellcheck shell=bash
 function get_id() {
   local response
   local projects
@@ -310,8 +395,8 @@ function get_id() {
   if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
     error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
   fi
-  if ! projects="$(echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"' | grep ":${args[project]}$")"; then
-    error "project ${args[project]} not found"
+  if ! projects="$(echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"' | grep -e ":$1$" -e "^$1:")"; then
+    error "project $1 not found"
   fi
   ids=$(echo "$projects" | cut -d : -f 1)
   if ! [[ "${#ids}" == 13 ]]; then
@@ -417,12 +502,6 @@ function post_import() {
 }
 
 # :command.command_functions
-# :command.function
-orcli_info_command() {
-  # src/info_command.sh
-  # shellcheck shell=bash
-  get_id
-}
 
 # :command.function
 orcli_import_csv_command() {
@@ -473,6 +552,53 @@ orcli_list_command() {
   fi
 }
 
+# :command.function
+orcli_info_command() {
+  # src/info_command.sh
+  # shellcheck shell=bash disable=SC2154
+  get_id "${args[project]}"
+}
+
+# :command.function
+orcli_export_tsv_command() {
+  # src/export_tsv_command.sh
+  # shellcheck shell=bash
+  projectid="$(get_id "${args[project]}")"
+  separator='\t'
+
+  # assemble specific post data (some options require json format)
+  data+=("project=${projectid}")
+  data+=("format=tsv")
+  options='{ '
+  options+="\"separator\": \"${separator}\""
+  if [[ ${args[--encoding]} ]]; then
+      options+=', '
+      options+="\"encoding\": \"${args[--encoding]}\""
+  fi
+  options+=' }'
+  data+=("options=${options}")
+
+  # post
+  mapfile -t curloptions < <(for d in "${data[@]}"; do
+      echo "--data"
+      echo "$d"
+  done)
+  if [[ ${args[--output]} ]]; then
+      if ! mkdir -p "$(dirname "${args[--output]}")"; then
+          error "unable to create parent directory for ${args[--output]}"
+      fi
+      curloptions+=("--output")
+      curloptions+=("${args[--output]}")
+  fi
+  if ! curl -fs "${curloptions[@]}" "${OPENREFINE_URL}/command/core/export-rows"; then
+      error "export of ${args[project]} failed!"
+  else
+      if [[ ${args[--output]} ]]; then
+          log "export of ${args[project]} successful" "file:${args[--output]}" "rows:$(cat "${args[--output]}" | wc -l )"
+      fi
+  fi
+}
+
 # :command.parse_requirements
 parse_requirements() {
   # :command.fixed_flags_filter
@@ -507,13 +633,6 @@ parse_requirements() {
   -* )
     ;;
 
-  info )
-    action="info"
-    shift
-    orcli_info_parse_requirements "$@"
-    shift $#
-    ;;
-
   import )
     action="import"
     shift
@@ -525,6 +644,20 @@ parse_requirements() {
     action="list"
     shift
     orcli_list_parse_requirements "$@"
+    shift $#
+    ;;
+
+  info )
+    action="info"
+    shift
+    orcli_info_parse_requirements "$@"
+    shift $#
+    ;;
+
+  export )
+    action="export"
+    shift
+    orcli_export_parse_requirements "$@"
     shift $#
     ;;
 
@@ -554,57 +687,6 @@ parse_requirements() {
     esac
   done
   # :command.required_args_filter
-  # :command.required_flags_filter
-  # :command.catch_all_filter
-  # :command.default_assignments
-  # :command.whitelist_filter
-  # :command.user_filter
-}
-
-# :command.parse_requirements
-orcli_info_parse_requirements() {
-  # :command.fixed_flags_filter
-  case "${1:-}" in
-  --help | -h )
-    long_usage=yes
-    orcli_info_usage
-    exit
-    ;;
-
-  esac
-  # :command.environment_variables_filter
-  # :command.dependencies_filter
-  # :command.command_filter
-  action="info"
-  # :command.parse_requirements_while
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-    -?* )
-      printf "invalid option: %s\n" "$key"
-      exit 1
-      ;;
-
-    * )
-      # :command.parse_requirements_case
-      if [[ -z ${args[project]+x} ]]; then
-        # :argument.validations
-        args[project]=$1
-        shift
-      else
-        printf "invalid argument: %s\n" "$key"
-        exit 1
-      fi
-      ;;
-
-    esac
-  done
-  # :command.required_args_filter
-  if [[ -z ${args[project]+x} ]]; then
-    printf "missing required argument: PROJECT\nusage: orcli info PROJECT\n"
-    exit 1
-  fi
   # :command.required_flags_filter
   # :command.catch_all_filter
   # :command.default_assignments
@@ -810,6 +892,196 @@ orcli_list_parse_requirements() {
   # :command.user_filter
 }
 
+# :command.parse_requirements
+orcli_info_parse_requirements() {
+  # :command.fixed_flags_filter
+  case "${1:-}" in
+  --help | -h )
+    long_usage=yes
+    orcli_info_usage
+    exit
+    ;;
+
+  esac
+  # :command.environment_variables_filter
+  # :command.dependencies_filter
+  # :command.command_filter
+  action="info"
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+    -?* )
+      printf "invalid option: %s\n" "$key"
+      exit 1
+      ;;
+
+    * )
+      # :command.parse_requirements_case
+      if [[ -z ${args[project]+x} ]]; then
+        # :argument.validations
+        args[project]=$1
+        shift
+      else
+        printf "invalid argument: %s\n" "$key"
+        exit 1
+      fi
+      ;;
+
+    esac
+  done
+  # :command.required_args_filter
+  if [[ -z ${args[project]+x} ]]; then
+    printf "missing required argument: PROJECT\nusage: orcli info PROJECT\n"
+    exit 1
+  fi
+  # :command.required_flags_filter
+  # :command.catch_all_filter
+  # :command.default_assignments
+  # :command.whitelist_filter
+  # :command.user_filter
+}
+
+# :command.parse_requirements
+orcli_export_parse_requirements() {
+  # :command.fixed_flags_filter
+  case "${1:-}" in
+  --help | -h )
+    long_usage=yes
+    orcli_export_usage
+    exit
+    ;;
+
+  esac
+  # :command.environment_variables_filter
+  # :command.dependencies_filter
+  # :command.command_filter
+  action=${1:-}
+
+  case $action in
+  -* )
+    ;;
+
+  tsv )
+    action="tsv"
+    shift
+    orcli_export_tsv_parse_requirements "$@"
+    shift $#
+    ;;
+
+  # :command.command_fallback
+  * )
+    orcli_export_usage
+    exit 1
+    ;;
+
+  esac
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+    -?* )
+      printf "invalid option: %s\n" "$key"
+      exit 1
+      ;;
+
+    * )
+      # :command.parse_requirements_case
+      printf "invalid argument: %s\n" "$key"
+      exit 1
+      ;;
+
+    esac
+  done
+  # :command.required_args_filter
+  # :command.required_flags_filter
+  # :command.catch_all_filter
+  # :command.default_assignments
+  # :command.whitelist_filter
+  # :command.user_filter
+}
+
+# :command.parse_requirements
+orcli_export_tsv_parse_requirements() {
+  # :command.fixed_flags_filter
+  case "${1:-}" in
+  --help | -h )
+    long_usage=yes
+    orcli_export_tsv_usage
+    exit
+    ;;
+
+  esac
+  # :command.environment_variables_filter
+  # :command.dependencies_filter
+  # :command.command_filter
+  action="export tsv"
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+    # :flag.case
+    --output )
+      # :flag.conflicts
+      if [[ -n ${2+x} ]]; then
+        # :flag.validations
+        args[--output]="$2"
+        shift
+        shift
+      else
+        printf "%s\n" "--output requires an argument: --output FILE"
+        exit 1
+      fi
+      ;;
+
+    # :flag.case
+    --encoding )
+      # :flag.conflicts
+      if [[ -n ${2+x} ]]; then
+        # :flag.validations
+        args[--encoding]="$2"
+        shift
+        shift
+      else
+        printf "%s\n" "--encoding requires an argument: --encoding ENCODING"
+        exit 1
+      fi
+      ;;
+
+    -?* )
+      printf "invalid option: %s\n" "$key"
+      exit 1
+      ;;
+
+    * )
+      # :command.parse_requirements_case
+      if [[ -z ${args[project]+x} ]]; then
+        # :argument.validations
+        args[project]=$1
+        shift
+      else
+        printf "invalid argument: %s\n" "$key"
+        exit 1
+      fi
+      ;;
+
+    esac
+  done
+  # :command.required_args_filter
+  if [[ -z ${args[project]+x} ]]; then
+    printf "missing required argument: PROJECT\nusage: orcli export tsv PROJECT [options]\n"
+    exit 1
+  fi
+  # :command.required_flags_filter
+  # :command.catch_all_filter
+  # :command.default_assignments
+  [[ -n ${args[--encoding]:-} ]] || args[--encoding]="UTF-8"
+  # :command.whitelist_filter
+  # :command.user_filter
+}
+
 # :command.initialize
 initialize() {
   version="0.1.0"
@@ -827,15 +1099,7 @@ run() {
   normalize_input "$@"
   parse_requirements "${input[@]}"
 
-  if [[ $action == "info" ]]; then
-    if [[ ${args[--help]:-} ]]; then
-      long_usage=yes
-      orcli_info_usage
-    else
-      orcli_info_command
-    fi
-
-  elif [[ $action == "import" ]]; then
+  if [[ $action == "import" ]]; then
     if [[ ${args[--help]:-} ]]; then
       long_usage=yes
       orcli_import_usage
@@ -857,6 +1121,30 @@ run() {
       orcli_list_usage
     else
       orcli_list_command
+    fi
+
+  elif [[ $action == "info" ]]; then
+    if [[ ${args[--help]:-} ]]; then
+      long_usage=yes
+      orcli_info_usage
+    else
+      orcli_info_command
+    fi
+
+  elif [[ $action == "export" ]]; then
+    if [[ ${args[--help]:-} ]]; then
+      long_usage=yes
+      orcli_export_usage
+    else
+      orcli_export_command
+    fi
+
+  elif [[ $action == "export tsv" ]]; then
+    if [[ ${args[--help]:-} ]]; then
+      long_usage=yes
+      orcli_export_tsv_usage
+    else
+      orcli_export_tsv_command
     fi
 
   elif [[ $action == "root" ]]; then
