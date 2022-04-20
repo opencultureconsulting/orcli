@@ -27,7 +27,7 @@ if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
 fi
 
 # start OpenRefine with tmp workspace and autosave period 25 hours
-$openrefine -d "$tmpdir" -m "${args[--memory]}" -p "${args[--port]}" -x refine.autosave=1440 -v warn &>"$tmpdir/openrefine.log" &
+REFINE_AUTOSAVE_PERIOD=1440 $openrefine -d "$tmpdir" -m "${args[--memory]}" -p "${args[--port]}" -x refine.headless=true -v warn &>"$tmpdir/openrefine.log" &
 openrefine_pid="$!"
 
 # update trap to kill OpenRefine on error or exit
