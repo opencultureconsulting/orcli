@@ -4,7 +4,7 @@ if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-
   error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
 else
   if [[ "${response}" == '{"projects":{}}' ]]; then
-    log "${OPENREFINE_URL} contains zero projects"
+    log "${OPENREFINE_URL} does not contain any projects yet."
   else
     echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"'
   fi

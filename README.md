@@ -56,9 +56,11 @@ Usage:
   orcli --version | -v
 
 Commands:
-  info     show project metadata
+  batch    start tmp OpenRefine workspace and run multiple orcli commands
   import   import commands
   list     list projects on OpenRefine server
+  info     show project metadata
+  export   export commands
 
 Options:
   --help, -h
@@ -73,12 +75,15 @@ Environment Variables:
     Default: http://localhost:3333
 
 Examples:
+  orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
   orcli list
-  orcli import csv file
-  orcli import csv
-  "https://github.com/LibraryCarpentry/lc-open-refine/raw/gh-pages/data/doaj-article-sample.csv"
-  orcli info Clipboard
-  orcli info 1234567890123
+  orcli info "duplicates"
+  orcli export tsv "duplicates"
+  orcli export tsv "duplicates" --output "duplicates.tsv"
+  orcli batch \
+    import csv "https://git.io/fj5hF" --projectName "duplicates" \
+    info "duplicates" \
+    export tsv "duplicates"
 
 https://github.com/opencultureconsulting/orcli
 ```
@@ -95,9 +100,8 @@ gem install bashly
 
 2. Edit code in [src](src) directory
 
-3. Validate and generate script
+3. Generate script
 
 ```sh
-bashly validate
 bashly generate
 ```

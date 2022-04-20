@@ -27,9 +27,9 @@ if [[ ${args[--output]} ]]; then
     curloptions+=("${args[--output]}")
 fi
 if ! curl -fs "${curloptions[@]}" "${OPENREFINE_URL}/command/core/export-rows"; then
-    error "export of ${args[project]} failed!"
+    error "exporting ${args[project]} failed!"
 else
     if [[ ${args[--output]} ]]; then
-        log "export of ${args[project]} successful" "file:${args[--output]}" "rows:$(cat "${args[--output]}" | wc -l )"
+        log "exported ${args[project]}" "file: ${args[--output]}" "rows: $(wc -l <"${args[--output]}")"
     fi
 fi

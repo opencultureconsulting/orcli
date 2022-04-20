@@ -13,14 +13,55 @@ environment_variables:
     default: "http://localhost:3333"
 
 examples:
-  - orcli import csv file
-  - orcli import csv "https://github.com/LibraryCarpentry/lc-open-refine/raw/gh-pages/data/doaj-article-sample.csv"
+  - orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
   - orcli list
-  - orcli info "doaj article sample csv"
-  - orcli export tsv "doaj article sample csv"
-  - orcli export tsv "doaj article sample csv" --output doaj.tsv
+  - orcli info "duplicates"
+  - orcli export tsv "duplicates"
+  - orcli export tsv "duplicates" --output "duplicates.tsv"
+  - |-
+    orcli batch \\\\
+      import csv "https://git.io/fj5hF" --projectName "duplicates" \\\\
+      info "duplicates" \\\\
+      export tsv "duplicates"
 
 commands:
+  - name: batch
+    help: start tmp OpenRefine workspace and run multiple orcli commands
+    catch_all:
+      label: orcli commands
+      help: |-
+        provide orcli commands without further separators (see examples below)
+        avoid "import" "info" "list" "transform" "export" in file or project names
+        use bash -c to execute custom commands
+      required: true
+    flags:
+      - long: --memory
+        help: maximum RAM for OpenRefine java heap space
+        arg: ram
+        default: "2048M"
+      - long: --port
+        help: PORT on which OpenRefine should listen
+        arg: port
+        default: "3333"
+      - long: --quiet
+        short: -q
+        help: suppress log output, print errors only
+    examples:
+      - |-
+        orcli batch \\\\
+          import csv "https://git.io/fj5hF" --projectName "duplicates" \\\\
+          info "duplicates" \\\\
+          export tsv "duplicates"
+      - |-
+        orcli batch --memory "2000M" --port "3334" \\\\
+          import csv "https://git.io/fj5hF" --projectName "duplicates" \\\\
+          export tsv "duplicates"
+      - |-
+        orcli batch --quiet \\\\
+          import csv "https://git.io/fj5hF" --projectName "duplicates" \\\\
+          export tsv "duplicates" --output "output/duplicates.tsv" \\\\
+          bash -c 'wc -l output/*; echo "finished" in \$SECONDS seconds'
+
   - name: import
     help: import commands
 
@@ -45,14 +86,27 @@ commands:
           - long: --projectName
             arg: projectName
             help: set a name for the OpenRefine project
+          - long: --quiet
+            short: -q
+            help: suppress log output, print errors only
         examples:
-          - orcli import csv file
-          - cat file | orcli import csv
-          - orcli import csv file --separator ; --encoding ISO-8859-1 --trimStrings --projectName example
-          - orcli import csv "https://github.com/LibraryCarpentry/lc-open-refine/raw/gh-pages/data/doaj-article-sample.csv"
+          - orcli import csv "file"
+          - orcli import csv "file1" "file2"
+          - cat "file" | orcli import csv
+          - orcli import csv "https://git.io/fj5hF"
+          - |-
+            orcli import csv "file" \\\\
+              --separator ";" \\\\
+              --encoding "ISO-8859-1" \\\\
+              --trimStrings \\\\
+              --projectName "duplicates"
 
   - name: list
     help: list projects on OpenRefine server
+    flags:
+      - long: --quiet
+        short: -q
+        help: suppress log output, print errors only
 
   - name: info
     help: show project metadata
@@ -60,8 +114,12 @@ commands:
       - name: project
         help: project name or id
         required: true
+    flags:
+      - long: --quiet
+        short: -q
+        help: suppress log output, print errors only
     examples:
-      - info Clipboard
+      - info "duplicates"
       - info 1234567890123
 
   - name: export
@@ -82,6 +140,9 @@ commands:
             help: set character encoding
             arg: encoding
             default: "UTF-8"
+          - long: --quiet
+            short: -q
+            help: suppress log output, print errors only
         examples:
-          - orcli export tsv Clipboard
-          - orcli export tsv Clipboard --output clipboard.tsv
+          - orcli export tsv "duplicates"
+          - orcli export tsv "duplicates" --output "duplicates.tsv"
