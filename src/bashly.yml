@@ -78,38 +78,10 @@ commands:
           - long: --output
             help: Write to file instead of stdout
             arg: file
-          #- long: --column
-          #  help: filter result set to one or more columns
-          #  repeatable: true
-          #- long: --facet
-          #  help: filter result set by providing an OpenRefine facet config in json
-          #  repeatable: true
-          #- long: --mode
-          #  help: set operation mode
-          #  arg: mode
-          #  default: "row-based"
           - long: --encoding
             help: set character encoding
             arg: encoding
             default: "UTF-8"
-          #- long: --noColumnHeaders
-          #  help: do not output column headers
-          #- long: --blankRows
-          #  help: output blank rows
-          #- long: --quoteAll
-          #  help: quote all cells
-          #- long: --preview
-          #  help: limit export to 10 rows/records
-          #- long: --separator
-          #  help: character(s) that separates columns
-          #  arg: separator
-          #  default: "\t"
-          #- long: --lineSeparator
-          #  help: character(s) that separates rows/records
-          #  arg: lineSeparator
-          #  default: "\n"
         examples:
           - orcli export tsv Clipboard
           - orcli export tsv Clipboard --output clipboard.tsv
-          #- orcli export tsv Clipboard --output clipboard.tsv --facet '{"type":"text","name":"a","columnName":"a","mode":"text","caseSensitive":false,"invert":false,"query":"1"}'
-          #- orcli export tsv Clipboard --output clipboard.tsv --column a --column b
