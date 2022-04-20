@@ -6,7 +6,9 @@ tasks:
       wget -q -O openrefine.tar.gz https://github.com/OpenRefine/OpenRefine/releases/download/3.5.2/openrefine-linux-3.5.2.tar.gz
       tar --exclude 'licenses' --exclude 'LICENSE.txt' --exclude 'README.md'  -xzf openrefine.tar.gz --strip 1
       rm openrefine.tar.gz
-    command: ./refine
+    command: |
+      sudo ln -s "${PWD}/orcli" /usr/local/bin/
+      ./refine
 
 ports:
   - port: 3333
