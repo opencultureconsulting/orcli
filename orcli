@@ -34,6 +34,7 @@ orcli_usage() {
   echo
   # :command.usage_commands
   printf "Commands:\n"
+  echo "  batch    start tmp OpenRefine workspace and run multiple orcli commands"
   echo "  import   import commands"
   echo "  list     list projects on OpenRefine server"
   echo "  info     show project metadata"
@@ -61,15 +62,73 @@ orcli_usage() {
     # :command.usage_examples
     printf "Examples:\n"
 
-    printf "  orcli import csv file\n"
-    printf "  orcli import csv\n  \"https://github.com/LibraryCarpentry/lc-open-refine/raw/gh-pages/data/doaj-article-sample.csv\"\n"
+    printf "  orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n"
     printf "  orcli list\n"
-    printf "  orcli info \"doaj article sample csv\"\n"
-    printf "  orcli export tsv \"doaj article sample csv\"\n"
-    printf "  orcli export tsv \"doaj article sample csv\" --output doaj.tsv\n"
+    printf "  orcli info \"duplicates\"\n"
+    printf "  orcli export tsv \"duplicates\"\n"
+    printf "  orcli export tsv \"duplicates\" --output \"duplicates.tsv\"\n"
+    printf "  orcli batch \\\\\n    import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" \\\\\n    info \"duplicates\" \\\\\n    export tsv \"duplicates\"\n"
     echo
     # :command.footer
     printf "https://github.com/opencultureconsulting/orcli\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+orcli_batch_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "orcli batch - start tmp OpenRefine workspace and run multiple orcli commands\n"
+    echo
+
+  else
+    printf "orcli batch - start tmp OpenRefine workspace and run multiple orcli commands\n"
+    echo
+
+  fi
+
+  printf "Usage:\n"
+  printf "  orcli batch [options] ORCLI COMMANDS...\n"
+  printf "  orcli batch --help | -h\n"
+  echo
+
+  if [[ -n $long_usage ]]; then
+    printf "Options:\n"
+    # :command.usage_fixed_flags
+    echo "  --help, -h"
+    printf "    Show this help\n"
+    echo
+    # :command.usage_flags
+    # :flag.usage
+    echo "  --memory RAM"
+    printf "    maximum RAM for OpenRefine java heap space\n"
+    printf "    Default: 2048M\n"
+    echo
+
+    # :flag.usage
+    echo "  --port PORT"
+    printf "    PORT on which OpenRefine should listen\n"
+    printf "    Default: 3333\n"
+    echo
+
+    # :flag.usage
+    echo "  --quiet, -q"
+    printf "    suppress log output, print errors only\n"
+    echo
+    # :command.usage_args
+    printf "Arguments:\n"
+
+    echo "  ORCLI COMMANDS..."
+    printf "    provide orcli commands without further separators (see examples below)\n    avoid \"import\" \"info\" \"list\" \"transform\" \"export\" in file or project names\n    use bash -c to execute custom commands\n"
+    echo
+
+    # :command.usage_examples
+    printf "Examples:\n"
+
+    printf "  orcli batch \\\\\n    import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" \\\\\n    info \"duplicates\" \\\\\n    export tsv \"duplicates\"\n"
+    printf "  orcli batch --memory \"2000M\" --port \"3334\" \\\\\n    import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" \\\\\n    export tsv \"duplicates\"\n"
+    printf "  orcli batch --quiet \\\\\n    import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" \\\\\n    export tsv \"duplicates\" --output \"output/duplicates.tsv\" \\\\\n    bash -c 'wc -l output/*; echo \"finished\" in \$SECONDS seconds'\n"
     echo
 
   fi
@@ -150,6 +209,11 @@ orcli_import_csv_usage() {
     echo "  --projectName PROJECTNAME"
     printf "    set a name for the OpenRefine project\n"
     echo
+
+    # :flag.usage
+    echo "  --quiet, -q"
+    printf "    suppress log output, print errors only\n"
+    echo
     # :command.usage_args
     printf "Arguments:\n"
 
@@ -162,10 +226,11 @@ orcli_import_csv_usage() {
     # :command.usage_examples
     printf "Examples:\n"
 
-    printf "  orcli import csv file\n"
-    printf "  cat file | orcli import csv\n"
-    printf "  orcli import csv file --separator ; --encoding ISO-8859-1 --trimStrings\n  --projectName example\n"
-    printf "  orcli import csv\n  \"https://github.com/LibraryCarpentry/lc-open-refine/raw/gh-pages/data/doaj-article-sample.csv\"\n"
+    printf "  orcli import csv \"file\"\n"
+    printf "  orcli import csv \"file1\" \"file2\"\n"
+    printf "  cat \"file\" | orcli import csv\n"
+    printf "  orcli import csv \"https://git.io/fj5hF\"\n"
+    printf "  orcli import csv \"file\" \\\\\n    --separator \";\" \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\"\n"
     echo
 
   fi
@@ -184,7 +249,7 @@ orcli_list_usage() {
   fi
 
   printf "Usage:\n"
-  printf "  orcli list\n"
+  printf "  orcli list [options]\n"
   printf "  orcli list --help | -h\n"
   echo
 
@@ -193,6 +258,11 @@ orcli_list_usage() {
     # :command.usage_fixed_flags
     echo "  --help, -h"
     printf "    Show this help\n"
+    echo
+    # :command.usage_flags
+    # :flag.usage
+    echo "  --quiet, -q"
+    printf "    suppress log output, print errors only\n"
     echo
 
   fi
@@ -211,7 +281,7 @@ orcli_info_usage() {
   fi
 
   printf "Usage:\n"
-  printf "  orcli info PROJECT\n"
+  printf "  orcli info PROJECT [options]\n"
   printf "  orcli info --help | -h\n"
   echo
 
@@ -221,7 +291,11 @@ orcli_info_usage() {
     echo "  --help, -h"
     printf "    Show this help\n"
     echo
-
+    # :command.usage_flags
+    # :flag.usage
+    echo "  --quiet, -q"
+    printf "    suppress log output, print errors only\n"
+    echo
     # :command.usage_args
     printf "Arguments:\n"
 
@@ -233,7 +307,7 @@ orcli_info_usage() {
     # :command.usage_examples
     printf "Examples:\n"
 
-    printf "  info Clipboard\n"
+    printf "  info \"duplicates\"\n"
     printf "  info 1234567890123\n"
     echo
 
@@ -305,6 +379,11 @@ orcli_export_tsv_usage() {
     printf "    set character encoding\n"
     printf "    Default: UTF-8\n"
     echo
+
+    # :flag.usage
+    echo "  --quiet, -q"
+    printf "    suppress log output, print errors only\n"
+    echo
     # :command.usage_args
     printf "Arguments:\n"
 
@@ -316,8 +395,8 @@ orcli_export_tsv_usage() {
     # :command.usage_examples
     printf "Examples:\n"
 
-    printf "  orcli export tsv Clipboard\n"
-    printf "  orcli export tsv Clipboard --output clipboard.tsv\n"
+    printf "  orcli export tsv \"duplicates\"\n"
+    printf "  orcli export tsv \"duplicates\" --output \"duplicates.tsv\"\n"
     echo
 
   fi
@@ -409,9 +488,7 @@ function get_id() {
 # common import tasks to support multiple files and URLs
 # shellcheck shell=bash
 function init_import() {
-    local files
-    local file
-    local tmpdir
+    local files file tmpdir
     # catch args, convert the space delimited string to an array
     files=()
     eval "files=(${args[file]})"
@@ -421,16 +498,27 @@ function init_import() {
     # download files if name starts with http:// or https://
     for i in "${!files[@]}"; do
         if [[ ${files[$i]} == "http://"* ]] || [[ ${files[$i]} == "https://"* ]]; then
-            if ! curl -fs --location "${files[$i]}" >"${tmpdir}/${files[$i]##*/}"; then
+            if ! curl -fs --location "${files[$i]}" >"${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"; then
                 error "download of ${files[$i]} failed!"
             fi
-            files[$i]="${tmpdir}/${files[$i]##*/}"
+            files[$i]="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
+        fi
+    done
+    # read pipes if name starts with /dev/fd
+    for i in "${!files[@]}"; do
+        if [[ ${files[$i]} == "/dev/fd"* ]]; then
+            if ! cat "${files[$i]}" >"${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"; then
+                error "reading of ${files[$i]} failed!"
+            fi
+            files[$i]="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
         fi
     done
     # create a zip archive if there are multiple files
     if [[ ${#files[@]} -gt 1 ]]; then
         file="$tmpdir/Untitled.zip"
-        zip "$file" "${files[@]}"
+        if ! zip --quiet --must-match "$file" "${files[@]}"; then
+            error "creating zip archive with ${files[*]} failed!"
+        fi
     else
         file="${files[0]}"
     fi
@@ -461,13 +549,15 @@ function init_import() {
 function error() {
   echo >&2 "[$(date +'%Y-%m-%dT%H:%M:%S')] ERROR: $1"
   shift
-  for msg in "$@"; do echo >&2 "$msg"; done
+  for msg in "$@"; do echo >&2 "  $msg"; done
   exit 1
 }
 function log() {
-  echo >&2 "[$(date +'%Y-%m-%dT%H:%M:%S')] $1"
-  shift
-  for msg in "$@"; do echo >&2 "$msg"; done
+  if ! [[ ${args[--quiet]} ]]; then
+    echo >&2 "[$(date +'%Y-%m-%dT%H:%M:%S')] $1"
+    shift
+    for msg in "$@"; do echo >&2 "  $msg"; done
+  fi
 }
 
 # src/lib/post_import.sh
@@ -484,24 +574,92 @@ function post_import() {
         echo "$d"
     done)
     if ! redirect_url="$(curl -fs --write-out "%{redirect_url}\n" "${curloptions[@]}" "${OPENREFINE_URL}/command/core/create-project-from-upload$(get_csrf)")"; then
-        error "import of ${args[file]} failed!"
+        error "importing ${args[file]} failed!"
     fi
     # validate
     projectid=$(cut -d '=' -f 2 <<<"$redirect_url")
     if [[ ${#projectid} != 13 ]]; then
-        error "import of ${args[file]} failed!"
+        error "importing ${args[file]} failed!"
     fi
     projectname=$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-project-metadata" | tr "," "\n" | grep name | cut -d ":" -f 2)
     projectname="${projectname:1:${#projectname}-2}"
     rows=$(curl -fs --get --data project="$projectid" --data limit=0 "${OPENREFINE_URL}/command/core/get-rows" | tr "," "\n" | grep total | cut -d ":" -f 2)
     if [[ "$rows" = "0" ]]; then
-        error "import of ${args[file]} contains 0 rows!" "${redirect_url}" "name:${projectname}" "rows:${rows}"
+        error "import of ${args[file]} contains 0 rows!"
     else
-        log "import of ${args[file]} successful" "${redirect_url}" "name:${projectname}" "rows:${rows}"
+        log "imported ${args[file]}" "${redirect_url}" "name: ${projectname}" "rows: ${rows}"
     fi
 }
 
 # :command.command_functions
+# :command.function
+orcli_batch_command() {
+  # src/batch_command.sh
+  # shellcheck shell=bash disable=SC2154
+
+  # locate orcli and OpenRefine
+  if command -v orcli &>/dev/null; then
+      orcli="orcli"
+  elif [[ -x "orcli" ]]; then
+      orcli="./orcli"
+  else
+      error "orcli is not executable!" "Try: chmod + ./orcli"
+  fi
+  if [[ -x "refine" ]]; then
+      openrefine="./refine"
+  else
+      error "OpenRefine's startup script (refine) not found!" "Did you put orcli in your OpenRefine app dir?"
+  fi
+
+  # create tmp directory
+  tmpdir="$(mktemp -d)"
+  trap '{ rm -rf "$tmpdir"; }' 0 2 3 15
+
+  # update OPENREFINE_URL env
+  OPENREFINE_URL="http://localhost:${args[--port]}"
+
+  # check if OpenRefine is already running
+  if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
+      error "OpenRefine is already running on port ${args[--port]}." "Hint: Stop the other process or use another port."
+  fi
+
+  # start OpenRefine with tmp workspace and autosave period 25 hours
+  $openrefine -d "$tmpdir" -m "${args[--memory]}" -p "${args[--port]}" -x refine.autosave=1440 -v warn &>"$tmpdir/openrefine.log" &
+  openrefine_pid="$!"
+
+  # update trap to kill OpenRefine on error or exit
+  trap '{ rm -rf "$tmpdir"; kill -9 "$openrefine_pid"; }' 0 2 3 15
+
+  # wait until OpenRefine is running (timeout 20s)
+  if ! curl -fs --retry 20 --retry-connrefused --retry-delay 1 "${OPENREFINE_URL}/command/core/get-version" &>/dev/null; then
+      error "starting OpenRefine server failed!"
+  else
+      log "started OpenRefine" "port: ${args[--port]}" "memory: ${args[--memory]}" "tmpdir: ${tmpdir}" "pid: ${openrefine_pid}"
+  fi
+
+  # assemble command groups from catch-all
+  i=0
+  for arg in "${other_args[@]}"; do
+      if [[ $arg =~ ^(bash|import|info|list|transform|export)$ ]]; then
+          ((i = i + 1))
+          groups+=("group$i")
+      fi
+      declare -a group${i}+="(\"$arg\")"
+  done
+
+  # call command for each group
+  for group in "${groups[@]}"; do
+      declare arrayRef="${group}[@]"
+      command=("${!arrayRef}")
+      if [[ ${command[0]} == "bash" ]]; then
+          "${command[@]}"
+      elif [[ ${args[--quiet]} ]]; then
+          "$orcli" "${command[@]}" --quiet
+      else
+          "$orcli" "${command[@]}"
+      fi
+  done
+}
 
 # :command.function
 orcli_import_csv_command() {
@@ -545,7 +703,7 @@ orcli_list_command() {
     error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
   else
     if [[ "${response}" == '{"projects":{}}' ]]; then
-      log "${OPENREFINE_URL} contains zero projects"
+      log "${OPENREFINE_URL} does not contain any projects yet."
     else
       echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"'
     fi
@@ -591,10 +749,10 @@ orcli_export_tsv_command() {
       curloptions+=("${args[--output]}")
   fi
   if ! curl -fs "${curloptions[@]}" "${OPENREFINE_URL}/command/core/export-rows"; then
-      error "export of ${args[project]} failed!"
+      error "exporting ${args[project]} failed!"
   else
       if [[ ${args[--output]} ]]; then
-          log "export of ${args[project]} successful" "file:${args[--output]}" "rows:$(cat "${args[--output]}" | wc -l )"
+          log "exported ${args[project]}" "file: ${args[--output]}" "rows: $(wc -l <"${args[--output]}")"
       fi
   fi
 }
@@ -631,6 +789,13 @@ parse_requirements() {
 
   case $action in
   -* )
+    ;;
+
+  batch )
+    action="batch"
+    shift
+    orcli_batch_parse_requirements "$@"
+    shift $#
     ;;
 
   import )
@@ -690,6 +855,87 @@ parse_requirements() {
   # :command.required_flags_filter
   # :command.catch_all_filter
   # :command.default_assignments
+  # :command.whitelist_filter
+  # :command.user_filter
+}
+
+# :command.parse_requirements
+orcli_batch_parse_requirements() {
+  # :command.fixed_flags_filter
+  case "${1:-}" in
+  --help | -h )
+    long_usage=yes
+    orcli_batch_usage
+    exit
+    ;;
+
+  esac
+  # :command.environment_variables_filter
+  # :command.dependencies_filter
+  # :command.command_filter
+  action="batch"
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+    # :flag.case
+    --memory )
+      # :flag.conflicts
+      if [[ -n ${2+x} ]]; then
+        # :flag.validations
+        args[--memory]="$2"
+        shift
+        shift
+      else
+        printf "%s\n" "--memory requires an argument: --memory RAM"
+        exit 1
+      fi
+      ;;
+
+    # :flag.case
+    --port )
+      # :flag.conflicts
+      if [[ -n ${2+x} ]]; then
+        # :flag.validations
+        args[--port]="$2"
+        shift
+        shift
+      else
+        printf "%s\n" "--port requires an argument: --port PORT"
+        exit 1
+      fi
+      ;;
+
+    # :flag.case
+    --quiet | -q )
+      # :flag.conflicts
+      args[--quiet]=1
+      shift
+      ;;
+
+    -?* )
+      other_args+=("$1")
+      shift
+      ;;
+
+    * )
+      # :command.parse_requirements_case
+        other_args+=("$1")
+        shift
+      ;;
+
+    esac
+  done
+  # :command.required_args_filter
+  # :command.required_flags_filter
+  # :command.catch_all_filter
+  if [[ ${#other_args[@]} -eq 0 ]]; then
+    printf "missing required argument: ORCLI COMMANDS...\nusage: orcli batch [options] ORCLI COMMANDS...\n"
+    exit 1
+  fi
+  # :command.default_assignments
+  [[ -n ${args[--memory]:-} ]] || args[--memory]="2048M"
+  [[ -n ${args[--port]:-} ]] || args[--port]="3333"
   # :command.whitelist_filter
   # :command.user_filter
 }
@@ -822,6 +1068,13 @@ orcli_import_csv_parse_requirements() {
       fi
       ;;
 
+    # :flag.case
+    --quiet | -q )
+      # :flag.conflicts
+      args[--quiet]=1
+      shift
+      ;;
+
     -?* )
       printf "invalid option: %s\n" "$key"
       exit 1
@@ -870,6 +1123,12 @@ orcli_list_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+    # :flag.case
+    --quiet | -q )
+      # :flag.conflicts
+      args[--quiet]=1
+      shift
+      ;;
 
     -?* )
       printf "invalid option: %s\n" "$key"
@@ -911,6 +1170,12 @@ orcli_info_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+    # :flag.case
+    --quiet | -q )
+      # :flag.conflicts
+      args[--quiet]=1
+      shift
+      ;;
 
     -?* )
       printf "invalid option: %s\n" "$key"
@@ -933,7 +1198,7 @@ orcli_info_parse_requirements() {
   done
   # :command.required_args_filter
   if [[ -z ${args[project]+x} ]]; then
-    printf "missing required argument: PROJECT\nusage: orcli info PROJECT\n"
+    printf "missing required argument: PROJECT\nusage: orcli info PROJECT [options]\n"
     exit 1
   fi
   # :command.required_flags_filter
@@ -1050,6 +1315,13 @@ orcli_export_tsv_parse_requirements() {
       fi
       ;;
 
+    # :flag.case
+    --quiet | -q )
+      # :flag.conflicts
+      args[--quiet]=1
+      shift
+      ;;
+
     -?* )
       printf "invalid option: %s\n" "$key"
       exit 1
@@ -1099,7 +1371,15 @@ run() {
   normalize_input "$@"
   parse_requirements "${input[@]}"
 
-  if [[ $action == "import" ]]; then
+  if [[ $action == "batch" ]]; then
+    if [[ ${args[--help]:-} ]]; then
+      long_usage=yes
+      orcli_batch_usage
+    else
+      orcli_batch_command
+    fi
+
+  elif [[ $action == "import" ]]; then
     if [[ ${args[--help]:-} ]]; then
       long_usage=yes
       orcli_import_usage
