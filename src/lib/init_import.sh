@@ -29,7 +29,9 @@ function init_import() {
     # create a zip archive if there are multiple files
     if [[ ${#files[@]} -gt 1 ]]; then
         file="$tmpdir/Untitled.zip"
-        zip "$file" "${files[@]}"
+        if ! zip --quiet --must-match "$file" "${files[@]}"; then
+            error "creating zip archive with ${files[*]} failed!"
+        fi
     else
         file="${files[0]}"
     fi
