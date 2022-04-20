@@ -1,9 +1,7 @@
 # common import tasks to support multiple files and URLs
 # shellcheck shell=bash
 function init_import() {
-    local files
-    local file
-    local tmpdir
+    local files file tmpdir
     # catch args, convert the space delimited string to an array
     files=()
     eval "files=(${args[file]})"
@@ -13,10 +11,10 @@ function init_import() {
     # download files if name starts with http:// or https://
     for i in "${!files[@]}"; do
         if [[ ${files[$i]} == "http://"* ]] || [[ ${files[$i]} == "https://"* ]]; then
-            if ! curl -fs --location "${files[$i]}" >"${tmpdir}/${files[$i]##*/}"; then
+            if ! curl -fs --location "${files[$i]}" >"${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"; then
                 error "download of ${files[$i]} failed!"
             fi
-            files[$i]="${tmpdir}/${files[$i]##*/}"
+            files[$i]="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
         fi
     done
     # create a zip archive if there are multiple files
