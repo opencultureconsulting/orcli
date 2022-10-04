@@ -25,6 +25,10 @@ examples:
       export tsv "duplicates"
 
 commands:
+  - name: completions
+    help: |-
+      Generate bash completions
+      Usage: eval "\$(orcli completions)"
   - name: batch
     help: start tmp OpenRefine workspace and run multiple orcli commands
     catch_all:

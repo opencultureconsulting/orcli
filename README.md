@@ -103,5 +103,5 @@ gem install bashly
 3. Generate script
 
 ```sh
-bashly generate
+bashly generate --upgrade
 ```

@@ -8,6 +8,7 @@ tasks:
       rm openrefine.tar.gz
     command: |
       sudo ln -s "${PWD}/orcli" /usr/local/bin/
+      eval "$(orcli completions)"
       ./refine
 
 ports:
