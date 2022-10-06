@@ -20,9 +20,9 @@ examples:
   - orcli export tsv "duplicates" --output "duplicates.tsv"
   - |-
     orcli batch << EOF
-    orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-    orcli info "duplicates"
-    orcli export tsv "duplicates"
+      orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+      orcli info "duplicates"
+      orcli export tsv "duplicates"
     EOF
 
 commands:
@@ -53,28 +53,28 @@ commands:
     examples:
       - |-
         orcli batch << EOF
-        orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-        orcli export tsv "duplicates"
+          orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+          orcli export tsv "duplicates"
         EOF
       - |-
         orcli batch --memory "2000M" --port "3334" << EOF
-        orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-        orcli import csv "https://git.io/fj5hF" --projectName "copy"
-        orcli info "duplicates"
-        orcli info "copy"
-        orcli export tsv "duplicates"
+          orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+          orcli import csv "https://git.io/fj5hF" --projectName "copy"
+          orcli info "duplicates"
+          orcli info "copy"
+          orcli export tsv "duplicates"
         EOF
       - |-
         orcli batch --quiet << EOF
-        orcli import csv "https://git.io/fj5hF" --projectName "duplicates" &
-        orcli import csv "https://git.io/fj5hF" --projectName "copy" &
-        wait
-        echo "finished import"
-        orcli export csv "duplicates" --output duplicates.csv &
-        orcli export tsv "duplicates" --output duplicates.tsv &
-        wait
-        wc duplicates*
-        echo "finished in $SECONDS seconds"
+          orcli import csv "https://git.io/fj5hF" --projectName "duplicates" &
+          orcli import csv "https://git.io/fj5hF" --projectName "copy" &
+          wait
+          echo "finished import"
+          orcli export csv "duplicates" --output duplicates.csv &
+          orcli export tsv "duplicates" --output duplicates.tsv &
+          wait
+          wc duplicates*
+          echo "finished in $SECONDS seconds"
         EOF
 
   - name: import

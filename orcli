@@ -70,7 +70,7 @@ orcli_usage() {
     printf "  orcli info \"duplicates\"\n"
     printf "  orcli export tsv \"duplicates\"\n"
     printf "  orcli export tsv \"duplicates\" --output \"duplicates.tsv\"\n"
-    printf "  orcli batch << EOF\n  orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n  orcli info \"duplicates\"\n  orcli export tsv \"duplicates\"\n  EOF\n"
+    printf "  orcli batch << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n    orcli info \"duplicates\"\n    orcli export tsv \"duplicates\"\n  EOF\n"
     echo
 
     # :command.footer
@@ -167,9 +167,9 @@ orcli_batch_usage() {
 
     # :command.usage_examples
     printf "Examples:\n"
-    printf "  orcli batch << EOF\n  orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n  orcli export tsv \"duplicates\"\n  EOF\n"
-    printf "  orcli batch --memory \"2000M\" --port \"3334\" << EOF\n  orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n  orcli import csv \"https://git.io/fj5hF\" --projectName \"copy\"\n  orcli info \"duplicates\"\n  orcli info \"copy\"\n  orcli export tsv \"duplicates\"\n  EOF\n"
-    printf "  orcli batch --quiet << EOF\n  orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" &\n  orcli import csv \"https://git.io/fj5hF\" --projectName \"copy\" &\n  wait\n  echo \"finished import\"\n  orcli export csv \"duplicates\" --output duplicates.csv &\n  orcli export tsv \"duplicates\" --output duplicates.tsv &\n  wait\n  wc duplicates*\n  echo \"finished in $SECONDS seconds\"\n  EOF\n"
+    printf "  orcli batch << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n    orcli export tsv \"duplicates\"\n  EOF\n"
+    printf "  orcli batch --memory \"2000M\" --port \"3334\" << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"copy\"\n    orcli info \"duplicates\"\n    orcli info \"copy\"\n    orcli export tsv \"duplicates\"\n  EOF\n"
+    printf "  orcli batch --quiet << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" &\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"copy\" &\n    wait\n    echo \"finished import\"\n    orcli export csv \"duplicates\" --output duplicates.csv &\n    orcli export tsv \"duplicates\" --output duplicates.tsv &\n    wait\n    wc duplicates*\n    echo \"finished in $SECONDS seconds\"\n  EOF\n"
     echo
 
   fi
