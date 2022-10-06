@@ -51,16 +51,17 @@ $ orcli --help
 orcli - OpenRefine command-line interface written in Bash
 
 Usage:
-  orcli [command]
-  orcli [command] --help | -h
+  orcli COMMAND
+  orcli [COMMAND] --help | -h
   orcli --version | -v
 
 Commands:
-  batch    start tmp OpenRefine workspace and run multiple orcli commands
-  import   import commands
-  list     list projects on OpenRefine server
-  info     show project metadata
-  export   export commands
+  completions   Generate bash completions
+  batch         run tmp OpenRefine workspace and execute shell script
+  import        import commands
+  list          list projects on OpenRefine server
+  info          show project metadata
+  export        export commands
 
 Options:
   --help, -h
@@ -80,10 +81,11 @@ Examples:
   orcli info "duplicates"
   orcli export tsv "duplicates"
   orcli export tsv "duplicates" --output "duplicates.tsv"
-  orcli batch \
-    import csv "https://git.io/fj5hF" --projectName "duplicates" \
-    info "duplicates" \
-    export tsv "duplicates"
+  orcli batch << EOF
+    orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+    orcli info "duplicates"
+    orcli export tsv "duplicates"
+  EOF
 
 https://github.com/opencultureconsulting/orcli
 ```
