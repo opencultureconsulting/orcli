@@ -19,25 +19,25 @@ examples:
   - orcli export tsv "duplicates"
   - orcli export tsv "duplicates" --output "duplicates.tsv"
   - |-
-    orcli batch \\\\
-      import csv "https://git.io/fj5hF" --projectName "duplicates" \\\\
-      info "duplicates" \\\\
-      export tsv "duplicates"
+    orcli batch << EOF
+    orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+    orcli info "duplicates"
+    orcli export tsv "duplicates"
+    EOF
 
 commands:
   - name: completions
     help: |-
       Generate bash completions
       Usage: eval "\$(orcli completions)"
+
   - name: batch
-    help: start tmp OpenRefine workspace and run multiple orcli commands
-    catch_all:
-      label: orcli commands
-      help: |-
-        provide orcli commands without further separators (see examples below)
-        avoid "import" "info" "list" "transform" "export" in file or project names
-        use bash -c to execute custom commands
-      required: true
+    help: run tmp OpenRefine workspace and execute shell script
+    args:
+      - name: file
+        help: Path to one or more files. When FILE is -, read standard input.
+        default: "-"
+        repeatable: true
     flags:
       - long: --memory
         help: maximum RAM for OpenRefine java heap space
@@ -52,19 +52,30 @@ commands:
         help: suppress log output, print errors only
     examples:
       - |-
-        orcli batch \\\\
-          import csv "https://git.io/fj5hF" --projectName "duplicates" \\\\
-          info "duplicates" \\\\
-          export tsv "duplicates"
+        orcli batch << EOF
+        orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+        orcli export tsv "duplicates"
+        EOF
       - |-
-        orcli batch --memory "2000M" --port "3334" \\\\
-          import csv "https://git.io/fj5hF" --projectName "duplicates" \\\\
-          export tsv "duplicates"
+        orcli batch --memory "2000M" --port "3334" << EOF
+        orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+        orcli import csv "https://git.io/fj5hF" --projectName "copy"
+        orcli info "duplicates"
+        orcli info "copy"
+        orcli export tsv "duplicates"
+        EOF
       - |-
-        orcli batch --quiet \\\\
-          import csv "https://git.io/fj5hF" --projectName "duplicates" \\\\
-          export tsv "duplicates" --output "output/duplicates.tsv" \\\\
-          bash -c 'wc -l output/*; echo "finished" in \$SECONDS seconds'
+        orcli batch --quiet << EOF
+        orcli import csv "https://git.io/fj5hF" --projectName "duplicates" &
+        orcli import csv "https://git.io/fj5hF" --projectName "copy" &
+        wait
+        echo "finished import"
+        orcli export csv "duplicates" --output duplicates.csv &
+        orcli export tsv "duplicates" --output duplicates.tsv &
+        wait
+        wc duplicates*
+        echo "finished in $SECONDS seconds"
+        EOF
 
   - name: import
     help: import commands
