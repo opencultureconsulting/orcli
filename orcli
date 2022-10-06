@@ -35,7 +35,7 @@ orcli_usage() {
   # :command.usage_commands
   printf "Commands:\n"
   echo "  completions   Generate bash completions"
-  echo "  batch         start tmp OpenRefine workspace and run multiple orcli commands"
+  echo "  batch         run tmp OpenRefine workspace and execute shell script"
   echo "  import        import commands"
   echo "  list          list projects on OpenRefine server"
   echo "  info          show project metadata"
@@ -70,7 +70,7 @@ orcli_usage() {
     printf "  orcli info \"duplicates\"\n"
     printf "  orcli export tsv \"duplicates\"\n"
     printf "  orcli export tsv \"duplicates\" --output \"duplicates.tsv\"\n"
-    printf "  orcli batch \\\\\n    import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" \\\\\n    info \"duplicates\" \\\\\n    export tsv \"duplicates\"\n"
+    printf "  orcli batch << EOF\n  orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n  orcli info \"duplicates\"\n  orcli export tsv \"duplicates\"\n  EOF\n"
     echo
 
     # :command.footer
@@ -115,17 +115,17 @@ orcli_completions_usage() {
 # :command.usage
 orcli_batch_usage() {
   if [[ -n $long_usage ]]; then
-    printf "orcli batch - start tmp OpenRefine workspace and run multiple orcli commands\n"
+    printf "orcli batch - run tmp OpenRefine workspace and execute shell script\n"
     echo
 
   else
-    printf "orcli batch - start tmp OpenRefine workspace and run multiple orcli commands\n"
+    printf "orcli batch - run tmp OpenRefine workspace and execute shell script\n"
     echo
 
   fi
 
   printf "Usage:\n"
-  printf "  orcli batch [OPTIONS] ORCLI COMMANDS...\n"
+  printf "  orcli batch [FILE...] [OPTIONS]\n"
   printf "  orcli batch --help | -h\n"
   echo
 
@@ -159,15 +159,17 @@ orcli_batch_usage() {
     # :command.usage_args
     printf "Arguments:\n"
 
-    echo "  ORCLI COMMANDS..."
-    printf "    provide orcli commands without further separators (see examples below)\n    avoid \"import\" \"info\" \"list\" \"transform\" \"export\" in file or project names\n    use bash -c to execute custom commands\n"
+    # :argument.usage
+    echo "  FILE..."
+    printf "    Path to one or more files. When FILE is -, read standard input.\n"
+    printf "    Default: -\n"
     echo
 
     # :command.usage_examples
     printf "Examples:\n"
-    printf "  orcli batch \\\\\n    import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" \\\\\n    info \"duplicates\" \\\\\n    export tsv \"duplicates\"\n"
-    printf "  orcli batch --memory \"2000M\" --port \"3334\" \\\\\n    import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" \\\\\n    export tsv \"duplicates\"\n"
-    printf "  orcli batch --quiet \\\\\n    import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" \\\\\n    export tsv \"duplicates\" --output \"output/duplicates.tsv\" \\\\\n    bash -c 'wc -l output/*; echo \"finished\" in \$SECONDS seconds'\n"
+    printf "  orcli batch << EOF\n  orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n  orcli export tsv \"duplicates\"\n  EOF\n"
+    printf "  orcli batch --memory \"2000M\" --port \"3334\" << EOF\n  orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n  orcli import csv \"https://git.io/fj5hF\" --projectName \"copy\"\n  orcli info \"duplicates\"\n  orcli info \"copy\"\n  orcli export tsv \"duplicates\"\n  EOF\n"
+    printf "  orcli batch --quiet << EOF\n  orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" &\n  orcli import csv \"https://git.io/fj5hF\" --projectName \"copy\" &\n  wait\n  echo \"finished import\"\n  orcli export csv \"duplicates\" --output duplicates.csv &\n  orcli export tsv \"duplicates\" --output duplicates.tsv &\n  wait\n  wc duplicates*\n  echo \"finished in $SECONDS seconds\"\n  EOF\n"
     echo
 
   fi
@@ -737,6 +739,12 @@ orcli_batch_command() {
   # src/batch_command.sh
   # shellcheck shell=bash disable=SC2154
 
+  # check if stdin is present if selected
+  if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]] && [ -t 0 ]; then
+      orcli_batch_usage
+      exit 1
+  fi
+
   # locate orcli and OpenRefine
   if command -v orcli &>/dev/null; then
       orcli="orcli"
@@ -758,6 +766,19 @@ orcli_batch_command() {
   # update OPENREFINE_URL env
   OPENREFINE_URL="http://localhost:${args[--port]}"
 
+  # catch args, convert the space delimited string to an array
+  files=()
+  eval "files=(${args[file]})"
+  # read pipes if name starts with /dev/fd
+  for i in "${!files[@]}"; do
+      if [[ ${files[$i]} == "/dev/fd"* ]]; then
+          if ! cat "${files[$i]}" >"${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"; then
+              error "reading of ${files[$i]} failed!"
+          fi
+          files[$i]="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
+      fi
+  done
+
   # check if OpenRefine is already running
   if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
       error "OpenRefine is already running on port ${args[--port]}." "Hint: Stop the other process or use another port."
@@ -777,29 +798,9 @@ orcli_batch_command() {
       log "started OpenRefine" "port: ${args[--port]}" "memory: ${args[--memory]}" "tmpdir: ${tmpdir}" "pid: ${openrefine_pid}"
   fi
 
-  # assemble command groups from catch-all
-  i=0
-  for arg in "${other_args[@]}"; do
-      if [[ $arg =~ ^(bash|import|info|list|transform|export)$ ]]; then
-          ((i = i + 1))
-          groups+=("group$i")
-      fi
-      declare -a group${i}+="(\"$arg\")"
-  done
-
-  # call command for each group
-  for group in "${groups[@]}"; do
-      declare arrayRef="${group}[@]"
-      command=("${!arrayRef}")
-      if [[ ${command[0]} == "bash" ]]; then
-          "${command[@]}"
-      elif [[ ${args[--quiet]} ]]; then
-          "$orcli" "${command[@]}" --quiet
-      else
-          "$orcli" "${command[@]}"
-      fi
-  done
-
+  # execute shell script
+  export orcli tmpdir OPENREFINE_URL openrefine_pid
+  bash -e "${files[@]}"
 }
 
 # :command.function
@@ -1114,28 +1115,29 @@ orcli_batch_parse_requirements() {
       ;;
 
     -?* )
-      other_args+=("$1")
-      shift
+      printf "invalid option: %s\n" "$key" >&2
+      exit 1
       ;;
 
     * )
       # :command.parse_requirements_case
-      # :command.parse_requirements_case_catch_all
-      other_args+=("$1")
-      shift
+      # :command.parse_requirements_case_repeatable
+      if [[ -z ${args[file]+x} ]]; then
+
+        args[file]="\"$1\""
+        shift
+      else
+        args[file]="${args[file]} \"$1\""
+        shift
+      fi
 
       ;;
 
     esac
   done
 
-  # :command.catch_all_filter
-  if [[ ${#other_args[@]} -eq 0 ]]; then
-    printf "missing required argument: ORCLI COMMANDS...\nusage: orcli batch [OPTIONS] ORCLI COMMANDS...\n" >&2
-    exit 1
-  fi
-
   # :command.default_assignments
+  [[ -n ${args[file]:-} ]] || args[file]="-"
   [[ -n ${args[--memory]:-} ]] || args[--memory]="2048M"
   [[ -n ${args[--port]:-} ]] || args[--port]="3333"
 

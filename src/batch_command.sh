@@ -1,5 +1,11 @@
 # shellcheck shell=bash disable=SC2154
 
+# check if stdin is present if selected
+if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]] && [ -t 0 ]; then
+    orcli_batch_usage
+    exit 1
+fi
+
 # locate orcli and OpenRefine
 if command -v orcli &>/dev/null; then
     orcli="orcli"
@@ -21,6 +27,19 @@ trap '{ rm -rf "$tmpdir"; }' 0 2 3 15
 # update OPENREFINE_URL env
 OPENREFINE_URL="http://localhost:${args[--port]}"
 
+# catch args, convert the space delimited string to an array
+files=()
+eval "files=(${args[file]})"
+# read pipes if name starts with /dev/fd
+for i in "${!files[@]}"; do
+    if [[ ${files[$i]} == "/dev/fd"* ]]; then
+        if ! cat "${files[$i]}" >"${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"; then
+            error "reading of ${files[$i]} failed!"
+        fi
+        files[$i]="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
+    fi
+done
+
 # check if OpenRefine is already running
 if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
     error "OpenRefine is already running on port ${args[--port]}." "Hint: Stop the other process or use another port."
@@ -40,25 +59,6 @@ else
     log "started OpenRefine" "port: ${args[--port]}" "memory: ${args[--memory]}" "tmpdir: ${tmpdir}" "pid: ${openrefine_pid}"
 fi
 
-# assemble command groups from catch-all
-i=0
-for arg in "${other_args[@]}"; do
-    if [[ $arg =~ ^(bash|import|info|list|transform|export)$ ]]; then
-        ((i = i + 1))
-        groups+=("group$i")
-    fi
-    declare -a group${i}+="(\"$arg\")"
-done
-
-# call command for each group
-for group in "${groups[@]}"; do
-    declare arrayRef="${group}[@]"
-    command=("${!arrayRef}")
-    if [[ ${command[0]} == "bash" ]]; then
-        "${command[@]}"
-    elif [[ ${args[--quiet]} ]]; then
-        "$orcli" "${command[@]}" --quiet
-    else
-        "$orcli" "${command[@]}"
-    fi
-done
+# execute shell script
+export orcli tmpdir OPENREFINE_URL openrefine_pid
+bash -e "${files[@]}"
