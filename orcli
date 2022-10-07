@@ -28,7 +28,7 @@ orcli_usage() {
   fi
 
   printf "Usage:\n"
-  printf "  orcli COMMAND\n"
+  printf "  orcli [OPTIONS] COMMAND\n"
   printf "  orcli [COMMAND] --help | -h\n"
   printf "  orcli --version | -v\n"
   echo
@@ -52,6 +52,12 @@ orcli_usage() {
     echo
     echo "  --version, -v"
     printf "    Show version number\n"
+    echo
+
+    # :command.usage_flags
+    # :flag.usage
+    echo "  --quiet, -q"
+    printf "    suppress log output, print errors only\n"
     echo
 
     # :command.usage_environment_variables
@@ -151,11 +157,6 @@ orcli_batch_usage() {
     printf "    Default: 3333\n"
     echo
 
-    # :flag.usage
-    echo "  --quiet, -q"
-    printf "    suppress log output, print errors only\n"
-    echo
-
     # :command.usage_args
     printf "Arguments:\n"
 
@@ -167,9 +168,9 @@ orcli_batch_usage() {
 
     # :command.usage_examples
     printf "Examples:\n"
-    printf "  orcli batch << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n    orcli export tsv \"duplicates\"\n  EOF\n"
-    printf "  orcli batch --memory \"2000M\" --port \"3334\" << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"copy\"\n    orcli info \"duplicates\"\n    orcli info \"copy\"\n    orcli export tsv \"duplicates\"\n  EOF\n"
-    printf "  orcli batch --quiet << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" &\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"copy\" &\n    wait\n    echo \"finished import\"\n    orcli export csv \"duplicates\" --output duplicates.csv &\n    orcli export tsv \"duplicates\" --output duplicates.tsv &\n    wait\n    wc duplicates*\n    echo \"finished in $SECONDS seconds\"\n  EOF\n"
+    printf "  orcli batch << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n    orcli info \"duplicates\"\n    orcli export tsv \"duplicates\"\n  EOF\n"
+    printf "  orcli batch --memory \"2000M\" --port \"3334\" << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" &\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"copy\" &\n    wait\n    echo \"finished import\"\n    orcli export csv \"duplicates\" --output duplicates.csv &\n    orcli export tsv \"duplicates\" --output duplicates.tsv &\n    wait\n    wc duplicates*\n  EOF\n"
+    printf "  orcli batch \"file1.sh\" \"file2.sh\" - << EOF\n    echo \"finished in \$SECONDS seconds\"\n  EOF\n"
     echo
 
   fi
@@ -256,11 +257,6 @@ orcli_import_csv_usage() {
     printf "    set a name for the OpenRefine project\n"
     echo
 
-    # :flag.usage
-    echo "  --quiet, -q"
-    printf "    suppress log output, print errors only\n"
-    echo
-
     # :command.usage_args
     printf "Arguments:\n"
 
@@ -295,7 +291,7 @@ orcli_list_usage() {
   fi
 
   printf "Usage:\n"
-  printf "  orcli list [OPTIONS]\n"
+  printf "  orcli list\n"
   printf "  orcli list --help | -h\n"
   echo
 
@@ -306,12 +302,6 @@ orcli_list_usage() {
     # :command.usage_fixed_flags
     echo "  --help, -h"
     printf "    Show this help\n"
-    echo
-
-    # :command.usage_flags
-    # :flag.usage
-    echo "  --quiet, -q"
-    printf "    suppress log output, print errors only\n"
     echo
 
   fi
@@ -330,7 +320,7 @@ orcli_info_usage() {
   fi
 
   printf "Usage:\n"
-  printf "  orcli info PROJECT [OPTIONS]\n"
+  printf "  orcli info PROJECT\n"
   printf "  orcli info --help | -h\n"
   echo
 
@@ -341,12 +331,6 @@ orcli_info_usage() {
     # :command.usage_fixed_flags
     echo "  --help, -h"
     printf "    Show this help\n"
-    echo
-
-    # :command.usage_flags
-    # :flag.usage
-    echo "  --quiet, -q"
-    printf "    suppress log output, print errors only\n"
     echo
 
     # :command.usage_args
@@ -435,11 +419,6 @@ orcli_export_tsv_usage() {
     echo "  --encoding ENCODING"
     printf "    set character encoding\n"
     printf "    Default: UTF-8\n"
-    echo
-
-    # :flag.usage
-    echo "  --quiet, -q"
-    printf "    suppress log output, print errors only\n"
     echo
 
     # :command.usage_args
@@ -685,11 +664,11 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'import csv\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --help --projectName --quiet --separator --trimStrings -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --help --projectName --separator --trimStrings -h")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'export tsv\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --help --output --quiet -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --help --output -h")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'import\'*)'
@@ -701,19 +680,19 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'batch\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --memory --port --quiet -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --memory --port -h")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'list\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --quiet -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'info\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --quiet -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    *)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --version -h -v batch completions export import info list")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --quiet --version -h -q -v batch completions export import info list")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'  esac'
@@ -727,10 +706,7 @@ send_completions() {
 # :command.function
 orcli_completions_command() {
   # src/completions_command.sh
-  # Users can now enable bash completion for this script by running:
-  #
-  #   $ eval "$(orcli completions)"
-  #
+  # shellcheck shell=bash disable=SC2154
   send_completions
 }
 
@@ -744,6 +720,13 @@ orcli_batch_command() {
       orcli_batch_usage
       exit 1
   fi
+
+  # catch args, convert the space delimited string to an array
+  files=()
+  eval "files=(${args[file]})"
+
+  # update OPENREFINE_URL env
+  OPENREFINE_URL="http://localhost:${args[--port]}"
 
   # locate orcli and OpenRefine
   if command -v orcli &>/dev/null; then
@@ -762,22 +745,6 @@ orcli_batch_command() {
   # create tmp directory
   tmpdir="$(mktemp -d)"
   trap '{ rm -rf "$tmpdir"; }' 0 2 3 15
-
-  # update OPENREFINE_URL env
-  OPENREFINE_URL="http://localhost:${args[--port]}"
-
-  # catch args, convert the space delimited string to an array
-  files=()
-  eval "files=(${args[file]})"
-  # read pipes if name starts with /dev/fd
-  for i in "${!files[@]}"; do
-      if [[ ${files[$i]} == "/dev/fd"* ]]; then
-          if ! cat "${files[$i]}" >"${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"; then
-              error "reading of ${files[$i]} failed!"
-          fi
-          files[$i]="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
-      fi
-  done
 
   # check if OpenRefine is already running
   if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
@@ -800,7 +767,8 @@ orcli_batch_command() {
 
   # execute shell script
   export orcli tmpdir OPENREFINE_URL openrefine_pid
-  bash -e "${files[@]}"
+  bash -e <(awk 1 "${files[@]}")
+
 }
 
 # :command.function
@@ -916,6 +884,14 @@ parse_requirements() {
     long_usage=yes
     orcli_usage
     exit
+    ;;
+
+  # :flag.case
+  --quiet | -q )
+
+    # :flag.case_no_arg
+    args[--quiet]=1
+    shift
     ;;
 
   esac
@@ -1106,14 +1082,6 @@ orcli_batch_parse_requirements() {
       fi
       ;;
 
-    # :flag.case
-    --quiet | -q )
-
-      # :flag.case_no_arg
-      args[--quiet]=1
-      shift
-      ;;
-
     -?* )
       printf "invalid option: %s\n" "$key" >&2
       exit 1
@@ -1277,14 +1245,6 @@ orcli_import_csv_parse_requirements() {
       fi
       ;;
 
-    # :flag.case
-    --quiet | -q )
-
-      # :flag.case_no_arg
-      args[--quiet]=1
-      shift
-      ;;
-
     -?* )
       printf "invalid option: %s\n" "$key" >&2
       exit 1
@@ -1332,13 +1292,6 @@ orcli_list_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
-    # :flag.case
-    --quiet | -q )
-
-      # :flag.case_no_arg
-      args[--quiet]=1
-      shift
-      ;;
 
     -?* )
       printf "invalid option: %s\n" "$key" >&2
@@ -1377,13 +1330,6 @@ orcli_info_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
-    # :flag.case
-    --quiet | -q )
-
-      # :flag.case_no_arg
-      args[--quiet]=1
-      shift
-      ;;
 
     -?* )
       printf "invalid option: %s\n" "$key" >&2
@@ -1409,7 +1355,7 @@ orcli_info_parse_requirements() {
 
   # :command.required_args_filter
   if [[ -z ${args[project]+x} ]]; then
-    printf "missing required argument: PROJECT\nusage: orcli info PROJECT [OPTIONS]\n" >&2
+    printf "missing required argument: PROJECT\nusage: orcli info PROJECT\n" >&2
     exit 1
   fi
 
@@ -1524,14 +1470,6 @@ orcli_export_tsv_parse_requirements() {
         printf "%s\n" "--encoding requires an argument: --encoding ENCODING" >&2
         exit 1
       fi
-      ;;
-
-    # :flag.case
-    --quiet | -q )
-
-      # :flag.case_no_arg
-      args[--quiet]=1
-      shift
       ;;
 
     -?* )
