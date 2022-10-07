@@ -6,6 +6,13 @@ if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]] && [ -t 0 ]; then
     exit 1
 fi
 
+# catch args, convert the space delimited string to an array
+files=()
+eval "files=(${args[file]})"
+
+# update OPENREFINE_URL env
+OPENREFINE_URL="http://localhost:${args[--port]}"
+
 # locate orcli and OpenRefine
 if command -v orcli &>/dev/null; then
     orcli="orcli"
@@ -23,22 +30,6 @@ fi
 # create tmp directory
 tmpdir="$(mktemp -d)"
 trap '{ rm -rf "$tmpdir"; }' 0 2 3 15
-
-# update OPENREFINE_URL env
-OPENREFINE_URL="http://localhost:${args[--port]}"
-
-# catch args, convert the space delimited string to an array
-files=()
-eval "files=(${args[file]})"
-# read pipes if name starts with /dev/fd
-for i in "${!files[@]}"; do
-    if [[ ${files[$i]} == "/dev/fd"* ]]; then
-        if ! cat "${files[$i]}" >"${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"; then
-            error "reading of ${files[$i]} failed!"
-        fi
-        files[$i]="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
-    fi
-done
 
 # check if OpenRefine is already running
 if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
@@ -61,4 +52,4 @@ fi
 
 # execute shell script
 export orcli tmpdir OPENREFINE_URL openrefine_pid
-bash -e "${files[@]}"
+bash -e <(awk 1 "${files[@]}")

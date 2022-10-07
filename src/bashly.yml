@@ -25,6 +25,11 @@ examples:
       orcli export tsv "duplicates"
     EOF
 
+flags:
+  - long: --quiet
+    short: -q
+    help: suppress log output, print errors only
+
 commands:
   - name: completions
     help: |-
@@ -47,25 +52,15 @@ commands:
         help: PORT on which OpenRefine should listen
         arg: port
         default: "3333"
-      - long: --quiet
-        short: -q
-        help: suppress log output, print errors only
     examples:
       - |-
         orcli batch << EOF
           orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+          orcli info "duplicates"
           orcli export tsv "duplicates"
         EOF
       - |-
         orcli batch --memory "2000M" --port "3334" << EOF
-          orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-          orcli import csv "https://git.io/fj5hF" --projectName "copy"
-          orcli info "duplicates"
-          orcli info "copy"
-          orcli export tsv "duplicates"
-        EOF
-      - |-
-        orcli batch --quiet << EOF
           orcli import csv "https://git.io/fj5hF" --projectName "duplicates" &
           orcli import csv "https://git.io/fj5hF" --projectName "copy" &
           wait
@@ -74,7 +69,10 @@ commands:
           orcli export tsv "duplicates" --output duplicates.tsv &
           wait
           wc duplicates*
-          echo "finished in $SECONDS seconds"
+        EOF
+      - |-
+        orcli batch "file1.sh" "file2.sh" - << EOF
+          echo "finished in \$SECONDS seconds"
         EOF
 
   - name: import
@@ -101,9 +99,6 @@ commands:
           - long: --projectName
             arg: projectName
             help: set a name for the OpenRefine project
-          - long: --quiet
-            short: -q
-            help: suppress log output, print errors only
         examples:
           - orcli import csv "file"
           - orcli import csv "file1" "file2"
@@ -118,10 +113,6 @@ commands:
 
   - name: list
     help: list projects on OpenRefine server
-    flags:
-      - long: --quiet
-        short: -q
-        help: suppress log output, print errors only
 
   - name: info
     help: show project metadata
@@ -129,10 +120,6 @@ commands:
       - name: project
         help: project name or id
         required: true
-    flags:
-      - long: --quiet
-        short: -q
-        help: suppress log output, print errors only
     examples:
       - info "duplicates"
       - info 1234567890123
@@ -155,9 +142,6 @@ commands:
             help: set character encoding
             arg: encoding
             default: "UTF-8"
-          - long: --quiet
-            short: -q
-            help: suppress log output, print errors only
         examples:
           - orcli export tsv "duplicates"
           - orcli export tsv "duplicates" --output "duplicates.tsv"
