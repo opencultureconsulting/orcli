@@ -157,6 +157,11 @@ orcli_batch_usage() {
     printf "    Default: 3333\n"
     echo
 
+    # :flag.usage
+    echo "  --interactive"
+    printf "    provide interactive Bash shell for playground and debugging\n"
+    echo
+
     # :command.usage_args
     printf "Arguments:\n"
 
@@ -168,6 +173,7 @@ orcli_batch_usage() {
 
     # :command.usage_examples
     printf "Examples:\n"
+    printf "  orcli batch --interactive\n"
     printf "  orcli batch << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n    orcli info \"duplicates\"\n    orcli export tsv \"duplicates\"\n  EOF\n"
     printf "  orcli batch --memory \"2000M\" --port \"3334\" << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" &\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"copy\" &\n    wait\n    echo \"finished import\"\n    orcli export csv \"duplicates\" --output duplicates.csv &\n    orcli export tsv \"duplicates\" --output duplicates.tsv &\n    wait\n    wc duplicates*\n  EOF\n"
     printf "  orcli batch \"file1.sh\" \"file2.sh\" - << EOF\n    echo \"finished in \$SECONDS seconds\"\n  EOF\n"
@@ -579,6 +585,24 @@ function init_import() {
     fi
 }
 
+# src/lib/interactive.sh
+# shellcheck shell=bash
+function interactive() {
+    cat <<'EOF'
+if ! command -v orcli &>/dev/null; then
+    alias orcli="$orcli"
+fi
+PS1="(orcli) [\u@\h \W]\$ "
+source <(orcli completions)
+echo '================================================================'
+echo 'Interactive Bash shell with OpenRefine running in the background'
+echo 'Use the "orcli" command and tab completion to control OpenRefine'
+echo 'Type "history -a FILE" to write out your session history'
+echo 'Type "exit" or CTRL-D to destroy temporary OpenRefine workspace'
+echo '================================================================'
+EOF
+}
+
 # src/lib/logging.sh
 # print messages to STDERR
 # shellcheck shell=bash
@@ -680,7 +704,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'batch\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --memory --port -h")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --interactive --memory --port -h")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'list\'*)'
@@ -706,19 +730,24 @@ send_completions() {
 # :command.function
 orcli_completions_command() {
   # src/completions_command.sh
-  # shellcheck shell=bash disable=SC2154
+  # Users can now enable bash completion for this script by running:
+  #
+  #   $ eval "$(orcli completions)"
+  #
   send_completions
 }
 
 # :command.function
 orcli_batch_command() {
   # src/batch_command.sh
-  # shellcheck shell=bash disable=SC2154
+  # shellcheck shell=bash disable=SC2154 source=/dev/null
 
   # check if stdin is present if selected
-  if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]] && [ -t 0 ]; then
-      orcli_batch_usage
-      exit 1
+  if ! [[ ${args[--interactive]} ]]; then
+      if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]] && [ -t 0 ]; then
+          orcli_batch_usage
+          exit 1
+      fi
   fi
 
   # catch args, convert the space delimited string to an array
@@ -729,12 +758,12 @@ orcli_batch_command() {
   OPENREFINE_URL="http://localhost:${args[--port]}"
 
   # locate orcli and OpenRefine
-  if command -v orcli &>/dev/null; then
-      orcli="orcli"
-  elif [[ -x "orcli" ]]; then
-      orcli="./orcli"
-  else
-      error "orcli is not executable!" "Try: chmod + ./orcli"
+  if ! command -v orcli &>/dev/null; then
+      if [[ -x "$0" ]]; then
+          orcli="$0"
+      else
+          error "orcli is not executable!" "Try: chmod + $0"
+      fi
   fi
   if [[ -x "refine" ]]; then
       openrefine="./refine"
@@ -767,7 +796,17 @@ orcli_batch_command() {
 
   # execute shell script
   export orcli tmpdir OPENREFINE_URL openrefine_pid
-  bash -e <(awk 1 "${files[@]}")
+  if [[ ${args[--interactive]} ]]; then
+      bash --rcfile <(
+          cat ~/.bashrc
+          interactive
+          if ! [[ ${args[file]} == '-' || ${args[file]} == '"-"' ]]; then
+              awk 1 "${files[@]}"
+          fi
+      ) -i
+  else
+      bash -e <(awk 1 "${files[@]}")
+  fi
 
 }
 
@@ -1080,6 +1119,14 @@ orcli_batch_parse_requirements() {
         printf "%s\n" "--port requires an argument: --port PORT" >&2
         exit 1
       fi
+      ;;
+
+    # :flag.case
+    --interactive )
+
+      # :flag.case_no_arg
+      args[--interactive]=1
+      shift
       ;;
 
     -?* )

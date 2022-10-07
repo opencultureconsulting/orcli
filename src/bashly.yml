@@ -52,7 +52,10 @@ commands:
         help: PORT on which OpenRefine should listen
         arg: port
         default: "3333"
+      - long: --interactive
+        help: provide interactive Bash shell for playground and debugging
     examples:
+      - orcli batch --interactive
       - |-
         orcli batch << EOF
           orcli import csv "https://git.io/fj5hF" --projectName "duplicates"

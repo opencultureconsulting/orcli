@@ -1,9 +1,11 @@
-# shellcheck shell=bash disable=SC2154
+# shellcheck shell=bash disable=SC2154 source=/dev/null
 
 # check if stdin is present if selected
-if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]] && [ -t 0 ]; then
-    orcli_batch_usage
-    exit 1
+if ! [[ ${args[--interactive]} ]]; then
+    if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]] && [ -t 0 ]; then
+        orcli_batch_usage
+        exit 1
+    fi
 fi
 
 # catch args, convert the space delimited string to an array
@@ -14,12 +16,12 @@ eval "files=(${args[file]})"
 OPENREFINE_URL="http://localhost:${args[--port]}"
 
 # locate orcli and OpenRefine
-if command -v orcli &>/dev/null; then
-    orcli="orcli"
-elif [[ -x "orcli" ]]; then
-    orcli="./orcli"
-else
-    error "orcli is not executable!" "Try: chmod + ./orcli"
+if ! command -v orcli &>/dev/null; then
+    if [[ -x "$0" ]]; then
+        orcli="$0"
+    else
+        error "orcli is not executable!" "Try: chmod + $0"
+    fi
 fi
 if [[ -x "refine" ]]; then
     openrefine="./refine"
@@ -52,4 +54,14 @@ fi
 
 # execute shell script
 export orcli tmpdir OPENREFINE_URL openrefine_pid
-bash -e <(awk 1 "${files[@]}")
+if [[ ${args[--interactive]} ]]; then
+    bash --rcfile <(
+        cat ~/.bashrc
+        interactive
+        if ! [[ ${args[file]} == '-' || ${args[file]} == '"-"' ]]; then
+            awk 1 "${files[@]}"
+        fi
+    ) -i
+else
+    bash -e <(awk 1 "${files[@]}")
+fi
