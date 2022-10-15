@@ -37,7 +37,7 @@ commands:
       Usage: eval "\$(orcli completions)"
 
   - name: batch
-    help: run tmp OpenRefine workspace and execute shell script
+    help: run tmp OpenRefine workspace and execute shell script(s)
     args:
       - name: file
         help: Path to one or more files. When FILE is -, read standard input.
@@ -52,10 +52,9 @@ commands:
         help: PORT on which OpenRefine should listen
         arg: port
         default: "3333"
-      - long: --interactive
-        help: provide interactive Bash shell for playground and debugging
+      - long: --debug
+        help: do not exit on error and keep shell open
     examples:
-      - orcli batch --interactive
       - |-
         orcli batch << EOF
           orcli import csv "https://git.io/fj5hF" --projectName "duplicates"

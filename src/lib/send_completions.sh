@@ -51,7 +51,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'batch\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --interactive --memory --port -h")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--debug --help --memory --port -h")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'list\'*)'
