@@ -1,10 +1,4 @@
-# shellcheck shell=bash disable=SC2154
-
-# check if stdin is present if selected
-if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]] && [ -t 0 ]; then
-    orcli_batch_usage
-    exit 1
-fi
+# shellcheck shell=bash disable=SC2154 source=/dev/null
 
 # catch args, convert the space delimited string to an array
 files=()
@@ -14,12 +8,12 @@ eval "files=(${args[file]})"
 OPENREFINE_URL="http://localhost:${args[--port]}"
 
 # locate orcli and OpenRefine
-if command -v orcli &>/dev/null; then
-    orcli="orcli"
-elif [[ -x "orcli" ]]; then
-    orcli="./orcli"
-else
-    error "orcli is not executable!" "Try: chmod + ./orcli"
+if ! command -v orcli &>/dev/null; then
+    if [[ -x "$0" ]]; then
+        orcli="$0"
+    else
+        error "orcli is not executable!" "Try: chmod + $0"
+    fi
 fi
 if [[ -x "refine" ]]; then
     openrefine="./refine"
@@ -50,6 +44,29 @@ else
     log "started OpenRefine" "port: ${args[--port]}" "memory: ${args[--memory]}" "tmpdir: ${tmpdir}" "pid: ${openrefine_pid}"
 fi
 
-# execute shell script
+# execute script(s) in subshell
 export orcli tmpdir OPENREFINE_URL openrefine_pid
-bash -e <(awk 1 "${files[@]}")
+# case 1: interactive mode if stdin is selected but not present
+if [[ ${args[file]} == '-' || ${args[file]} == '"-"' ]]; then
+    if ! read -u 0 -t 0; then
+        bash --rcfile <(
+            cat ~/.bashrc
+            interactive
+        ) -i < /dev/tty
+        exit
+    fi
+fi
+# case 2: execute scripts and keep shell running
+if [[ ${args[--debug]} ]]; then
+    bash --rcfile <(
+        cat ~/.bashrc
+        for i in "${!files[@]}"; do log "execute script ${files[$i]}"; awk 1 "${files[$i]}"; done
+        interactive
+    ) -i < /dev/tty
+    exit
+fi
+# case 3: execute scripts
+for i in "${!files[@]}"; do
+    log "execute script ${files[$i]}"
+    bash -e <(awk 1 "${files[$i]}")
+done

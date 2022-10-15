@@ -4,9 +4,11 @@
 init_import
 
 # check if stdin is present if selected
-if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]] && [ -t 0 ]; then
-    orcli_import_csv_usage
-    exit 1
+if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]]; then
+    if ! read -u 0 -t 0; then
+        orcli_import_csv_usage
+        exit 1
+    fi
 fi
 
 # assemble specific post data (some options require json format)
