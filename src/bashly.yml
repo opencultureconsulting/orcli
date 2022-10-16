@@ -19,7 +19,7 @@ examples:
   - orcli export tsv "duplicates"
   - orcli export tsv "duplicates" --output "duplicates.tsv"
   - |-
-    orcli batch << EOF
+    orcli run << EOF
       orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
       orcli info "duplicates"
       orcli export tsv "duplicates"
@@ -35,47 +35,6 @@ commands:
     help: |-
       Generate bash completions
       Usage: eval "\$(orcli completions)"
-
-  - name: batch
-    help: run tmp OpenRefine workspace and execute shell script(s)
-    args:
-      - name: file
-        help: Path to one or more files. When FILE is -, read standard input.
-        default: "-"
-        repeatable: true
-    flags:
-      - long: --memory
-        help: maximum RAM for OpenRefine java heap space
-        arg: ram
-        default: "2048M"
-      - long: --port
-        help: PORT on which OpenRefine should listen
-        arg: port
-        default: "3333"
-      - long: --debug
-        help: do not exit on error and keep shell open
-    examples:
-      - |-
-        orcli batch << EOF
-          orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-          orcli info "duplicates"
-          orcli export tsv "duplicates"
-        EOF
-      - |-
-        orcli batch --memory "2000M" --port "3334" << EOF
-          orcli import csv "https://git.io/fj5hF" --projectName "duplicates" &
-          orcli import csv "https://git.io/fj5hF" --projectName "copy" &
-          wait
-          echo "finished import"
-          orcli export csv "duplicates" --output duplicates.csv &
-          orcli export tsv "duplicates" --output duplicates.tsv &
-          wait
-          wc duplicates*
-        EOF
-      - |-
-        orcli batch "file1.sh" "file2.sh" - << EOF
-          echo "finished in \$SECONDS seconds"
-        EOF
 
   - name: import
     help: import commands
@@ -147,3 +106,44 @@ commands:
         examples:
           - orcli export tsv "duplicates"
           - orcli export tsv "duplicates" --output "duplicates.tsv"
+
+  - name: run
+    help: run tmp OpenRefine workspace and execute shell script(s)
+    args:
+      - name: file
+        help: Path to one or more files. When FILE is -, read standard input.
+        default: "-"
+        repeatable: true
+    flags:
+      - long: --memory
+        help: maximum RAM for OpenRefine java heap space
+        arg: ram
+        default: "2048M"
+      - long: --port
+        help: PORT on which OpenRefine should listen
+        arg: port
+        default: "3333"
+      - long: --debug
+        help: do not exit on error and keep shell open
+    examples:
+      - |-
+        orcli run << EOF
+          orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+          orcli info "duplicates"
+          orcli export tsv "duplicates"
+        EOF
+      - |-
+        orcli run --memory "2000M" --port "3334" << EOF
+          orcli import csv "https://git.io/fj5hF" --projectName "duplicates" &
+          orcli import csv "https://git.io/fj5hF" --projectName "copy" &
+          wait
+          echo "finished import"
+          orcli export csv "duplicates" --output duplicates.csv &
+          orcli export tsv "duplicates" --output duplicates.tsv &
+          wait
+          wc duplicates*
+        EOF
+      - |-
+        orcli run "file1.sh" "file2.sh" - << EOF
+          echo "finished in \$SECONDS seconds"
+        EOF

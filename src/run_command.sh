@@ -52,7 +52,7 @@ if [[ ${args[file]} == '-' || ${args[file]} == '"-"' ]]; then
         bash --rcfile <(
             cat ~/.bashrc
             interactive
-        ) -i < /dev/tty
+        ) -i </dev/tty
         exit
     fi
 fi
@@ -60,9 +60,12 @@ fi
 if [[ ${args[--debug]} ]]; then
     bash --rcfile <(
         cat ~/.bashrc
-        for i in "${!files[@]}"; do log "execute script ${files[$i]}"; awk 1 "${files[$i]}"; done
+        for i in "${!files[@]}"; do
+            log "execute script ${files[$i]}"
+            awk 1 "${files[$i]}"
+        done
         interactive
-    ) -i < /dev/tty
+    ) -i </dev/tty
     exit
 fi
 # case 3: execute scripts
