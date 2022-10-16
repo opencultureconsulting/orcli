@@ -47,47 +47,7 @@ Ensure you have OpenRefine running (i.e. available at http://localhost:3333 or a
 Use integrated help screens for available options and examples for each command.
 
 ```sh
-$ orcli --help
-orcli - OpenRefine command-line interface written in Bash
-
-Usage:
-  orcli COMMAND
-  orcli [COMMAND] --help | -h
-  orcli --version | -v
-
-Commands:
-  completions   Generate bash completions
-  batch         run tmp OpenRefine workspace and execute shell script
-  import        import commands
-  list          list projects on OpenRefine server
-  info          show project metadata
-  export        export commands
-
-Options:
-  --help, -h
-    Show this help
-
-  --version, -v
-    Show version number
-
-Environment Variables:
-  OPENREFINE_URL
-    URL to OpenRefine server
-    Default: http://localhost:3333
-
-Examples:
-  orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-  orcli list
-  orcli info "duplicates"
-  orcli export tsv "duplicates"
-  orcli export tsv "duplicates" --output "duplicates.tsv"
-  orcli batch << EOF
-    orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-    orcli info "duplicates"
-    orcli export tsv "duplicates"
-  EOF
-
-https://github.com/opencultureconsulting/orcli
+orcli --help
 ```
 
 ## Development

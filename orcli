@@ -35,11 +35,11 @@ orcli_usage() {
   # :command.usage_commands
   printf "Commands:\n"
   echo "  completions   Generate bash completions"
-  echo "  batch         run tmp OpenRefine workspace and execute shell script(s)"
   echo "  import        import commands"
   echo "  list          list projects on OpenRefine server"
   echo "  info          show project metadata"
   echo "  export        export commands"
+  echo "  run           run tmp OpenRefine workspace and execute shell script(s)"
   echo
 
   # :command.long_usage
@@ -76,7 +76,7 @@ orcli_usage() {
     printf "  orcli info \"duplicates\"\n"
     printf "  orcli export tsv \"duplicates\"\n"
     printf "  orcli export tsv \"duplicates\" --output \"duplicates.tsv\"\n"
-    printf "  orcli batch << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n    orcli info \"duplicates\"\n    orcli export tsv \"duplicates\"\n  EOF\n"
+    printf "  orcli run << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n    orcli info \"duplicates\"\n    orcli export tsv \"duplicates\"\n  EOF\n"
     echo
 
     # :command.footer
@@ -113,69 +113,6 @@ orcli_completions_usage() {
     # :command.usage_fixed_flags
     echo "  --help, -h"
     printf "    Show this help\n"
-    echo
-
-  fi
-}
-
-# :command.usage
-orcli_batch_usage() {
-  if [[ -n $long_usage ]]; then
-    printf "orcli batch - run tmp OpenRefine workspace and execute shell script(s)\n"
-    echo
-
-  else
-    printf "orcli batch - run tmp OpenRefine workspace and execute shell script(s)\n"
-    echo
-
-  fi
-
-  printf "Usage:\n"
-  printf "  orcli batch [FILE...] [OPTIONS]\n"
-  printf "  orcli batch --help | -h\n"
-  echo
-
-  # :command.long_usage
-  if [[ -n $long_usage ]]; then
-    printf "Options:\n"
-
-    # :command.usage_fixed_flags
-    echo "  --help, -h"
-    printf "    Show this help\n"
-    echo
-
-    # :command.usage_flags
-    # :flag.usage
-    echo "  --memory RAM"
-    printf "    maximum RAM for OpenRefine java heap space\n"
-    printf "    Default: 2048M\n"
-    echo
-
-    # :flag.usage
-    echo "  --port PORT"
-    printf "    PORT on which OpenRefine should listen\n"
-    printf "    Default: 3333\n"
-    echo
-
-    # :flag.usage
-    echo "  --debug"
-    printf "    do not exit on error and keep shell open\n"
-    echo
-
-    # :command.usage_args
-    printf "Arguments:\n"
-
-    # :argument.usage
-    echo "  FILE..."
-    printf "    Path to one or more files. When FILE is -, read standard input.\n"
-    printf "    Default: -\n"
-    echo
-
-    # :command.usage_examples
-    printf "Examples:\n"
-    printf "  orcli batch << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n    orcli info \"duplicates\"\n    orcli export tsv \"duplicates\"\n  EOF\n"
-    printf "  orcli batch --memory \"2000M\" --port \"3334\" << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" &\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"copy\" &\n    wait\n    echo \"finished import\"\n    orcli export csv \"duplicates\" --output duplicates.csv &\n    orcli export tsv \"duplicates\" --output duplicates.tsv &\n    wait\n    wc duplicates*\n  EOF\n"
-    printf "  orcli batch \"file1.sh\" \"file2.sh\" - << EOF\n    echo \"finished in \$SECONDS seconds\"\n  EOF\n"
     echo
 
   fi
@@ -443,6 +380,69 @@ orcli_export_tsv_usage() {
   fi
 }
 
+# :command.usage
+orcli_run_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "orcli run - run tmp OpenRefine workspace and execute shell script(s)\n"
+    echo
+
+  else
+    printf "orcli run - run tmp OpenRefine workspace and execute shell script(s)\n"
+    echo
+
+  fi
+
+  printf "Usage:\n"
+  printf "  orcli run [FILE...] [OPTIONS]\n"
+  printf "  orcli run --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n $long_usage ]]; then
+    printf "Options:\n"
+
+    # :command.usage_fixed_flags
+    echo "  --help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_flags
+    # :flag.usage
+    echo "  --memory RAM"
+    printf "    maximum RAM for OpenRefine java heap space\n"
+    printf "    Default: 2048M\n"
+    echo
+
+    # :flag.usage
+    echo "  --port PORT"
+    printf "    PORT on which OpenRefine should listen\n"
+    printf "    Default: 3333\n"
+    echo
+
+    # :flag.usage
+    echo "  --debug"
+    printf "    do not exit on error and keep shell open\n"
+    echo
+
+    # :command.usage_args
+    printf "Arguments:\n"
+
+    # :argument.usage
+    echo "  FILE..."
+    printf "    Path to one or more files. When FILE is -, read standard input.\n"
+    printf "    Default: -\n"
+    echo
+
+    # :command.usage_examples
+    printf "Examples:\n"
+    printf "  orcli run << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n    orcli info \"duplicates\"\n    orcli export tsv \"duplicates\"\n  EOF\n"
+    printf "  orcli run --memory \"2000M\" --port \"3334\" << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\" &\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"copy\" &\n    wait\n    echo \"finished import\"\n    orcli export csv \"duplicates\" --output duplicates.csv &\n    orcli export tsv \"duplicates\" --output duplicates.tsv &\n    wait\n    wc duplicates*\n  EOF\n"
+    printf "  orcli run \"file1.sh\" \"file2.sh\" - << EOF\n    echo \"finished in \$SECONDS seconds\"\n  EOF\n"
+    echo
+
+  fi
+}
+
 # :command.normalize_input
 normalize_input() {
   local arg flags
@@ -702,10 +702,6 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h tsv")" -- "$cur" )'
   echo $'      ;;'
   echo $''
-  echo $'    \'batch\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--debug --help --memory --port -h")" -- "$cur" )'
-  echo $'      ;;'
-  echo $''
   echo $'    \'list\'*)'
   echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h")" -- "$cur" )'
   echo $'      ;;'
@@ -714,8 +710,12 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h")" -- "$cur" )'
   echo $'      ;;'
   echo $''
+  echo $'    \'run\'*)'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--debug --help --memory --port -h")" -- "$cur" )'
+  echo $'      ;;'
+  echo $''
   echo $'    *)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --quiet --version -h -q -v batch completions export import info list")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --quiet --version -h -q -v completions export import info list run")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'  esac'
@@ -734,84 +734,6 @@ orcli_completions_command() {
   #   $ eval "$(orcli completions)"
   #
   send_completions
-}
-
-# :command.function
-orcli_batch_command() {
-  # src/batch_command.sh
-  # shellcheck shell=bash disable=SC2154 source=/dev/null
-
-  # catch args, convert the space delimited string to an array
-  files=()
-  eval "files=(${args[file]})"
-
-  # update OPENREFINE_URL env
-  OPENREFINE_URL="http://localhost:${args[--port]}"
-
-  # locate orcli and OpenRefine
-  if ! command -v orcli &>/dev/null; then
-      if [[ -x "$0" ]]; then
-          orcli="$0"
-      else
-          error "orcli is not executable!" "Try: chmod + $0"
-      fi
-  fi
-  if [[ -x "refine" ]]; then
-      openrefine="./refine"
-  else
-      error "OpenRefine's startup script (refine) not found!" "Did you put orcli in your OpenRefine app dir?"
-  fi
-
-  # create tmp directory
-  tmpdir="$(mktemp -d)"
-  trap '{ rm -rf "$tmpdir"; }' 0 2 3 15
-
-  # check if OpenRefine is already running
-  if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
-      error "OpenRefine is already running on port ${args[--port]}." "Hint: Stop the other process or use another port."
-  fi
-
-  # start OpenRefine with tmp workspace and autosave period 25 hours
-  REFINE_AUTOSAVE_PERIOD=1440 $openrefine -d "$tmpdir" -m "${args[--memory]}" -p "${args[--port]}" -x refine.headless=true -v warn &>"$tmpdir/openrefine.log" &
-  openrefine_pid="$!"
-
-  # update trap to kill OpenRefine on error or exit
-  trap '{ rm -rf "$tmpdir"; kill -9 "$openrefine_pid"; }' 0 2 3 15
-
-  # wait until OpenRefine is running (timeout 20s)
-  if ! curl -fs --retry 20 --retry-connrefused --retry-delay 1 "${OPENREFINE_URL}/command/core/get-version" &>/dev/null; then
-      error "starting OpenRefine server failed!"
-  else
-      log "started OpenRefine" "port: ${args[--port]}" "memory: ${args[--memory]}" "tmpdir: ${tmpdir}" "pid: ${openrefine_pid}"
-  fi
-
-  # execute script(s) in subshell
-  export orcli tmpdir OPENREFINE_URL openrefine_pid
-  # case 1: interactive mode if stdin is selected but not present
-  if [[ ${args[file]} == '-' || ${args[file]} == '"-"' ]]; then
-      if ! read -u 0 -t 0; then
-          bash --rcfile <(
-              cat ~/.bashrc
-              interactive
-          ) -i < /dev/tty
-          exit
-      fi
-  fi
-  # case 2: execute scripts and keep shell running
-  if [[ ${args[--debug]} ]]; then
-      bash --rcfile <(
-          cat ~/.bashrc
-          for i in "${!files[@]}"; do log "execute script ${files[$i]}"; awk 1 "${files[$i]}"; done
-          interactive
-      ) -i < /dev/tty
-      exit
-  fi
-  # case 3: execute scripts
-  for i in "${!files[@]}"; do
-      log "execute script ${files[$i]}"
-      bash -e <(awk 1 "${files[$i]}")
-  done
-
 }
 
 # :command.function
@@ -916,6 +838,87 @@ orcli_export_tsv_command() {
 
 }
 
+# :command.function
+orcli_run_command() {
+  # src/run_command.sh
+  # shellcheck shell=bash disable=SC2154 source=/dev/null
+
+  # catch args, convert the space delimited string to an array
+  files=()
+  eval "files=(${args[file]})"
+
+  # update OPENREFINE_URL env
+  OPENREFINE_URL="http://localhost:${args[--port]}"
+
+  # locate orcli and OpenRefine
+  if ! command -v orcli &>/dev/null; then
+      if [[ -x "$0" ]]; then
+          orcli="$0"
+      else
+          error "orcli is not executable!" "Try: chmod + $0"
+      fi
+  fi
+  if [[ -x "refine" ]]; then
+      openrefine="./refine"
+  else
+      error "OpenRefine's startup script (refine) not found!" "Did you put orcli in your OpenRefine app dir?"
+  fi
+
+  # create tmp directory
+  tmpdir="$(mktemp -d)"
+  trap '{ rm -rf "$tmpdir"; }' 0 2 3 15
+
+  # check if OpenRefine is already running
+  if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
+      error "OpenRefine is already running on port ${args[--port]}." "Hint: Stop the other process or use another port."
+  fi
+
+  # start OpenRefine with tmp workspace and autosave period 25 hours
+  REFINE_AUTOSAVE_PERIOD=1440 $openrefine -d "$tmpdir" -m "${args[--memory]}" -p "${args[--port]}" -x refine.headless=true -v warn &>"$tmpdir/openrefine.log" &
+  openrefine_pid="$!"
+
+  # update trap to kill OpenRefine on error or exit
+  trap '{ rm -rf "$tmpdir"; kill -9 "$openrefine_pid"; }' 0 2 3 15
+
+  # wait until OpenRefine is running (timeout 20s)
+  if ! curl -fs --retry 20 --retry-connrefused --retry-delay 1 "${OPENREFINE_URL}/command/core/get-version" &>/dev/null; then
+      error "starting OpenRefine server failed!"
+  else
+      log "started OpenRefine" "port: ${args[--port]}" "memory: ${args[--memory]}" "tmpdir: ${tmpdir}" "pid: ${openrefine_pid}"
+  fi
+
+  # execute script(s) in subshell
+  export orcli tmpdir OPENREFINE_URL openrefine_pid
+  # case 1: interactive mode if stdin is selected but not present
+  if [[ ${args[file]} == '-' || ${args[file]} == '"-"' ]]; then
+      if ! read -u 0 -t 0; then
+          bash --rcfile <(
+              cat ~/.bashrc
+              interactive
+          ) -i </dev/tty
+          exit
+      fi
+  fi
+  # case 2: execute scripts and keep shell running
+  if [[ ${args[--debug]} ]]; then
+      bash --rcfile <(
+          cat ~/.bashrc
+          for i in "${!files[@]}"; do
+              log "execute script ${files[$i]}"
+              awk 1 "${files[$i]}"
+          done
+          interactive
+      ) -i </dev/tty
+      exit
+  fi
+  # case 3: execute scripts
+  for i in "${!files[@]}"; do
+      log "execute script ${files[$i]}"
+      bash -e <(awk 1 "${files[$i]}")
+  done
+
+}
+
 # :command.parse_requirements
 parse_requirements() {
   # :command.fixed_flags_filter
@@ -969,13 +972,6 @@ parse_requirements() {
     shift $#
     ;;
 
-  batch )
-    action="batch"
-    shift
-    orcli_batch_parse_requirements "$@"
-    shift $#
-    ;;
-
   import )
     action="import"
     shift
@@ -1001,6 +997,13 @@ parse_requirements() {
     action="export"
     shift
     orcli_export_parse_requirements "$@"
+    shift $#
+    ;;
+
+  run )
+    action="run"
+    shift
+    orcli_run_parse_requirements "$@"
     shift $#
     ;;
 
@@ -1075,92 +1078,6 @@ orcli_completions_parse_requirements() {
 
     esac
   done
-
-}
-
-# :command.parse_requirements
-orcli_batch_parse_requirements() {
-  # :command.fixed_flags_filter
-  case "${1:-}" in
-  --help | -h )
-    long_usage=yes
-    orcli_batch_usage
-    exit
-    ;;
-
-  esac
-
-  # :command.command_filter
-  action="batch"
-
-  # :command.parse_requirements_while
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-    # :flag.case
-    --memory )
-
-      # :flag.case_arg
-      if [[ -n ${2+x} ]]; then
-
-        args[--memory]="$2"
-        shift
-        shift
-      else
-        printf "%s\n" "--memory requires an argument: --memory RAM" >&2
-        exit 1
-      fi
-      ;;
-
-    # :flag.case
-    --port )
-
-      # :flag.case_arg
-      if [[ -n ${2+x} ]]; then
-
-        args[--port]="$2"
-        shift
-        shift
-      else
-        printf "%s\n" "--port requires an argument: --port PORT" >&2
-        exit 1
-      fi
-      ;;
-
-    # :flag.case
-    --debug )
-
-      # :flag.case_no_arg
-      args[--debug]=1
-      shift
-      ;;
-
-    -?* )
-      printf "invalid option: %s\n" "$key" >&2
-      exit 1
-      ;;
-
-    * )
-      # :command.parse_requirements_case
-      # :command.parse_requirements_case_repeatable
-      if [[ -z ${args[file]+x} ]]; then
-
-        args[file]="\"$1\""
-        shift
-      else
-        args[file]="${args[file]} \"$1\""
-        shift
-      fi
-
-      ;;
-
-    esac
-  done
-
-  # :command.default_assignments
-  [[ -n ${args[file]:-} ]] || args[file]="-"
-  [[ -n ${args[--memory]:-} ]] || args[--memory]="2048M"
-  [[ -n ${args[--port]:-} ]] || args[--port]="3333"
 
 }
 
@@ -1558,6 +1475,92 @@ orcli_export_tsv_parse_requirements() {
 
 }
 
+# :command.parse_requirements
+orcli_run_parse_requirements() {
+  # :command.fixed_flags_filter
+  case "${1:-}" in
+  --help | -h )
+    long_usage=yes
+    orcli_run_usage
+    exit
+    ;;
+
+  esac
+
+  # :command.command_filter
+  action="run"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+    # :flag.case
+    --memory )
+
+      # :flag.case_arg
+      if [[ -n ${2+x} ]]; then
+
+        args[--memory]="$2"
+        shift
+        shift
+      else
+        printf "%s\n" "--memory requires an argument: --memory RAM" >&2
+        exit 1
+      fi
+      ;;
+
+    # :flag.case
+    --port )
+
+      # :flag.case_arg
+      if [[ -n ${2+x} ]]; then
+
+        args[--port]="$2"
+        shift
+        shift
+      else
+        printf "%s\n" "--port requires an argument: --port PORT" >&2
+        exit 1
+      fi
+      ;;
+
+    # :flag.case
+    --debug )
+
+      # :flag.case_no_arg
+      args[--debug]=1
+      shift
+      ;;
+
+    -?* )
+      printf "invalid option: %s\n" "$key" >&2
+      exit 1
+      ;;
+
+    * )
+      # :command.parse_requirements_case
+      # :command.parse_requirements_case_repeatable
+      if [[ -z ${args[file]+x} ]]; then
+
+        args[file]="\"$1\""
+        shift
+      else
+        args[file]="${args[file]} \"$1\""
+        shift
+      fi
+
+      ;;
+
+    esac
+  done
+
+  # :command.default_assignments
+  [[ -n ${args[file]:-} ]] || args[file]="-"
+  [[ -n ${args[--memory]:-} ]] || args[--memory]="2048M"
+  [[ -n ${args[--port]:-} ]] || args[--port]="3333"
+
+}
+
 # :command.initialize
 initialize() {
   version="0.1.0"
@@ -1585,14 +1588,6 @@ run() {
       orcli_completions_usage
     else
       orcli_completions_command
-    fi
-
-  elif [[ $action == "batch" ]]; then
-    if [[ ${args[--help]:-} ]]; then
-      long_usage=yes
-      orcli_batch_usage
-    else
-      orcli_batch_command
     fi
 
   elif [[ $action == "import" ]]; then
@@ -1641,6 +1636,14 @@ run() {
       orcli_export_tsv_usage
     else
       orcli_export_tsv_command
+    fi
+
+  elif [[ $action == "run" ]]; then
+    if [[ ${args[--help]:-} ]]; then
+      long_usage=yes
+      orcli_run_usage
+    else
+      orcli_run_command
     fi
 
   elif [[ $action == "root" ]]; then
