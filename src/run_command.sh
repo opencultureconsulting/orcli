@@ -4,6 +4,16 @@
 files=()
 eval "files=(${args[file]})"
 
+# check if stdin is present if selected
+if ! [[ ${args[--interactive]} ]]; then
+    if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]]; then
+        if ! read -u 0 -t 0; then
+            orcli_run_usage
+            exit 1
+        fi
+    fi
+fi
+
 # update OPENREFINE_URL env
 OPENREFINE_URL="http://localhost:${args[--port]}"
 
@@ -46,9 +56,9 @@ fi
 
 # execute script(s) in subshell
 export orcli tmpdir OPENREFINE_URL openrefine_pid
-# case 1: interactive mode if stdin is selected but not present
 if [[ ${args[file]} == '-' || ${args[file]} == '"-"' ]]; then
     if ! read -u 0 -t 0; then
+        # case 1: interactive mode if stdin is selected but not present
         bash --rcfile <(
             cat ~/.bashrc
             interactive
@@ -56,8 +66,8 @@ if [[ ${args[file]} == '-' || ${args[file]} == '"-"' ]]; then
         exit
     fi
 fi
-# case 2: execute scripts and keep shell running
-if [[ ${args[--debug]} ]]; then
+if [[ ${args[--interactive]} ]]; then
+    # case 2: execute scripts and keep shell running
     bash --rcfile <(
         cat ~/.bashrc
         for i in "${!files[@]}"; do
@@ -66,10 +76,10 @@ if [[ ${args[--debug]} ]]; then
         done
         interactive
     ) -i </dev/tty
-    exit
+else
+    # case 3: just execute scripts
+    for i in "${!files[@]}"; do
+        log "execute script ${files[$i]}"
+        bash -e <(awk 1 "${files[$i]}")
+    done
 fi
-# case 3: execute scripts
-for i in "${!files[@]}"; do
-    log "execute script ${files[$i]}"
-    bash -e <(awk 1 "${files[$i]}")
-done

@@ -18,6 +18,7 @@ examples:
   - orcli info "duplicates"
   - orcli export tsv "duplicates"
   - orcli export tsv "duplicates" --output "duplicates.tsv"
+  - orcli run --interactive
   - |-
     orcli run << EOF
       orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
@@ -123,9 +124,10 @@ commands:
         help: PORT on which OpenRefine should listen
         arg: port
         default: "3333"
-      - long: --debug
-        help: do not exit on error and keep shell open
+      - long: --interactive
+        help: do not exit on error and keep bash shell open
     examples:
+      - orcli run --interactive
       - |-
         orcli run << EOF
           orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
@@ -144,6 +146,6 @@ commands:
           wc duplicates*
         EOF
       - |-
-        orcli run "file1.sh" "file2.sh" - << EOF
+        orcli run --interactive "file1.sh" "file2.sh" - << EOF
           echo "finished in \$SECONDS seconds"
         EOF
