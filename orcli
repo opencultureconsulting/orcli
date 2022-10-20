@@ -930,13 +930,9 @@ orcli_run_command() {
       ) -i </dev/tty
   else
       # case 3: just execute scripts
-      export orcli
       for i in "${!files[@]}"; do
           log "execute script ${files[$i]}"
-          bash -e <(
-              echo "if [[ $orcli ]]; then alias orcli=$orcli; fi"
-              awk 1 "${files[$i]}"
-          )
+          bash -e <(awk 1 "${files[$i]}")
       done
   fi
 
