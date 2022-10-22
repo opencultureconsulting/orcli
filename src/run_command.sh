@@ -19,13 +19,6 @@ OPENREFINE_URL="http://localhost:${args[--port]}"
 
 # locate orcli and OpenRefine
 scriptpath=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
-if ! command -v orcli &>/dev/null; then
-    if [[ -x "${scriptpath}/orcli" ]]; then
-        orcli="${scriptpath}/orcli"
-    else
-        error "orcli is not executable!" "Try: chmod + ${scriptpath}/orcli"
-    fi
-fi
 if [[ -x "${scriptpath}/refine" ]]; then
     openrefine="${scriptpath}/refine"
 else
@@ -62,8 +55,8 @@ if [[ ${args[file]} == '-' || ${args[file]} == '"-"' ]]; then
         # case 1: interactive mode if stdin is selected but not present
         bash --rcfile <(
             cat ~/.bashrc
-            if [[ $orcli ]]; then
-                echo "alias orcli=$orcli"
+            if ! command -v orcli &>/dev/null; then
+                echo "alias orcli=${scriptpath}/orcli"
             fi
             interactive
         ) -i </dev/tty
@@ -74,11 +67,11 @@ if [[ ${args[--interactive]} ]]; then
     # case 2: execute scripts and keep shell running
     bash --rcfile <(
         cat ~/.bashrc
-        if [[ $orcli ]]; then
-            echo "alias orcli=$orcli"
+        if ! command -v orcli &>/dev/null; then
+            echo "alias orcli=${scriptpath}/orcli"
         fi
         for i in "${!files[@]}"; do
-            log "execute script ${files[$i]}"
+            log "executing script ${files[$i]}..."
             awk 1 "${files[$i]}"
         done
         interactive
@@ -86,7 +79,13 @@ if [[ ${args[--interactive]} ]]; then
 else
     # case 3: just execute scripts
     for i in "${!files[@]}"; do
-        log "execute script ${files[$i]}"
-        bash -e <(awk 1 "${files[$i]}")
+        log "executing script ${files[$i]}..."
+        bash -e <(
+            if ! command -v orcli &>/dev/null; then
+                echo "shopt -s expand_aliases"
+                echo "alias orcli=${scriptpath}/orcli"
+            fi
+            awk 1 "${files[$i]}"
+        )
     done
 fi
