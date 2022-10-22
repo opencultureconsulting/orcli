@@ -1,9 +1,6 @@
 # shellcheck shell=bash
 function interactive() {
     cat <<'EOF'
-if ! command -v orcli &>/dev/null; then
-    alias orcli="$orcli"
-fi
 PS1="(orcli) [\u@\h \W]\$ "
 source <(orcli completions)
 echo '================================================================'

@@ -34,15 +34,13 @@ wget https://github.com/opencultureconsulting/orcli/raw/main/orcli
 chmod +x orcli
 ```
 
-3. Create a symlink in your $PATH (e.g. to ~/.local/bin)
+3. Optional: Create a symlink in your $PATH (e.g. to ~/.local/bin)
 
 ```sh
 ln -s "${PWD}/orcli" ~/.local/bin/
 ```
 
 ## Usage
-
-Ensure you have OpenRefine running (i.e. available at http://localhost:3333 or another URL) or use the integrated start command first.
 
 Use integrated help screens for available options and examples for each command.
 

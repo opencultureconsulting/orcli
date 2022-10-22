@@ -18,22 +18,16 @@ fi
 OPENREFINE_URL="http://localhost:${args[--port]}"
 
 # locate orcli and OpenRefine
-if ! command -v orcli &>/dev/null; then
-    if [[ -x "$0" ]]; then
-        orcli="$0"
-    else
-        error "orcli is not executable!" "Try: chmod + $0"
-    fi
-fi
-if [[ -x "refine" ]]; then
-    openrefine="./refine"
+scriptpath=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+if [[ -x "${scriptpath}/refine" ]]; then
+    openrefine="${scriptpath}/refine"
 else
     error "OpenRefine's startup script (refine) not found!" "Did you put orcli in your OpenRefine app dir?"
 fi
 
 # create tmp directory
-tmpdir="$(mktemp -d)"
-trap '{ rm -rf "$tmpdir"; }' 0 2 3 15
+OPENREFINE_TMPDIR="$(mktemp -d)"
+trap '{ rm -rf "$OPENREFINE_TMPDIR"; }' 0 2 3 15
 
 # check if OpenRefine is already running
 if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
@@ -41,26 +35,29 @@ if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
 fi
 
 # start OpenRefine with tmp workspace and autosave period 25 hours
-REFINE_AUTOSAVE_PERIOD=1440 $openrefine -d "$tmpdir" -m "${args[--memory]}" -p "${args[--port]}" -x refine.headless=true -v warn &>"$tmpdir/openrefine.log" &
-openrefine_pid="$!"
+REFINE_AUTOSAVE_PERIOD=1440 $openrefine -d "$OPENREFINE_TMPDIR" -m "${args[--memory]}" -p "${args[--port]}" -x refine.headless=true -v warn &>"$OPENREFINE_TMPDIR/openrefine.log" &
+OPENREFINE_PID="$!"
 
 # update trap to kill OpenRefine on error or exit
-trap '{ rm -rf "$tmpdir"; kill -9 "$openrefine_pid"; }' 0 2 3 15
+trap '{ rm -rf "$OPENREFINE_TMPDIR"; kill -9 "$OPENREFINE_PID"; }' 0 2 3 15
 
 # wait until OpenRefine is running (timeout 20s)
 if ! curl -fs --retry 20 --retry-connrefused --retry-delay 1 "${OPENREFINE_URL}/command/core/get-version" &>/dev/null; then
     error "starting OpenRefine server failed!"
 else
-    log "started OpenRefine" "port: ${args[--port]}" "memory: ${args[--memory]}" "tmpdir: ${tmpdir}" "pid: ${openrefine_pid}"
+    log "started OpenRefine" "port: ${args[--port]}" "memory: ${args[--memory]}" "tmpdir: ${OPENREFINE_TMPDIR}" "pid: ${OPENREFINE_PID}"
 fi
 
 # execute script(s) in subshell
-export orcli tmpdir OPENREFINE_URL openrefine_pid
+export OPENREFINE_TMPDIR OPENREFINE_URL OPENREFINE_PID
 if [[ ${args[file]} == '-' || ${args[file]} == '"-"' ]]; then
     if ! read -u 0 -t 0; then
         # case 1: interactive mode if stdin is selected but not present
         bash --rcfile <(
             cat ~/.bashrc
+            if ! command -v orcli &>/dev/null; then
+                echo "alias orcli=${scriptpath}/orcli"
+            fi
             interactive
         ) -i </dev/tty
         exit
@@ -70,8 +67,11 @@ if [[ ${args[--interactive]} ]]; then
     # case 2: execute scripts and keep shell running
     bash --rcfile <(
         cat ~/.bashrc
+        if ! command -v orcli &>/dev/null; then
+            echo "alias orcli=${scriptpath}/orcli"
+        fi
         for i in "${!files[@]}"; do
-            log "execute script ${files[$i]}"
+            log "executing script ${files[$i]}..."
             awk 1 "${files[$i]}"
         done
         interactive
@@ -79,7 +79,13 @@ if [[ ${args[--interactive]} ]]; then
 else
     # case 3: just execute scripts
     for i in "${!files[@]}"; do
-        log "execute script ${files[$i]}"
-        bash -e <(awk 1 "${files[$i]}")
+        log "executing script ${files[$i]}..."
+        bash -e <(
+            if ! command -v orcli &>/dev/null; then
+                echo "shopt -s expand_aliases"
+                echo "alias orcli=${scriptpath}/orcli"
+            fi
+            awk 1 "${files[$i]}"
+        )
     done
 fi
