@@ -4,9 +4,11 @@ Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org
 
 ## Features
 
-* works with latest OpenRefine version (currently 3.5)
-* batch processing (import, transform, export)
+* works with latest OpenRefine version (currently 3.6)
+* run batch processes (import, transform, export)
   * orcli takes care of starting and stopping OpenRefine with temporary workspaces
+  * allows execution of arbitrary bash scripts
+  * interactive mode for playing around and debugging
   * your existing OpenRefine data will not be touched
 * import CSV, ~~TSV, line-based TXT, fixed-width TXT, JSON or XML~~ (and specify input options)
   * supports stdin, multiple files and URLs
@@ -29,24 +31,101 @@ Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org
 
 2. Download bash script there and make it executable
 
-```sh
-wget https://github.com/opencultureconsulting/orcli/raw/main/orcli
-chmod +x orcli
-```
+  ```sh
+  wget https://github.com/opencultureconsulting/orcli/raw/main/orcli
+  chmod +x orcli
+  ```
 
-3. Optional: Create a symlink in your $PATH (e.g. to ~/.local/bin)
+Optional:
 
-```sh
-ln -s "${PWD}/orcli" ~/.local/bin/
-```
+* Create a symlink in your $PATH (e.g. to ~/.local/bin)
+
+  ```sh
+  ln -s "${PWD}/orcli" ~/.local/bin/
+  ```
+
+* Install Bash tab completion
+
+  * temporary
+
+    ```sh
+    source <(orcli completions)
+    ```
+
+  * permanently
+
+    ```sh
+    mkdir -p ~/.bashrc.d
+    orcli completions > ~/.bashrc.d/orcli
+    ```
+
+## Getting Started
+
+1. Launch an interactive playground
+
+  ```sh
+  ./orcli run --interactive
+  ```
+
+2. Create OpenRefine project `duplicates` from comma-separated-values (CSV) file
+
+  ```sh
+  orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+  ```
+
+3. Show OpenRefine project's metadata
+
+  ```sh
+  orcli info "duplicates"
+  ```
+
+4. Remove duplicates (coming soon)
+
+5. Export data from OpenRefine project to tab-separated-values (TSV) file `duplicates.tsv`
+
+  ```sh
+  orcli export tsv "duplicates" --output "duplicates.tsv"
+  ```
+
+6. Write out your session history to file `example.sh` (and delete the last line to remove the history command)
+
+  ```sh
+  history -a "example.sh"
+  sed -i '$ d' example.sh
+  ```
+
+7. Exit playground
+
+  ```sh
+  exit
+  ```
+
+8. Run batch process
+
+  ```sh
+  ./orcli run example.sh
+  ```
+
+9. Cleanup example files
+
+  ```sh
+  rm duplicates.tsv
+  rm example.sh
+  ```
 
 ## Usage
 
-Use integrated help screens for available options and examples for each command.
+* Use integrated help screens for available options and examples for each command.
 
-```sh
-orcli --help
-```
+  ```sh
+  orcli --help
+  ```
+
+* If your OpenRefine is running on a server, then use the environment variable OPENREFINE_URL.
+
+  ```sh
+  OPENREFINE_URL="http://localhost:3333" orcli list
+  ```
 
 ## Development
 
@@ -54,14 +133,14 @@ orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-
 
 1. Install bashly (requires ruby)
 
-```sh
-gem install bashly
-```
+  ```sh
+  gem install bashly
+  ```
 
 2. Edit code in [src](src) directory
 
 3. Generate script
 
-```sh
-bashly generate --upgrade
-```
+  ```sh
+  bashly generate --upgrade
+  ```
