@@ -79,7 +79,7 @@ Optional:
   orcli info "duplicates"
   ```
 
-4. ~~~Remove duplicates~~~
+4. Remove duplicates (coming soon)
 
 5. Export data from OpenRefine project to tab-separated-values (TSV) file `duplicates.tsv`
 
@@ -110,7 +110,7 @@ Optional:
 
   ```sh
   rm duplicates.tsv
-  rm`example.sh
+  rm example.sh
   ```
 
 ## Usage
@@ -133,14 +133,14 @@ orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-
 
 1. Install bashly (requires ruby)
 
-```sh
-gem install bashly
-```
+  ```sh
+  gem install bashly
+  ```
 
 2. Edit code in [src](src) directory
 
 3. Generate script
 
-```sh
-bashly generate --upgrade
-```
+  ```sh
+  bashly generate --upgrade
+  ```
