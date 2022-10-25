@@ -35,10 +35,10 @@ orcli_usage() {
   # :command.usage_commands
   printf "Commands:\n"
   echo "  completions   Generate bash completions"
-  echo "  import        import commands"
+  echo "  import        commands to create OpenRefine projects from files or URLs"
   echo "  list          list projects on OpenRefine server"
-  echo "  info          show project metadata"
-  echo "  export        export commands"
+  echo "  info          show OpenRefine project's metadata"
+  echo "  export        commands to export data from OpenRefine projects to files"
   echo "  run           run tmp OpenRefine workspace and execute shell script(s)"
   echo
 
@@ -122,11 +122,11 @@ orcli_completions_usage() {
 # :command.usage
 orcli_import_usage() {
   if [[ -n $long_usage ]]; then
-    printf "orcli import - import commands\n"
+    printf "orcli import - commands to create OpenRefine projects from files or URLs\n"
     echo
 
   else
-    printf "orcli import - import commands\n"
+    printf "orcli import - commands to create OpenRefine projects from files or URLs\n"
     echo
 
   fi
@@ -253,11 +253,11 @@ orcli_list_usage() {
 # :command.usage
 orcli_info_usage() {
   if [[ -n $long_usage ]]; then
-    printf "orcli info - show project metadata\n"
+    printf "orcli info - show OpenRefine project's metadata\n"
     echo
 
   else
-    printf "orcli info - show project metadata\n"
+    printf "orcli info - show OpenRefine project's metadata\n"
     echo
 
   fi
@@ -296,11 +296,11 @@ orcli_info_usage() {
 # :command.usage
 orcli_export_usage() {
   if [[ -n $long_usage ]]; then
-    printf "orcli export - export commands\n"
+    printf "orcli export - commands to export data from OpenRefine projects to files\n"
     echo
 
   else
-    printf "orcli export - export commands\n"
+    printf "orcli export - commands to export data from OpenRefine projects to files\n"
     echo
 
   fi

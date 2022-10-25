@@ -38,7 +38,7 @@ commands:
       Usage: eval "\$(orcli completions)"
 
   - name: import
-    help: import commands
+    help: commands to create OpenRefine projects from files or URLs
 
     commands:
       - name: csv
@@ -77,7 +77,7 @@ commands:
     help: list projects on OpenRefine server
 
   - name: info
-    help: show project metadata
+    help: show OpenRefine project's metadata
     args:
       - name: project
         help: project name or id
@@ -87,7 +87,7 @@ commands:
       - info 1234567890123
 
   - name: export
-    help: export commands
+    help: commands to export data from OpenRefine projects to files
 
     commands:
       - name: tsv
