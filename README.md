@@ -73,44 +73,31 @@ Optional:
   orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
   ```
 
-3. Show OpenRefine project's metadata
+3. Remove duplicates (coming soon)
 
-  ```sh
-  orcli info "duplicates"
-  ```
-
-4. Remove duplicates (coming soon)
-
-5. Export data from OpenRefine project to tab-separated-values (TSV) file `duplicates.tsv`
+4. Export data from OpenRefine project to tab-separated-values (TSV) file `duplicates.tsv`
 
   ```sh
   orcli export tsv "duplicates" --output "duplicates.tsv"
   ```
 
-6. Write out your session history to file `example.sh` (and delete the last line to remove the history command)
+5. Write out your session history to file `example.sh` (and delete the last line to remove the history command)
 
   ```sh
   history -a "example.sh"
   sed -i '$ d' example.sh
   ```
 
-7. Exit playground
+6. Exit playground
 
   ```sh
   exit
   ```
 
-8. Run batch process
+7. Run whole process again
 
   ```sh
   ./orcli run example.sh
-  ```
-
-9. Cleanup example files
-
-  ```sh
-  rm duplicates.tsv
-  rm example.sh
   ```
 
 ## Usage
@@ -126,6 +113,8 @@ Optional:
   ```sh
   OPENREFINE_URL="http://localhost:3333" orcli list
   ```
+
+* If OpenRefine does not have enough memory to process the data, it becomes slow and may even crash. Check the message after the run command finishes to see how much memory was used and adjust the memory allocated to OpenRefine accordingly with the `--memory` flag (default: 2048M).
 
 ## Development
 

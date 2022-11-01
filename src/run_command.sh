@@ -88,4 +88,6 @@ else
             awk 1 "${files[$i]}"
         )
     done
+    # print stats
+    log "used $(($(ps --no-headers -o rss -p "$OPENREFINE_PID") / 1024)) MB RAM and $(ps --no-headers -o cputime -p "$OPENREFINE_PID") CPU time"
 fi
