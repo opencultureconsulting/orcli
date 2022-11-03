@@ -73,7 +73,11 @@ Optional:
   orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
   ```
 
-3. Remove duplicates (coming soon)
+3. Remove duplicates by applying an undo/redo JSON file
+
+  ```sh
+  orcli transform "duplicates" "https://git.io/fj5hF"
+  ```
 
 4. Export data from OpenRefine project to tab-separated-values (TSV) file `duplicates.tsv`
 
