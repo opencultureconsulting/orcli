@@ -1,5 +1,4 @@
 # shellcheck shell=bash disable=SC2154
-#get_id "${args[project]}"
 
 # check if stdin is present if selected
 if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]]; then
@@ -8,12 +7,15 @@ if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]]; then
         exit 1
     fi
 fi
+
 # catch args, convert the space delimited string to an array
 files=()
 eval "files=(${args[file]})"
+
 # create tmp directory
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' 0 2 3 15
+
 # download files if name starts with http:// or https://
 for i in "${!files[@]}"; do
     if [[ ${files[$i]} == "http://"* ]] || [[ ${files[$i]} == "https://"* ]]; then
@@ -24,13 +26,24 @@ for i in "${!files[@]}"; do
     fi
 done
 
-# support multiple files and stdin
-readarray -t jsonlines < <(cat "${files[@]}" | jq --slurp --compact-output 'add | .[]')
-for line in "${jsonlines[@]}"; do
-  declare -A data="($(echo "$line" | jq -r 'to_entries | map("[\(.key)]=" + @sh "\(.value|tostring)") | .[]'))"
-  echo "${data[op]#core/}"
-  unset "data[op]"
-  unset "data[description]"
-  for K in "${!data[@]}"; do echo "$K" --- "${data[$K]}"; done
-  unset data
+# support multiple files
+for i in "${!files[@]}"; do
+    # read each operation into one line
+    mapfile -t jsonlines < <(jq -c '.[]' "${files[$i]}")
+    for line in "${jsonlines[@]}"; do
+        # parse operation into curl options
+        declare -A data="($(echo "$line" | jq -r 'to_entries | map("[\(.key)]=" + @sh "\(.value|tostring)") | .[]'))"
+        op="${data[op]#core/}"
+        unset "data[op]"
+        unset "data[description]"
+        mapfile -t curloptions < <(for K in "${!data[@]}"; do
+            echo "--data-urlencode"
+            echo "$K={data[$K]}"
+        done)
+        # get project id and csrf token; post data to it's individual endpoint 
+        if ! curl -fs --data "project=$(get_id "${args[project]}")" "${curloptions[@]}" "${OPENREFINE_URL}/command/core/${op}$(get_csrf)"; then
+            error "applying ${op} from ${files[$i]} failed!"
+        fi
+        unset data
+    done
 done
