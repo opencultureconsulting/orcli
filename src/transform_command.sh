@@ -1,4 +1,4 @@
-# shellcheck shell=bash disable=SC2154
+# shellcheck shell=bash disable=SC2154 disable=SC2155
 
 # check if stdin is present if selected
 if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]]; then
@@ -33,15 +33,22 @@ for i in "${!files[@]}"; do
     for line in "${jsonlines[@]}"; do
         # parse operation into curl options
         declare -A data="($(echo "$line" | jq -r 'to_entries | map("[\(.key)]=" + @sh "\(.value|tostring)") | .[]'))"
-        op="${data[op]#core/}"
+        # map operation name to command
+        com="${data[op]#core/}"
+        if [[ $com == "row-reorder" ]]; then com="reorder-rows"; fi
         unset "data[op]"
+        # rename engineConfig to engine
+        data[engine]="${data[engineConfig]}"
+        unset "data[engineConfig]"
+        # drop description
         unset "data[description]"
         mapfile -t curloptions < <(for K in "${!data[@]}"; do
-            echo "--data-urlencode"
-            echo "$K={data[$K]}"
+            echo "--data"
+            echo "$K=${data[$K]}"
         done)
-        # get project id and csrf token; post data to it's individual endpoint 
-        if ! curl -fs --data "project=$(get_id "${args[project]}")" "${curloptions[@]}" "${OPENREFINE_URL}/command/core/${op}$(get_csrf)"; then
+        # get project id and csrf token; post data to it's individual endpoint
+        # debug: remove -fs option temporarily
+        if ! curl --data "project=$(get_id "${args[project]}")" "${curloptions[@]}" "${OPENREFINE_URL}/command/core/${com}$(get_csrf)"; then
             error "applying ${op} from ${files[$i]} failed!"
         fi
         unset data

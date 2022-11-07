@@ -856,8 +856,7 @@ orcli_info_command() {
 # :command.function
 orcli_transform_command() {
   # src/transform_command.sh
-  # shellcheck shell=bash disable=SC2154
-  #get_id "${args[project]}"
+  # shellcheck shell=bash disable=SC2154 disable=SC2155
 
   # check if stdin is present if selected
   if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]]; then
@@ -866,12 +865,15 @@ orcli_transform_command() {
           exit 1
       fi
   fi
+
   # catch args, convert the space delimited string to an array
   files=()
   eval "files=(${args[file]})"
+
   # create tmp directory
   tmpdir="$(mktemp -d)"
   trap 'rm -rf "$tmpdir"' 0 2 3 15
+
   # download files if name starts with http:// or https://
   for i in "${!files[@]}"; do
       if [[ ${files[$i]} == "http://"* ]] || [[ ${files[$i]} == "https://"* ]]; then
@@ -882,16 +884,37 @@ orcli_transform_command() {
       fi
   done
 
-  # support multiple files and stdin
-  readarray -t jsonlines < <(cat "${files[@]}" | jq --slurp --compact-output 'add | .[]')
-  for line in "${jsonlines[@]}"; do
-    declare -A data="($(echo "$line" | jq -r 'to_entries | map("[\(.key)]=" + @sh "\(.value|tostring)") | .[]'))"
-    echo "${data[op]#core/}"
-    unset "data[op]"
-    unset "data[description]"
-    for K in "${!data[@]}"; do echo "$K" --- "${data[$K]}"; done
-    unset data
+  # support multiple files
+  for i in "${!files[@]}"; do
+      # read each operation into one line
+      mapfile -t jsonlines < <(jq -c '.[]' "${files[$i]}")
+      for line in "${jsonlines[@]}"; do
+          # parse operation into curl options
+          declare -A data="($(echo "$line" | jq -r 'to_entries | map("[\(.key)]=" + @sh "\(.value|tostring)") | .[]'))"
+          # map operation name to command
+          com="${data[op]#core/}"
+          if [[ $com == "row-reorder" ]]; then com="reorder-rows"; fi
+          unset "data[op]"
+          # rename engineConfig to engine
+          data[engine]="${data[engineConfig]}"
+          unset "data[engineConfig]"
+          # drop description
+          unset "data[description]"
+          mapfile -t curloptions < <(for K in "${!data[@]}"; do
+              echo "--data"
+              echo "$K=${data[$K]}"
+          done)
+          # get project id and csrf token; post data to it's individual endpoint
+          set -x
+          # debug: remove -fs
+          if ! curl --data "project=$(get_id "${args[project]}")" "${curloptions[@]}" "${OPENREFINE_URL}/command/core/${com}$(get_csrf)"; then
+              error "applying ${op} from ${files[$i]} failed!"
+          fi
+          set +x
+          unset data
+      done
   done
+
 }
 
 # :command.function
