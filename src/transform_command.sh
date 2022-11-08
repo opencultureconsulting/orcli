@@ -31,9 +31,9 @@ for i in "${!files[@]}"; do
     # read each operation into one line
     mapfile -t jsonlines < <(jq -c '.[]' "${files[$i]}")
     for line in "${jsonlines[@]}"; do
-        # parse operation into curl options
+        # parse one line/operation into array
         declare -A data="($(echo "$line" | jq -r 'to_entries | map("[\(.key)]=" + @sh "\(.value|tostring)") | .[]'))"
-        # map operation name to command
+        # map operation names to command endpoints
         com="${data[op]#core/}"
         if [[ $com == "row-reorder" ]]; then com="reorder-rows"; fi
         unset "data[op]"
@@ -42,14 +42,16 @@ for i in "${!files[@]}"; do
         unset "data[engineConfig]"
         # drop description
         unset "data[description]"
+        # prepare curl options
         mapfile -t curloptions < <(for K in "${!data[@]}"; do
             echo "--data"
             echo "$K=${data[$K]}"
         done)
         # get project id and csrf token; post data to it's individual endpoint
-        # debug: remove -fs option temporarily
-        if ! curl --data "project=$(get_id "${args[project]}")" "${curloptions[@]}" "${OPENREFINE_URL}/command/core/${com}$(get_csrf)"; then
-            error "applying ${op} from ${files[$i]} failed!"
+        if response="$(curl -fs --data "project=$(get_id "${args[project]}")" "${curloptions[@]}" "${OPENREFINE_URL}/command/core/${com}$(get_csrf)")"; then
+            log "applied ${com} to ${args[project]}" "Response: $(jq '.historyEntry.description' <<< "$response")"
+        else
+            error "applying ${com} from ${files[$i]} to ${args[project]} failed!"
         fi
         unset data
     done
