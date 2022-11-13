@@ -23,7 +23,7 @@ examples:
   - |-
     orcli run << EOF
       orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-      orcli info "duplicates"
+      orcli transform "duplicates" "https://git.io/fj5ju"
       orcli export tsv "duplicates"
     EOF
 
@@ -148,7 +148,7 @@ commands:
       - |-
         orcli run << EOF
           orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-          orcli info "duplicates"
+          orcli transform "duplicates" "https://git.io/fj5ju"
           orcli export tsv "duplicates"
         EOF
       - |-
