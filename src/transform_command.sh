@@ -29,10 +29,17 @@ done
 # support multiple files
 for i in "${!files[@]}"; do
     # read each operation into one line
-    mapfile -t jsonlines < <(jq -c '.[]' "${files[$i]}")
+    if json="$(jq -c '.[]' "${files[$i]}")"; then
+        mapfile -t jsonlines <<<"$json"
+    else
+        error "parsing ${files[$i]} failed!"
+    fi
     for line in "${jsonlines[@]}"; do
         # parse one line/operation into array
         declare -A data="($(echo "$line" | jq -r 'to_entries | map("[\(.key)]=" + @sh "\(.value|tostring)") | .[]'))"
+        if [[ ! ${data[op]} ]]; then
+            error "parsing ${files[$i]} failed!"
+        fi
         # map operation names to command endpoints
         # https://github.com/OpenRefine/OpenRefine/blob/master/main/webapp/modules/core/MOD-INF/controller.js
         com="${data[op]#core/}"
