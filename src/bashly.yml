@@ -16,13 +16,14 @@ examples:
   - orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
   - orcli list
   - orcli info "duplicates"
+  - orcli transform "duplicates" "https://git.io/fj5ju"
   - orcli export tsv "duplicates"
   - orcli export tsv "duplicates" --output "duplicates.tsv"
   - orcli run --interactive
   - |-
     orcli run << EOF
       orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-      orcli info "duplicates"
+      orcli transform "duplicates" "https://git.io/fj5ju"
       orcli export tsv "duplicates"
     EOF
 
@@ -83,8 +84,24 @@ commands:
         help: project name or id
         required: true
     examples:
-      - info "duplicates"
-      - info 1234567890123
+      - orcli info "duplicates"
+      - orcli info 1234567890123
+
+  - name: transform
+    help: apply undo/redo JSON file(s) to an OpenRefine project
+    args:
+      - name: project
+        help: project name or id
+        required: true
+      - name: file
+        help: Path to one or more files or URLs containing OpenRefine's undo/redo operation history in JSON format. When FILE is -, read standard input.
+        default: "-"
+        repeatable: true
+    examples:
+      - orcli transform "duplicates" "history.json"
+      - cat "history.json" | orcli transform "duplicates"
+      - orcli transform "duplicates" "https://git.io/fj5ju"
+      - orcli transform 1234567890123 "history.json"
 
   - name: export
     help: commands to export data from OpenRefine projects to files
@@ -131,7 +148,7 @@ commands:
       - |-
         orcli run << EOF
           orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-          orcli info "duplicates"
+          orcli transform "duplicates" "https://git.io/fj5ju"
           orcli export tsv "duplicates"
         EOF
       - |-
