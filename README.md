@@ -112,7 +112,7 @@ Optional:
   orcli --help
   ```
 
-* If your OpenRefine is running on a server, then use the environment variable OPENREFINE_URL.
+* If your OpenRefine is running on a different port or host, then use the environment variable OPENREFINE_URL.
 
   ```sh
   OPENREFINE_URL="http://localhost:3333" orcli list
