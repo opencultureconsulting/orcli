@@ -14,6 +14,11 @@ if ! [[ ${args[--interactive]} ]]; then
     fi
 fi
 
+# assume that quiet flag shall suppress log output generally in batch mode
+if [[ ${args[--quiet]} ]]; then
+    export ORCLI_QUIET=1
+fi
+
 # update OPENREFINE_URL env
 OPENREFINE_URL="http://localhost:${args[--port]}"
 
