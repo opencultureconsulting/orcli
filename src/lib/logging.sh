@@ -7,7 +7,7 @@ function error() {
   exit 1
 }
 function log() {
-  if ! [[ ${args[--quiet]} ]]; then
+  if ! [[ ${args[--quiet]} || $ORCLI_QUIET ]]; then
     echo >&2 "[$(date +'%Y-%m-%dT%H:%M:%S')] $1"
     shift
     for msg in "$@"; do echo >&2 "  $msg"; done

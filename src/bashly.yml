@@ -27,11 +27,6 @@ examples:
       orcli export tsv "duplicates"
     EOF
 
-flags:
-  - long: --quiet
-    short: -q
-    help: suppress log output, print errors only
-
 commands:
   - name: completions
     help: |-
@@ -62,6 +57,9 @@ commands:
           - long: --projectName
             arg: projectName
             help: set a name for the OpenRefine project
+          - long: --quiet
+            short: -q
+            help: suppress log output, print errors only
         examples:
           - orcli import csv "file"
           - orcli import csv "file1" "file2"
@@ -97,6 +95,10 @@ commands:
         help: Path to one or more files or URLs containing OpenRefine's undo/redo operation history in JSON format. When FILE is -, read standard input.
         default: "-"
         repeatable: true
+    flags:  
+      - long: --quiet
+        short: -q
+        help: suppress log output, print errors only
     examples:
       - orcli transform "duplicates" "history.json"
       - cat "history.json" | orcli transform "duplicates"
@@ -121,6 +123,9 @@ commands:
             help: set character encoding
             arg: encoding
             default: "UTF-8"
+          - long: --quiet
+            short: -q
+            help: suppress log output, print errors only
         examples:
           - orcli export tsv "duplicates"
           - orcli export tsv "duplicates" --output "duplicates.tsv"
@@ -143,6 +148,9 @@ commands:
         default: "3333"
       - long: --interactive
         help: do not exit on error and keep bash shell open
+      - long: --quiet
+        short: -q
+        help: suppress log output, print errors only
     examples:
       - orcli run --interactive
       - |-
