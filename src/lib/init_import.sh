@@ -40,7 +40,7 @@ function init_import() {
         data+=("project-file=@-")
     else
         if ! path=$(readlink -e "${file}"); then
-            error "file ${file} not found!"
+            error "cannot open ${file} (no such file)!"
         fi
         data+=("project-file=@${path}")
     fi

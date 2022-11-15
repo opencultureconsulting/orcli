@@ -4,15 +4,23 @@
 files=()
 eval "files=(${args[file]})"
 
-# check if stdin is present if selected
-if ! [[ ${args[--interactive]} ]]; then
-    if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]]; then
-        if ! read -u 0 -t 0; then
-            orcli_run_usage
-            exit 1
+# check existence of files and stdin
+for i in "${!files[@]}"; do
+    if [[ "${files[$i]}" == '-' ]] || [[ "${files[$i]}" == '"-"' ]]; then
+        # exit if stdin is selected but not present
+        if ! [[ ${args[--interactive]} ]]; then
+            if ! read -u 0 -t 0; then
+                orcli_run_usage
+                exit 1
+            fi
+        fi
+    else
+        # exit if file does not exist
+        if ! [[ -f "${files[$i]}" ]]; then
+            error "cannot open ${files[$i]} (no such file)!"
         fi
     fi
-fi
+done
 
 # assume that quiet flag shall suppress log output generally in batch mode
 if [[ ${args[--quiet]} ]]; then
