@@ -26,6 +26,22 @@ for i in "${!files[@]}"; do
     fi
 done
 
+# check existence of files and stdin
+for i in "${!files[@]}"; do
+    if [[ "${files[$i]}" == '-' ]] || [[ "${files[$i]}" == '"-"' ]]; then
+        # exit if stdin is selected but not present
+        if ! read -u 0 -t 0; then
+            orcli_transform_usage
+            exit 1
+        fi
+    else
+        # exit if file does not exist
+        if ! [[ -f "${files[$i]}" ]]; then
+            error "cannot open ${files[$i]} (no such file)!"
+        fi
+    fi
+done
+
 # support multiple files
 for i in "${!files[@]}"; do
     # read each operation into one line
