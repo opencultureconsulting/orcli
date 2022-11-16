@@ -38,7 +38,7 @@ commands:
 
     commands:
       - name: csv
-        help: import comma-separated values (CSV)
+        help: import character-separated values (CSV)
         args:
           - name: file
             help: Path to one or more files or URLs. When FILE is -, read standard input.
@@ -67,6 +67,37 @@ commands:
           - orcli import csv "https://git.io/fj5hF"
           - |-
             orcli import csv "file" \\\\
+              --separator ";" \\\\
+              --encoding "ISO-8859-1" \\\\
+              --trimStrings \\\\
+              --projectName "duplicates"
+
+      - name: tsv
+        help: import tab-separated values (TSV)
+        args:
+          - name: file
+            help: Path to one or more files or URLs. When FILE is -, read standard input.
+            default: "-"
+            repeatable: true
+        flags:
+          - long: --encoding
+            help: set character encoding
+            arg: encoding
+          - long: --trimStrings
+            help: trim leading & trailing whitespace from strings
+          - long: --projectName
+            arg: projectName
+            help: set a name for the OpenRefine project
+          - long: --quiet
+            short: -q
+            help: suppress log output, print errors only
+        examples:
+          - orcli import tsv "file"
+          - orcli import tsv "file1" "file2"
+          - cat "file" | orcli import tsv
+          - orcli import tsv "https://git.io/fj5hF"
+          - |-
+            orcli import tsv "file" \\\\
               --separator ";" \\\\
               --encoding "ISO-8859-1" \\\\
               --trimStrings \\\\

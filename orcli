@@ -133,7 +133,8 @@ orcli_import_usage() {
   echo
   # :command.usage_commands
   printf "Commands:\n"
-  echo "  csv   import comma-separated values (CSV)"
+  echo "  csv   import character-separated values (CSV)"
+  echo "  tsv   import tab-separated values (TSV)"
   echo
 
   # :command.long_usage
@@ -151,11 +152,11 @@ orcli_import_usage() {
 # :command.usage
 orcli_import_csv_usage() {
   if [[ -n $long_usage ]]; then
-    printf "orcli import csv - import comma-separated values (CSV)\n"
+    printf "orcli import csv - import character-separated values (CSV)\n"
     echo
 
   else
-    printf "orcli import csv - import comma-separated values (CSV)\n"
+    printf "orcli import csv - import character-separated values (CSV)\n"
     echo
 
   fi
@@ -217,6 +218,74 @@ orcli_import_csv_usage() {
     printf "  cat \"file\" | orcli import csv\n"
     printf "  orcli import csv \"https://git.io/fj5hF\"\n"
     printf "  orcli import csv \"file\" \\\\\n    --separator \";\" \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\"\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+orcli_import_tsv_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "orcli import tsv - import tab-separated values (TSV)\n"
+    echo
+
+  else
+    printf "orcli import tsv - import tab-separated values (TSV)\n"
+    echo
+
+  fi
+
+  printf "Usage:\n"
+  printf "  orcli import tsv [FILE...] [OPTIONS]\n"
+  printf "  orcli import tsv --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n $long_usage ]]; then
+    printf "Options:\n"
+
+    # :command.usage_fixed_flags
+    echo "  --help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_flags
+    # :flag.usage
+    echo "  --encoding ENCODING"
+    printf "    set character encoding\n"
+    echo
+
+    # :flag.usage
+    echo "  --trimStrings"
+    printf "    trim leading & trailing whitespace from strings\n"
+    echo
+
+    # :flag.usage
+    echo "  --projectName PROJECTNAME"
+    printf "    set a name for the OpenRefine project\n"
+    echo
+
+    # :flag.usage
+    echo "  --quiet, -q"
+    printf "    suppress log output, print errors only\n"
+    echo
+
+    # :command.usage_args
+    printf "Arguments:\n"
+
+    # :argument.usage
+    echo "  FILE..."
+    printf "    Path to one or more files or URLs. When FILE is -, read standard input.\n"
+    printf "    Default: -\n"
+    echo
+
+    # :command.usage_examples
+    printf "Examples:\n"
+    printf "  orcli import tsv \"file\"\n"
+    printf "  orcli import tsv \"file1\" \"file2\"\n"
+    printf "  cat \"file\" | orcli import tsv\n"
+    printf "  orcli import tsv \"https://git.io/fj5hF\"\n"
+    printf "  orcli import tsv \"file\" \\\\\n    --separator \";\" \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\"\n"
     echo
 
   fi
@@ -783,6 +852,10 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --help --projectName --quiet --separator --trimStrings -h -q")" -- "$cur" )'
   echo $'      ;;'
   echo $''
+  echo $'    \'import tsv\'*)'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --help --projectName --quiet --trimStrings -h -q")" -- "$cur" )'
+  echo $'      ;;'
+  echo $''
   echo $'    \'export tsv\'*)'
   echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --help --output --quiet -h -q")" -- "$cur" )'
   echo $'      ;;'
@@ -792,7 +865,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'import\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h csv")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h csv tsv")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'export\'*)'
@@ -853,6 +926,42 @@ orcli_import_csv_command() {
   data+=("format=text/line-based/*sv")
   options='{ '
   options+="\"separator\": \"${args[--separator]}\""
+  if [[ ${args[--encoding]} ]]; then
+      options+=', '
+      options+="\"encoding\": \"${args[--encoding]}\""
+  fi
+  if [[ ${args[--trimStrings]} ]]; then
+      options+=', '
+      options+="\"trimStrings\": true"
+  fi
+  options+=' }'
+  data+=("options=${options}")
+
+  # call post_import function to post data and validate results
+  post_import "${data[@]}"
+
+}
+
+# :command.function
+orcli_import_tsv_command() {
+  # src/import_tsv_command.sh
+  # shellcheck shell=bash
+
+  # call init_import function to eval args and to set basic post data
+  init_import
+
+  # check if stdin is present if selected
+  if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]]; then
+      if ! read -u 0 -t 0; then
+          orcli_import_tsv_usage
+          exit 1
+      fi
+  fi
+
+  # assemble specific post data (some options require json format)
+  data+=("format=text/line-based/*sv")
+  options='{ '
+  options+="\"separator\": \"\\t\""
   if [[ ${args[--encoding]} ]]; then
       options+=', '
       options+="\"encoding\": \"${args[--encoding]}\""
@@ -1328,6 +1437,13 @@ orcli_import_parse_requirements() {
     shift $#
     ;;
 
+  tsv )
+    action="tsv"
+    shift
+    orcli_import_tsv_parse_requirements "$@"
+    shift $#
+    ;;
+
   # :command.command_fallback
   "" )
     orcli_import_usage >&2
@@ -1469,6 +1585,98 @@ orcli_import_csv_parse_requirements() {
   # :command.default_assignments
   [[ -n ${args[file]:-} ]] || args[file]="-"
   [[ -n ${args[--separator]:-} ]] || args[--separator]=","
+
+}
+
+# :command.parse_requirements
+orcli_import_tsv_parse_requirements() {
+  # :command.fixed_flags_filter
+  case "${1:-}" in
+  --help | -h )
+    long_usage=yes
+    orcli_import_tsv_usage
+    exit
+    ;;
+
+  esac
+
+  # :command.command_filter
+  action="import tsv"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+    # :flag.case
+    --encoding )
+
+      # :flag.case_arg
+      if [[ -n ${2+x} ]]; then
+
+        args[--encoding]="$2"
+        shift
+        shift
+      else
+        printf "%s\n" "--encoding requires an argument: --encoding ENCODING" >&2
+        exit 1
+      fi
+      ;;
+
+    # :flag.case
+    --trimStrings )
+
+      # :flag.case_no_arg
+      args[--trimStrings]=1
+      shift
+      ;;
+
+    # :flag.case
+    --projectName )
+
+      # :flag.case_arg
+      if [[ -n ${2+x} ]]; then
+
+        args[--projectName]="$2"
+        shift
+        shift
+      else
+        printf "%s\n" "--projectName requires an argument: --projectName PROJECTNAME" >&2
+        exit 1
+      fi
+      ;;
+
+    # :flag.case
+    --quiet | -q )
+
+      # :flag.case_no_arg
+      args[--quiet]=1
+      shift
+      ;;
+
+    -?* )
+      printf "invalid option: %s\n" "$key" >&2
+      exit 1
+      ;;
+
+    * )
+      # :command.parse_requirements_case
+      # :command.parse_requirements_case_repeatable
+      if [[ -z ${args[file]+x} ]]; then
+
+        args[file]="\"$1\""
+        shift
+      else
+        args[file]="${args[file]} \"$1\""
+        shift
+      fi
+
+      ;;
+
+    esac
+  done
+
+  # :command.default_assignments
+  [[ -n ${args[file]:-} ]] || args[file]="-"
 
 }
 
@@ -1913,6 +2121,14 @@ run() {
       orcli_import_csv_usage
     else
       orcli_import_csv_command
+    fi
+
+  elif [[ $action == "import tsv" ]]; then
+    if [[ ${args[--help]:-} ]]; then
+      long_usage=yes
+      orcli_import_tsv_usage
+    else
+      orcli_import_tsv_command
     fi
 
   elif [[ $action == "list" ]]; then
