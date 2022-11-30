@@ -38,6 +38,7 @@ orcli_usage() {
   echo "  import        commands to create OpenRefine projects from files or URLs"
   echo "  list          list projects on OpenRefine server"
   echo "  info          show OpenRefine project's metadata"
+  echo "  test          run functional tests on tmp OpenRefine workspace"
   echo "  transform     apply undo/redo JSON file(s) to an OpenRefine project"
   echo "  export        commands to export data from OpenRefine projects to files"
   echo "  run           run tmp OpenRefine workspace and execute shell script(s)"
@@ -358,6 +359,44 @@ orcli_info_usage() {
     printf "Examples:\n"
     printf "  orcli info \"duplicates\"\n"
     printf "  orcli info 1234567890123\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+orcli_test_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "orcli test - run functional tests on tmp OpenRefine workspace\n"
+    echo
+
+  else
+    printf "orcli test - run functional tests on tmp OpenRefine workspace\n"
+    echo
+
+  fi
+
+  printf "Usage:\n"
+  printf "  orcli test [FILE...]\n"
+  printf "  orcli test --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n $long_usage ]]; then
+    printf "Options:\n"
+
+    # :command.usage_fixed_flags
+    echo "  --help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_args
+    printf "Arguments:\n"
+
+    # :argument.usage
+    echo "  FILE..."
+    printf "    Path to one or more files\n"
+    printf "    Default: tests/*.sh\n"
     echo
 
   fi
@@ -880,12 +919,16 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h")" -- "$cur" )'
   echo $'      ;;'
   echo $''
+  echo $'    \'test\'*)'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h")" -- "$cur" )'
+  echo $'      ;;'
+  echo $''
   echo $'    \'run\'*)'
   echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --interactive --memory --port --quiet -h -q")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    *)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --version -h -v completions export import info list run transform")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --version -h -v completions export import info list run test transform")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'  esac'
@@ -1002,6 +1045,84 @@ orcli_info_command() {
   # get project id
   projectid="$(get_id "${args[project]}")"
   echo "$projectid"
+}
+
+# :command.function
+orcli_test_command() {
+  # src/test_command.sh
+  # shellcheck shell=bash
+
+  # catch args, convert the space delimited string to an array
+  files=()
+  eval "files=(${args[file]})"
+
+  # check existence of files
+  for i in "${!files[@]}"; do
+      if ! [[ -f "${files[$i]}" ]]; then
+          error "cannot open ${files[$i]} (no such file)!"
+      fi
+  done
+
+  # locate orcli and OpenRefine
+  scriptpath=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+  if [[ -x "${scriptpath}/refine" ]]; then
+      openrefine="${scriptpath}/refine"
+  else
+      error "OpenRefine's startup script (refine) not found!" "Did you put orcli in your OpenRefine app dir?"
+  fi
+
+  # create tmp directory
+  OPENREFINE_TMPDIR="$(mktemp -d)"
+  trap '{ rm -rf "$OPENREFINE_TMPDIR"; }' 0 2 3 15
+
+  # check if OpenRefine is already running
+  if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
+      error "OpenRefine is already running."
+  fi
+
+  # start OpenRefine with tmp workspace and autosave period 25 hours
+  REFINE_AUTOSAVE_PERIOD=1440 $openrefine -d "$OPENREFINE_TMPDIR" -x refine.headless=true -v warn &>"$OPENREFINE_TMPDIR/openrefine.log" &
+  OPENREFINE_PID="$!"
+
+  # update trap to kill OpenRefine on error or exit
+  trap '{ rm -rf "$OPENREFINE_TMPDIR"; kill -9 "$OPENREFINE_PID"; }' 0 2 3 15
+
+  # wait until OpenRefine is running (timeout 20s)
+  if ! curl -fs --retry 20 --retry-connrefused --retry-delay 1 "${OPENREFINE_URL}/command/core/get-version" &>/dev/null; then
+      error "starting OpenRefine server failed!"
+  else
+      log "started OpenRefine with tmp workspace ${OPENREFINE_TMPDIR}"
+  fi
+
+  # execute script(s) in subshell
+  export OPENREFINE_TMPDIR OPENREFINE_URL OPENREFINE_PID
+  results=()
+  for i in "${!files[@]}"; do
+      set +e
+      bash <(
+          if ! command -v orcli &>/dev/null; then
+              echo "shopt -s expand_aliases"
+              echo "alias orcli=${scriptpath}/orcli"
+          fi
+          awk 1 "${files[$i]}"
+      ) &>"$OPENREFINE_TMPDIR/test.log"
+      results+=(${?})
+      set -e
+      if [[ "${results[$i]}" =~ [1-9] ]]; then
+          cat "$OPENREFINE_TMPDIR/test.log"
+          log "FAILED ${files[$i]} with exit code ${results[$i]}!"
+      else
+          log "PASSED ${files[$i]}"
+      fi
+  done
+
+  # summary
+  if [[ "${results[*]}" =~ [1-9] ]]; then
+      error "failed tests!"
+  else
+      log "all tests passed!"
+  fi
+
 }
 
 # :command.function
@@ -1313,6 +1434,13 @@ parse_requirements() {
     action="info"
     shift
     orcli_info_parse_requirements "$@"
+    shift $#
+    ;;
+
+  test )
+    action="test"
+    shift
+    orcli_test_parse_requirements "$@"
     shift $#
     ;;
 
@@ -1769,6 +1897,53 @@ orcli_info_parse_requirements() {
 }
 
 # :command.parse_requirements
+orcli_test_parse_requirements() {
+  # :command.fixed_flags_filter
+  case "${1:-}" in
+  --help | -h )
+    long_usage=yes
+    orcli_test_usage
+    exit
+    ;;
+
+  esac
+
+  # :command.command_filter
+  action="test"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+    -?* )
+      printf "invalid option: %s\n" "$key" >&2
+      exit 1
+      ;;
+
+    * )
+      # :command.parse_requirements_case
+      # :command.parse_requirements_case_repeatable
+      if [[ -z ${args[file]+x} ]]; then
+
+        args[file]="\"$1\""
+        shift
+      else
+        args[file]="${args[file]} \"$1\""
+        shift
+      fi
+
+      ;;
+
+    esac
+  done
+
+  # :command.default_assignments
+  [[ -n ${args[file]:-} ]] || args[file]="tests/*.sh"
+
+}
+
+# :command.parse_requirements
 orcli_transform_parse_requirements() {
   # :command.fixed_flags_filter
   case "${1:-}" in
@@ -2145,6 +2320,14 @@ run() {
       orcli_info_usage
     else
       orcli_info_command
+    fi
+
+  elif [[ $action == "test" ]]; then
+    if [[ ${args[--help]:-} ]]; then
+      long_usage=yes
+      orcli_test_usage
+    else
+      orcli_test_command
     fi
 
   elif [[ $action == "transform" ]]; then
