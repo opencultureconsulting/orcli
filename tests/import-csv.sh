@@ -1,12 +1,10 @@
 #!/bin/bash
 
 # environment
-t=import-csv
-mkdir "${OPENREFINE_TMPDIR}/${t}"
-cd "${OPENREFINE_TMPDIR}/${t}" || exit 1
+t="$(basename "$(pwd)" .sh)"
 
 # data
-cat << "DATA" > "test.csv"
+cat << "DATA" > "${t}.csv"
 a,b,c
 1,2,3
 0,0,0
@@ -14,7 +12,7 @@ $,\,'
 DATA
 
 # assertion
-cat << "DATA" > "test.assert"
+cat << "DATA" > "${t}.assert"
 a	b	c
 1	2	3
 0	0	0
@@ -22,8 +20,8 @@ $	\	'
 DATA
 
 # action
-orcli import csv "test.csv"
-orcli export tsv "test csv" --output "test.output"
+orcli import csv "${t}.csv"
+orcli export tsv "${t} csv" --output "${t}.output"
 
 # test
-diff -u "test.assert" "test.output"
+diff -u "${t}.assert" "${t}.output"
