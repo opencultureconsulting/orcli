@@ -1,15 +1,11 @@
 # shellcheck shell=bash disable=SC2154
 
-# catch args, convert the space delimited string to an array
-files=()
-eval "files=(${args[file]})"
-
 # check existence of files
-for i in "${!files[@]}"; do
-    if ! [[ -f "${files[$i]}" ]]; then
-        error "cannot open ${files[$i]} (no such file)!"
-    fi
-done
+if ! [[ -f "tests/help.sh" ]]; then
+    error "Cannot open test files!"
+fi
+cd "tests"
+files=(*.sh)
 
 # locate orcli and OpenRefine
 scriptpath=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
@@ -48,15 +44,10 @@ results=()
 for i in "${!files[@]}"; do
     set +e
     bash -e <(
-        # support ./orcli
         if ! command -v orcli &>/dev/null; then
             echo "shopt -s expand_aliases"
             echo "alias orcli=${scriptpath}/orcli"
         fi
-        # separate subdirectory for each test
-        echo "mkdir -p ${OPENREFINE_TMPDIR}/${files[$i]}"
-        echo "cd ${OPENREFINE_TMPDIR}/${files[$i]} || exit 1"
-        # echo test file
         awk 1 "${files[$i]}"
     ) &>"$OPENREFINE_TMPDIR/test.log"
     results+=(${?})

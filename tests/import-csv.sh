@@ -1,23 +1,13 @@
 #!/bin/bash
 
+t="import-csv"
+
 # environment
-t="$(basename "$(pwd)" .sh)"
-
-# data
-cat << "DATA" > "${t}.csv"
-a,b,c
-1,2,3
-0,0,0
-$,\,'
-DATA
-
-# assertion
-cat << "DATA" > "${t}.assert"
-a	b	c
-1	2	3
-0	0	0
-$	\	'
-DATA
+tmpdir="$(mktemp -d)"
+trap '{ rm -rf "${tmpdir}"; }' 0 2 3 15
+cp data/example.csv "${tmpdir}"/${t}.csv
+cp data/example.tsv "${tmpdir}"/${t}.assert
+cd "${tmpdir}" || exit 1
 
 # action
 orcli import csv "${t}.csv"

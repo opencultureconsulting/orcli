@@ -118,11 +118,6 @@ commands:
 
   - name: test
     help: run functional tests on tmp OpenRefine workspace
-    args:
-      - name: file
-        help: Path to one or more files
-        default: "tests/*.sh"
-        repeatable: true
 
   - name: transform
     help: apply undo/redo JSON file(s) to an OpenRefine project
