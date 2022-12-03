@@ -1,12 +1,5 @@
 # shellcheck shell=bash disable=SC2154
 
-# check existence of files
-if ! [[ -f "tests/help.sh" ]]; then
-    error "Cannot open test files!"
-fi
-cd "tests"
-files=(*.sh)
-
 # locate orcli and OpenRefine
 scriptpath=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 if [[ -x "${scriptpath}/refine" ]]; then
@@ -14,6 +7,13 @@ if [[ -x "${scriptpath}/refine" ]]; then
 else
     error "OpenRefine's startup script (refine) not found!" "Did you put orcli in your OpenRefine app dir?"
 fi
+
+# check existence of files
+if ! [[ -f "tests/help.sh" ]]; then
+    error "Cannot open test files!"
+fi
+cd "tests"
+files=(*.sh)
 
 # create tmp directory
 OPENREFINE_TMPDIR="$(mktemp -d)"
