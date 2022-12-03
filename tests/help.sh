@@ -2,17 +2,17 @@
 
 t="help"
 
-# environment
+# create tmp directory
 tmpdir="$(mktemp -d)"
 trap '{ rm -rf "${tmpdir}"; }' 0 2 3 15
-cd "${tmpdir}" || exit 1
 
 # assertion
-cat << "DATA" > "${t}.assert"
+cat << "DATA" > "${tmpdir}/${t}.assert"
 orcli - OpenRefine command-line interface written in Bash
 DATA
 
 # action
+cd "${tmpdir}" || exit 1
 orcli --help | head -n1 > "${t}.output"
 
 # test

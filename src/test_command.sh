@@ -8,24 +8,27 @@ else
     error "OpenRefine's startup script (refine) not found!" "Did you put orcli in your OpenRefine app dir?"
 fi
 
-# check existence of files
-if ! [[ -f "tests/help.sh" ]]; then
-    error "Cannot open test files!"
-fi
-cd "tests"
-files=(*.sh)
-
 # create tmp directory
 OPENREFINE_TMPDIR="$(mktemp -d)"
 trap '{ rm -rf "$OPENREFINE_TMPDIR"; }' 0 2 3 15
 
-# check if OpenRefine is already running
-if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
-    error "OpenRefine is already running."
+# download the test files if needed
+if ! [[ -f "tests/help.sh" ]]; then
+    cd "$OPENREFINE_TMPDIR"
+    if ! curl -fs -L -o orcli.zip https://github.com/opencultureconsulting/orcli/archive/refs/heads/main.zip; then
+        error "downloading test files failed!" "Please download the tests dir manually from GitHub."
+    fi
+    unzip -q -j orcli.zip "*/tests/*.sh" -d "tests/"
+    unzip -q -j orcli.zip "*/tests/data/*" -d "tests/data/"
 fi
 
-# start OpenRefine with tmp workspace and autosave period 25 hours
-REFINE_AUTOSAVE_PERIOD=1440 $openrefine -d "$OPENREFINE_TMPDIR" -x refine.headless=true -v warn &>"$OPENREFINE_TMPDIR/openrefine.log" &
+# check if OpenRefine is already running
+if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
+    error "OpenRefine is already running on port 3333." "Please stop the other process."
+fi
+
+# start OpenRefine with tmp workspace
+$openrefine -d "$OPENREFINE_TMPDIR" -x refine.headless=true -v warn &>"$OPENREFINE_TMPDIR/openrefine.log" &
 OPENREFINE_PID="$!"
 
 # update trap to kill OpenRefine on error or exit
@@ -38,11 +41,13 @@ else
     log "started OpenRefine with tmp workspace ${OPENREFINE_TMPDIR}"
 fi
 
-# execute script(s) in subshell
+# execute tests in subshell
 export OPENREFINE_TMPDIR OPENREFINE_URL OPENREFINE_PID
+cd "tests"
+files=(*.sh)
 results=()
 for i in "${!files[@]}"; do
-    set +e
+    set +e # do not exit on failed tests
     bash -e <(
         if ! command -v orcli &>/dev/null; then
             echo "shopt -s expand_aliases"
@@ -60,7 +65,7 @@ for i in "${!files[@]}"; do
     fi
 done
 
-# summary
+# print overall result
 if [[ "${results[*]}" =~ [1-9] ]]; then
     error "failed tests!"
 else

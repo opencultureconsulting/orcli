@@ -1,6 +1,6 @@
 #!/bin/bash
 
-t="import-csv"
+t="export-tsv"
 
 # create tmp directory
 tmpdir="$(mktemp -d)"
@@ -15,7 +15,7 @@ cp data/example.tsv "${tmpdir}/${t}.assert"
 # action
 cd "${tmpdir}" || exit 1
 orcli import csv "${t}.csv"
-orcli export tsv "${t} csv" > "${t}.output"
+orcli export tsv "${t} csv" --output "${t}.output"
 
 # test
 diff -u "${t}.assert" "${t}.output"
