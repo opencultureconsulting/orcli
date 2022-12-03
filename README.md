@@ -137,3 +137,9 @@ orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-
   ```sh
   bashly generate --upgrade
   ```
+
+4. Run tests
+
+  ```sh
+  ./orcli test
+  ```

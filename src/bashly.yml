@@ -116,6 +116,9 @@ commands:
       - orcli info "duplicates"
       - orcli info 1234567890123
 
+  - name: test
+    help: run functional tests on tmp OpenRefine workspace
+
   - name: transform
     help: apply undo/redo JSON file(s) to an OpenRefine project
     args:
