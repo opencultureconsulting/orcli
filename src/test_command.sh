@@ -8,6 +8,11 @@ else
     error "OpenRefine's startup script (refine) not found!" "Did you put orcli in your OpenRefine app dir?"
 fi
 
+# check if OpenRefine is already running
+if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
+    error "OpenRefine is already running on port 3333." "Please stop the other process."
+fi
+
 # create tmp directory
 OPENREFINE_TMPDIR="$(mktemp -d)"
 trap '{ rm -rf "$OPENREFINE_TMPDIR"; }' 0 2 3 15
@@ -22,17 +27,12 @@ if ! [[ -f "tests/help.sh" ]]; then
     unzip -q -j orcli.zip "*/tests/data/*" -d "tests/data/"
 fi
 
-# check if OpenRefine is already running
-if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
-    error "OpenRefine is already running on port 3333." "Please stop the other process."
-fi
-
 # start OpenRefine with tmp workspace
 $openrefine -d "$OPENREFINE_TMPDIR" -x refine.headless=true -v warn &>"$OPENREFINE_TMPDIR/openrefine.log" &
 OPENREFINE_PID="$!"
 
 # update trap to kill OpenRefine on error or exit
-trap '{ rm -rf "$OPENREFINE_TMPDIR"; kill -9 "$OPENREFINE_PID"; }' 0 2 3 15
+trap '{ rm -rf "$OPENREFINE_TMPDIR"; rm -rf /tmp/jetty-127_0_0_1-3333*; kill -9 "$OPENREFINE_PID"; }' 0 2 3 15
 
 # wait until OpenRefine is running (timeout 20s)
 if ! curl -fs --retry 20 --retry-connrefused --retry-delay 1 "${OPENREFINE_URL}/command/core/get-version" &>/dev/null; then
