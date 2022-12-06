@@ -4,8 +4,8 @@ version: 0.1.0
 footer: https://github.com/opencultureconsulting/orcli
 
 dependencies:
-  - curl
-  - jq
+  curl: https://curl.se
+  jq: https://github.com/stedolan/jq
 
 environment_variables:
   - name: OPENREFINE_URL
