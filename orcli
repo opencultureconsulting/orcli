@@ -1393,11 +1393,15 @@ parse_requirements() {
   # :command.dependencies_filter
   if ! command -v curl >/dev/null 2>&1; then
     printf "missing dependency: curl\n" >&2
+    # shellcheck disable=SC2059
+    printf "https://curl.se\n" >&2
     exit 1
   fi
 
   if ! command -v jq >/dev/null 2>&1; then
     printf "missing dependency: jq\n" >&2
+    # shellcheck disable=SC2059
+    printf "https://github.com/stedolan/jq\n" >&2
     exit 1
   fi
 
