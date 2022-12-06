@@ -33,6 +33,20 @@ commands:
       Generate bash completions
       Usage: eval "\$(orcli completions)"
 
+  - name: delete
+    help: delete OpenRefine project
+    args:
+      - name: project
+        help: project name or id
+        required: true
+    flags:
+      - long: --quiet
+        short: -q
+        help: suppress log output, print errors only
+    examples:
+      - orcli delete "duplicates"
+      - orcli delete 1234567890123
+
   - name: import
     help: commands to create OpenRefine projects from files or URLs
 
@@ -129,7 +143,7 @@ commands:
         help: Path to one or more files or URLs containing OpenRefine's undo/redo operation history in JSON format. When FILE is -, read standard input.
         default: "-"
         repeatable: true
-    flags:  
+    flags:
       - long: --quiet
         short: -q
         help: suppress log output, print errors only

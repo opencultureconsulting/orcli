@@ -35,6 +35,7 @@ orcli_usage() {
   # :command.usage_commands
   printf "Commands:\n"
   echo "  completions   Generate bash completions"
+  echo "  delete        delete OpenRefine project"
   echo "  import        commands to create OpenRefine projects from files or URLs"
   echo "  list          list projects on OpenRefine server"
   echo "  info          show OpenRefine project's metadata"
@@ -111,6 +112,55 @@ orcli_completions_usage() {
     # :command.usage_fixed_flags
     echo "  --help, -h"
     printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+orcli_delete_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "orcli delete - delete OpenRefine project\n"
+    echo
+
+  else
+    printf "orcli delete - delete OpenRefine project\n"
+    echo
+
+  fi
+
+  printf "Usage:\n"
+  printf "  orcli delete PROJECT [OPTIONS]\n"
+  printf "  orcli delete --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n $long_usage ]]; then
+    printf "Options:\n"
+
+    # :command.usage_fixed_flags
+    echo "  --help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_flags
+    # :flag.usage
+    echo "  --quiet, -q"
+    printf "    suppress log output, print errors only\n"
+    echo
+
+    # :command.usage_args
+    printf "Arguments:\n"
+
+    # :argument.usage
+    echo "  PROJECT"
+    printf "    project name or id\n"
+    echo
+
+    # :command.usage_examples
+    printf "Examples:\n"
+    printf "  orcli delete \"duplicates\"\n"
+    printf "  orcli delete 1234567890123\n"
     echo
 
   fi
@@ -678,9 +728,7 @@ function get_csrf() {
 # get project id (derived from project name if needed)
 # shellcheck shell=bash
 function get_id() {
-  local response
-  local projects
-  local ids
+  local response projects ids
   if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
     error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
   fi
@@ -692,6 +740,17 @@ function get_id() {
     error "multiple projects found" "$projects"
   fi
   echo "$ids"
+}
+
+function get_ids() {
+  local response projects ids
+  if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
+    error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
+  fi
+  if ! projects="$(echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"' | grep -e ":$1$" -e "^$1:")"; then
+    error "project $1 not found"
+  fi
+  echo "$projects" | cut -d : -f 1
 }
 
 # src/lib/init_import.sh
@@ -774,7 +833,7 @@ EOF
 function error() {
   echo >&2 "[$(date +'%Y-%m-%dT%H:%M:%S')] ERROR: $1"
   shift
-  for msg in "$@"; do echo >&2 "  $msg"; done
+  for msg in "$@"; do echo >&2 "$msg"; done
   exit 1
 }
 function log() {
@@ -894,6 +953,10 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --quiet -h -q")" -- "$cur" )'
   echo $'      ;;'
   echo $''
+  echo $'    \'delete\'*)'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --quiet -h -q")" -- "$cur" )'
+  echo $'      ;;'
+  echo $''
   echo $'    \'import\'*)'
   echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h csv tsv")" -- "$cur" )'
   echo $'      ;;'
@@ -919,7 +982,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    *)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --version -h -v completions export import info list run test transform")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --version -h -v completions delete export import info list run test transform")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'  esac'
@@ -938,6 +1001,31 @@ orcli_completions_command() {
   #   $ eval "$(orcli completions)"
   #
   send_completions
+}
+
+# :command.function
+orcli_delete_command() {
+  # src/delete_command.sh
+  # shellcheck shell=bash disable=SC2154
+
+  # get project ids
+  projectids="$(get_ids "${args[project]}")"
+
+  # loop over multiple project ids
+  for projectid in ${projectids}; do
+      # get csrf token and post data
+      if response="$(curl -fs --data "project=${projectid}" "${OPENREFINE_URL}/command/core/delete-project$(get_csrf)")"; then
+          response_code="$(jq -r '.code' <<<"$response")"
+          if [[ $response_code == "ok" ]]; then
+              log "deleted ${args[project]} (${projectid})"
+          else
+              error "deleting ${args[project]} failed!"
+          fi
+      else
+          error "deleting ${args[project]} failed!"
+      fi
+  done
+
 }
 
 # :command.function
@@ -1419,6 +1507,13 @@ parse_requirements() {
       shift $#
       ;;
 
+    delete)
+      action="delete"
+      shift
+      orcli_delete_parse_requirements "$@"
+      shift $#
+      ;;
+
     import)
       action="import"
       shift
@@ -1545,6 +1640,69 @@ orcli_completions_parse_requirements() {
 
     esac
   done
+
+}
+
+# :command.parse_requirements
+orcli_delete_parse_requirements() {
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        orcli_delete_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="delete"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      # :flag.case
+      --quiet | -q)
+
+        # :flag.case_no_arg
+        args[--quiet]=1
+        shift
+        ;;
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        if [[ -z ${args[project]+x} ]]; then
+
+          args[project]=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  # :command.required_args_filter
+  if [[ -z ${args[project]+x} ]]; then
+    printf "missing required argument: PROJECT\nusage: orcli delete PROJECT [OPTIONS]\n" >&2
+    exit 1
+  fi
 
 }
 
@@ -2341,6 +2499,15 @@ run() {
         orcli_completions_usage
       else
         orcli_completions_command
+      fi
+      ;;
+
+    "delete")
+      if [[ ${args[--help]:-} ]]; then
+        long_usage=yes
+        orcli_delete_usage
+      else
+        orcli_delete_command
       fi
       ;;
 
