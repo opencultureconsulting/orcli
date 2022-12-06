@@ -1,7 +1,7 @@
 # common import tasks to support multiple files and URLs
 # shellcheck shell=bash
 function init_import() {
-    local files file tmpdir
+    local files file
     # catch args, convert the space delimited string to an array
     files=()
     eval "files=(${args[file]})"
