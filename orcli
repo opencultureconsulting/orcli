@@ -271,7 +271,7 @@ orcli_import_csv_usage() {
     printf "Examples:\n"
     printf "  orcli import csv \"file\"\n"
     printf "  orcli import csv \"file1\" \"file2\"\n"
-    printf "  cat \"file\" | orcli import csv\n"
+    printf "  head -n 100 \"file\" | orcli import csv\n"
     printf "  orcli import csv \"https://git.io/fj5hF\"\n"
     printf "  orcli import csv \"file\" \\\\\n    --separator \";\" \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\"\n"
     echo
@@ -339,7 +339,7 @@ orcli_import_tsv_usage() {
     printf "Examples:\n"
     printf "  orcli import tsv \"file\"\n"
     printf "  orcli import tsv \"file1\" \"file2\"\n"
-    printf "  cat \"file\" | orcli import tsv\n"
+    printf "  head -n 100 \"file\" | orcli import tsv\n"
     printf "  orcli import tsv \"https://git.io/fj5hF\"\n"
     printf "  orcli import tsv \"file\" \\\\\n    --separator \";\" \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\"\n"
     echo
@@ -490,7 +490,7 @@ orcli_transform_usage() {
 
     # :argument.usage
     echo "  FILE..."
-    printf "    Path to one or more files or URLs containing OpenRefine's undo/redo\n    operation history in JSON format. When FILE is -, read standard input.\n"
+    printf "    Path to one or more files or URLs. When FILE is -, read standard input.\n"
     printf "    Default: -\n"
     echo
 
@@ -652,7 +652,7 @@ orcli_run_usage() {
 
     # :argument.usage
     echo "  FILE..."
-    printf "    Path to one or more files. When FILE is -, read standard input.\n"
+    printf "    Path to one or more files or URLs. When FILE is -, read standard input.\n"
     printf "    Default: -\n"
     echo
 

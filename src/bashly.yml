@@ -36,14 +36,16 @@ commands:
   - name: delete
     help: delete OpenRefine project
     args:
-      - name: project
+      - &project
+        name: project
         help: project name or id
         required: true
     flags:
       - long: --force
         short: -f
         help: delete all projects with the same name
-      - long: --quiet
+      - &quiet
+        long: --quiet
         short: -q
         help: suppress log output, print errors only
     examples:
@@ -57,30 +59,33 @@ commands:
       - name: csv
         help: import character-separated values (CSV)
         args:
-          - name: file
+          - &file
+            name: file
             help: Path to one or more files or URLs. When FILE is -, read standard input.
             default: "-"
             repeatable: true
         flags:
-          - long: --separator
+          - &separator
+            long: --separator
             help: character(s) that separates columns
             arg: separator
             default: ","
-          - long: --encoding
+          - &encoding_import
+            long: --encoding
             help: set character encoding
             arg: encoding
-          - long: --trimStrings
+          - &trimStrings
+            long: --trimStrings
             help: trim leading & trailing whitespace from strings
-          - long: --projectName
+          - &projectName
+            long: --projectName
             arg: projectName
             help: set a name for the OpenRefine project
-          - long: --quiet
-            short: -q
-            help: suppress log output, print errors only
+          - *quiet
         examples:
           - orcli import csv "file"
           - orcli import csv "file1" "file2"
-          - cat "file" | orcli import csv
+          - head -n 100 "file" | orcli import csv
           - orcli import csv "https://git.io/fj5hF"
           - |-
             orcli import csv "file" \\\\
@@ -92,26 +97,16 @@ commands:
       - name: tsv
         help: import tab-separated values (TSV)
         args:
-          - name: file
-            help: Path to one or more files or URLs. When FILE is -, read standard input.
-            default: "-"
-            repeatable: true
+          - *file
         flags:
-          - long: --encoding
-            help: set character encoding
-            arg: encoding
-          - long: --trimStrings
-            help: trim leading & trailing whitespace from strings
-          - long: --projectName
-            arg: projectName
-            help: set a name for the OpenRefine project
-          - long: --quiet
-            short: -q
-            help: suppress log output, print errors only
+          - *encoding_import
+          - *trimStrings
+          - *projectName
+          - *quiet
         examples:
           - orcli import tsv "file"
           - orcli import tsv "file1" "file2"
-          - cat "file" | orcli import tsv
+          - head -n 100 "file" | orcli import tsv
           - orcli import tsv "https://git.io/fj5hF"
           - |-
             orcli import tsv "file" \\\\
@@ -126,9 +121,7 @@ commands:
   - name: info
     help: show OpenRefine project's metadata
     args:
-      - name: project
-        help: project name or id
-        required: true
+      - *project
     examples:
       - orcli info "duplicates"
       - orcli info 1234567890123
@@ -139,17 +132,10 @@ commands:
   - name: transform
     help: apply undo/redo JSON file(s) to an OpenRefine project
     args:
-      - name: project
-        help: project name or id
-        required: true
-      - name: file
-        help: Path to one or more files or URLs containing OpenRefine's undo/redo operation history in JSON format. When FILE is -, read standard input.
-        default: "-"
-        repeatable: true
+      - *project
+      - *file
     flags:
-      - long: --quiet
-        short: -q
-        help: suppress log output, print errors only
+      - *quiet
     examples:
       - orcli transform "duplicates" "history.json"
       - cat "history.json" | orcli transform "duplicates"
@@ -163,20 +149,18 @@ commands:
       - name: tsv
         help: export tab-separated values (TSV)
         args:
-          - name: project
-            help: project name or id
-            required: true
+          - *project
         flags:
-          - long: --output
+          - &output
+            long: --output
             help: Write to file instead of stdout
             arg: file
-          - long: --encoding
+          - &encoding_export
+            long: --encoding
             help: set character encoding
             arg: encoding
             default: "UTF-8"
-          - long: --quiet
-            short: -q
-            help: suppress log output, print errors only
+          - *quiet
         examples:
           - orcli export tsv "duplicates"
           - orcli export tsv "duplicates" --output "duplicates.tsv"
@@ -184,10 +168,7 @@ commands:
   - name: run
     help: run tmp OpenRefine workspace and execute shell script(s)
     args:
-      - name: file
-        help: Path to one or more files. When FILE is -, read standard input.
-        default: "-"
-        repeatable: true
+      - *file
     flags:
       - long: --memory
         help: maximum RAM for OpenRefine java heap space
@@ -199,9 +180,7 @@ commands:
         default: "3333"
       - long: --interactive
         help: do not exit on error and keep bash shell open
-      - long: --quiet
-        short: -q
-        help: suppress log output, print errors only
+      - *quiet
     examples:
       - orcli run --interactive
       - |-
