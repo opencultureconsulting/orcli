@@ -19,6 +19,11 @@ orcli import csv "${t}.csv"
 orcli list | grep "${t} csv"
 orcli delete "${t} csv"
 orcli list | grep "${t} csv" > "${t}.output" || exit 0
+orcli import csv "${t}.csv"
+orcli import csv "${t}.csv"
+orcli list | grep "${t} csv"
+orcli delete --force "${t} csv"
+orcli list | grep "${t} csv" >> "${t}.output" || exit 0
 
 # test
 diff -u "${t}.assert" "${t}.output"

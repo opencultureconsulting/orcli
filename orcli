@@ -145,6 +145,11 @@ orcli_delete_usage() {
 
     # :command.usage_flags
     # :flag.usage
+    echo "  --force, -f"
+    printf "    delete all projects with the same name\n"
+    echo
+
+    # :flag.usage
     echo "  --quiet, -q"
     printf "    suppress log output, print errors only\n"
     echo
@@ -728,22 +733,22 @@ function get_csrf() {
 # get project id (derived from project name if needed)
 # shellcheck shell=bash
 function get_id() {
-  local response projects ids
+  local response projects projectid
   if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
     error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
   fi
   if ! projects="$(echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"' | grep -e ":$1$" -e "^$1:")"; then
     error "project $1 not found"
   fi
-  ids=$(echo "$projects" | cut -d : -f 1)
-  if ! [[ "${#ids}" == 13 ]]; then
+  projectid=$(echo "$projects" | cut -d : -f 1)
+  if ! [[ "${#projectid}" == 13 ]]; then
     error "multiple projects found" "$projects"
   fi
-  echo "$ids"
+  echo "$projectid"
 }
 
 function get_ids() {
-  local response projects ids
+  local response projects
   if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
     error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
   fi
@@ -954,7 +959,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'delete\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --quiet -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--force --help --quiet -f -h -q")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'import\'*)'
@@ -1008,10 +1013,14 @@ orcli_delete_command() {
   # src/delete_command.sh
   # shellcheck shell=bash disable=SC2154
 
-  # get project ids
-  projectids="$(get_ids "${args[project]}")"
+  # get project id(s)
+  if [[ ${args[--force]} ]]; then
+      projectids="$(get_ids "${args[project]}")"
+  else
+      projectids="$(get_id "${args[project]}")"
+  fi
 
-  # loop over multiple project ids
+  # loop over one or more project ids
   for projectid in ${projectids}; do
       # get csrf token and post data
       if response="$(curl -fs --data "project=${projectid}" "${OPENREFINE_URL}/command/core/delete-project$(get_csrf)")"; then
@@ -1679,6 +1688,14 @@ orcli_delete_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+      # :flag.case
+      --force | -f)
+
+        # :flag.case_no_arg
+        args[--force]=1
+        shift
+        ;;
+
       # :flag.case
       --quiet | -q)
 
