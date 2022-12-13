@@ -34,9 +34,12 @@ OPENREFINE_PID="$!"
 # update trap to kill OpenRefine on error or exit
 trap '{ rm -rf "$OPENREFINE_TMPDIR"; rm -rf /tmp/jetty-127_0_0_1-3333*; kill -9 "$OPENREFINE_PID"; }' 0 2 3 15
 
-# wait until OpenRefine is running (timeout 20s)
-if ! curl -fs --retry 20 --retry-connrefused --retry-delay 1 "${OPENREFINE_URL}/command/core/get-version" &>/dev/null; then
-    error "starting OpenRefine server failed!"
+# wait until OpenRefine is running (timeout 15s + 15s)
+if ! curl -fs --retry 15 --retry-connrefused --retry-delay 1 "${OPENREFINE_URL}/command/core/get-version" &>/dev/null; then
+    # try again with IPv4 only
+    if ! curl -fs -4 --retry 15 --retry-connrefused --retry-delay 1 "${OPENREFINE_URL}/command/core/get-version" &>/dev/null; then
+        error "starting OpenRefine server failed!"
+    fi
 else
     log "started OpenRefine with tmp workspace ${OPENREFINE_TMPDIR}"
 fi
