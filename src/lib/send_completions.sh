@@ -51,7 +51,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'delete\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --quiet -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--force --help --quiet -f -h -q")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'import\'*)'

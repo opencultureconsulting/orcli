@@ -40,6 +40,9 @@ commands:
         help: project name or id
         required: true
     flags:
+      - long: --force
+        short: -f
+        help: delete all projects with the same name
       - long: --quiet
         short: -q
         help: suppress log output, print errors only

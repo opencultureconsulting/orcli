@@ -1,9 +1,13 @@
 # shellcheck shell=bash disable=SC2154
 
-# get project ids
-projectids="$(get_ids "${args[project]}")"
+# get project id(s)
+if [[ ${args[--force]} ]]; then
+    projectids="$(get_ids "${args[project]}")"
+else
+    projectids="$(get_id "${args[project]}")"
+fi
 
-# loop over multiple project ids
+# loop over one or more project ids
 for projectid in ${projectids}; do
     # get csrf token and post data
     if response="$(curl -fs --data "project=${projectid}" "${OPENREFINE_URL}/command/core/delete-project$(get_csrf)")"; then
