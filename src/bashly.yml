@@ -70,10 +70,53 @@ commands:
             help: character(s) that separates columns
             arg: separator
             default: ","
+          - &blankCellsAsStrings
+            long: --blankCellsAsStrings
+            help: store blank cells as empty strings instead of nulls
           - &encoding_import
             long: --encoding
             help: set character encoding
             arg: encoding
+          - &guessCellValueTypes
+            long: --guessCellValueTypes
+            help: attempt to parse cell text into numbers
+          - &headerLines
+            long: --headerLines
+            help: parse x line(s) as column headers
+            arg: headerLines
+            default: "1"
+          - &ignoreLines
+            long: --ignoreLines
+            help: ignore first x line(s) at beginning of file
+            arg: ignoreLines
+            default: "-1"
+          - &ignoreQuoteCharacter
+            long: --ignoreQuoteCharacter
+            help: do not use any quote character to enclose cells containing column separators
+          - &includeFileSources
+            long: --includeFileSources
+            help: add column with file source
+          - &includeArchiveFileName
+            long: --includeArchiveFileName
+            help: add column with archive file name
+          - &limit
+            long: --limit
+            help: load at most x row(s) of data
+            arg: limit
+            default: "-1"
+          - &quoteCharacter
+            long: --quoteCharacter
+            help: quote character to enclose cells containing column separators
+            arg: quoteCharacter
+            default: '\\\"'
+          - &skipBlankRows
+            long: --skipBlankRows
+            help: do not store blank rows
+          - &skipDataLines
+            long: --skipDataLines
+            help: discard initial x row(s) of data
+            arg: skipDataLines
+            default: "0"
           - &trimStrings
             long: --trimStrings
             help: trim leading & trailing whitespace from strings

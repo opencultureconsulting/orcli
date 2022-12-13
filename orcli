@@ -239,8 +239,68 @@ orcli_import_csv_usage() {
     echo
 
     # :flag.usage
+    echo "  --blankCellsAsStrings"
+    printf "    store blank cells as empty strings instead of nulls\n"
+    echo
+
+    # :flag.usage
     echo "  --encoding ENCODING"
     printf "    set character encoding\n"
+    echo
+
+    # :flag.usage
+    echo "  --guessCellValueTypes"
+    printf "    attempt to parse cell text into numbers\n"
+    echo
+
+    # :flag.usage
+    echo "  --headerLines HEADERLINES"
+    printf "    parse x line(s) as column headers\n"
+    printf "    Default: 1\n"
+    echo
+
+    # :flag.usage
+    echo "  --ignoreLines IGNORELINES"
+    printf "    ignore first x line(s) at beginning of file\n"
+    printf "    Default: -1\n"
+    echo
+
+    # :flag.usage
+    echo "  --ignoreQuoteCharacter"
+    printf "    do not use any quote character to enclose cells containing column separators\n"
+    echo
+
+    # :flag.usage
+    echo "  --includeFileSources"
+    printf "    add column with file source\n"
+    echo
+
+    # :flag.usage
+    echo "  --includeArchiveFileName"
+    printf "    add column with archive file name\n"
+    echo
+
+    # :flag.usage
+    echo "  --limit LIMIT"
+    printf "    load at most x row(s) of data\n"
+    printf "    Default: -1\n"
+    echo
+
+    # :flag.usage
+    echo "  --quoteCharacter QUOTECHARACTER"
+    printf "    quote character to enclose cells containing column separators\n"
+    printf "    Default: \\\"\n"
+    echo
+
+    # :flag.usage
+    echo "  --skipBlankRows"
+    printf "    do not store blank rows\n"
+    echo
+
+    # :flag.usage
+    echo "  --skipDataLines SKIPDATALINES"
+    printf "    discard initial x row(s) of data\n"
+    printf "    Default: 0\n"
     echo
 
     # :flag.usage
@@ -943,7 +1003,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'import csv\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --help --projectName --quiet --separator --trimStrings -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--blankCellsAsStrings --encoding --guessCellValueTypes --headerLines --help --ignoreLines --ignoreQuoteCharacter --includeArchiveFileName --includeFileSources --limit --projectName --quiet --quoteCharacter --separator --skipBlankRows --skipDataLines --trimStrings -h -q")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'import tsv\'*)'
@@ -1061,9 +1121,57 @@ orcli_import_csv_command() {
       options+=', '
       options+="\"encoding\": \"${args[--encoding]}\""
   fi
+  if [[ ${args[--blankCellsAsStrings]} ]]; then
+      options+=', '
+      options+='"storeBlankCellsAsNulls": false'
+  fi
+  if [[ ${args[--guessCellValueTypes]} ]]; then
+      options+=', '
+      options+='"guessCellValueTypes": true'
+  fi
+  if [[ ${args[--headerLines]} ]]; then
+      options+=', '
+      options+="\"headerLines\": ${args[--headerLines]}"
+  fi
+  if [[ ${args[--ignoreLines]} ]]; then
+      options+=', '
+      options+="\"ignoreLines\": ${args[--ignoreLines]}"
+  fi
+  if [[ ${args[--ignoreQuoteCharacter]} ]]; then
+      options+=', '
+      options+='"processQuotes": false'
+  fi
+  if [[ ${args[--includeFileSources]} ]]; then
+      options+=', '
+      options+='includeFileSources: true'
+  fi
+  if [[ ${args[--includeArchiveFileName]} ]]; then
+      options+=', '
+      options+='"includeArchiveFileName": true'
+  fi
+  if [[ ${args[--limit]} ]]; then
+      options+=', '
+      options+="\"limit\": ${args[--limit]}"
+  fi
+  if [[ ${args[--projectName]} ]]; then
+      options+=', '
+      options+="\"projectName\": \"${args[--projectName]}\""
+  fi
+  if [[ ${args[--quoteCharacter]} ]]; then
+      options+=', '
+      options+="\"quoteCharacter\": \"${args[--quoteCharacter]}\""
+  fi
+  if [[ ${args[--skipBlankRows]} ]]; then
+      options+=', '
+      options+='"storeBlankRows": false'
+  fi
+  if [[ ${args[--skipDataLines]} ]]; then
+      options+=', '
+      options+="\"skipDataLines\": ${args[--skipDataLines]}"
+  fi
   if [[ ${args[--trimStrings]} ]]; then
       options+=', '
-      options+="\"trimStrings\": true"
+      options+='"trimStrings": true'
   fi
   options+=' }'
   data+=("options=${options}")
@@ -1849,6 +1957,14 @@ orcli_import_csv_parse_requirements() {
         ;;
 
       # :flag.case
+      --blankCellsAsStrings)
+
+        # :flag.case_no_arg
+        args[--blankCellsAsStrings]=1
+        shift
+        ;;
+
+      # :flag.case
       --encoding)
 
         # :flag.case_arg
@@ -1859,6 +1975,121 @@ orcli_import_csv_parse_requirements() {
           shift
         else
           printf "%s\n" "--encoding requires an argument: --encoding ENCODING" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --guessCellValueTypes)
+
+        # :flag.case_no_arg
+        args[--guessCellValueTypes]=1
+        shift
+        ;;
+
+      # :flag.case
+      --headerLines)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args[--headerLines]="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--headerLines requires an argument: --headerLines HEADERLINES" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --ignoreLines)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args[--ignoreLines]="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--ignoreLines requires an argument: --ignoreLines IGNORELINES" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --ignoreQuoteCharacter)
+
+        # :flag.case_no_arg
+        args[--ignoreQuoteCharacter]=1
+        shift
+        ;;
+
+      # :flag.case
+      --includeFileSources)
+
+        # :flag.case_no_arg
+        args[--includeFileSources]=1
+        shift
+        ;;
+
+      # :flag.case
+      --includeArchiveFileName)
+
+        # :flag.case_no_arg
+        args[--includeArchiveFileName]=1
+        shift
+        ;;
+
+      # :flag.case
+      --limit)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args[--limit]="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--limit requires an argument: --limit LIMIT" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --quoteCharacter)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args[--quoteCharacter]="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--quoteCharacter requires an argument: --quoteCharacter QUOTECHARACTER" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --skipBlankRows)
+
+        # :flag.case_no_arg
+        args[--skipBlankRows]=1
+        shift
+        ;;
+
+      # :flag.case
+      --skipDataLines)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args[--skipDataLines]="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--skipDataLines requires an argument: --skipDataLines SKIPDATALINES" >&2
           exit 1
         fi
         ;;
@@ -1919,6 +2150,11 @@ orcli_import_csv_parse_requirements() {
   # :command.default_assignments
   [[ -n ${args[file]:-} ]] || args[file]="-"
   [[ -n ${args[--separator]:-} ]] || args[--separator]=","
+  [[ -n ${args[--headerLines]:-} ]] || args[--headerLines]="1"
+  [[ -n ${args[--ignoreLines]:-} ]] || args[--ignoreLines]="-1"
+  [[ -n ${args[--limit]:-} ]] || args[--limit]="-1"
+  [[ -n ${args[--quoteCharacter]:-} ]] || args[--quoteCharacter]="\\\""
+  [[ -n ${args[--skipDataLines]:-} ]] || args[--skipDataLines]="0"
 
 }
 

@@ -19,9 +19,57 @@ if [[ ${args[--encoding]} ]]; then
     options+=', '
     options+="\"encoding\": \"${args[--encoding]}\""
 fi
+if [[ ${args[--blankCellsAsStrings]} ]]; then
+    options+=', '
+    options+='"storeBlankCellsAsNulls": false'
+fi
+if [[ ${args[--guessCellValueTypes]} ]]; then
+    options+=', '
+    options+='"guessCellValueTypes": true'
+fi
+if [[ ${args[--headerLines]} ]]; then
+    options+=', '
+    options+="\"headerLines\": ${args[--headerLines]}"
+fi
+if [[ ${args[--ignoreLines]} ]]; then
+    options+=', '
+    options+="\"ignoreLines\": ${args[--ignoreLines]}"
+fi
+if [[ ${args[--ignoreQuoteCharacter]} ]]; then
+    options+=', '
+    options+='"processQuotes": false'
+fi
+if [[ ${args[--includeFileSources]} ]]; then
+    options+=', '
+    options+='includeFileSources: true'
+fi
+if [[ ${args[--includeArchiveFileName]} ]]; then
+    options+=', '
+    options+='"includeArchiveFileName": true'
+fi
+if [[ ${args[--limit]} ]]; then
+    options+=', '
+    options+="\"limit\": ${args[--limit]}"
+fi
+if [[ ${args[--projectName]} ]]; then
+    options+=', '
+    options+="\"projectName\": \"${args[--projectName]}\""
+fi
+if [[ ${args[--quoteCharacter]} ]]; then
+    options+=', '
+    options+="\"quoteCharacter\": \"${args[--quoteCharacter]}\""
+fi
+if [[ ${args[--skipBlankRows]} ]]; then
+    options+=', '
+    options+='"storeBlankRows": false'
+fi
+if [[ ${args[--skipDataLines]} ]]; then
+    options+=', '
+    options+="\"skipDataLines\": ${args[--skipDataLines]}"
+fi
 if [[ ${args[--trimStrings]} ]]; then
     options+=', '
-    options+="\"trimStrings\": true"
+    options+='"trimStrings": true'
 fi
 options+=' }'
 data+=("options=${options}")

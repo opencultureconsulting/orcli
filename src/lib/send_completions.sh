@@ -35,7 +35,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'import csv\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --help --projectName --quiet --separator --trimStrings -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--blankCellsAsStrings --encoding --guessCellValueTypes --headerLines --help --ignoreLines --ignoreQuoteCharacter --includeArchiveFileName --includeFileSources --limit --projectName --quiet --quoteCharacter --separator --skipBlankRows --skipDataLines --trimStrings -h -q")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'import tsv\'*)'
