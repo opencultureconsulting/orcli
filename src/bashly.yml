@@ -73,6 +73,10 @@ commands:
           - &blankCellsAsStrings
             long: --blankCellsAsStrings
             help: store blank cells as empty strings instead of nulls
+          - &columnNames
+            long: --columnNames
+            help: set column names (comma separated)
+            arg: columnNames
           - &encoding_import
             long: --encoding
             help: set character encoding
@@ -124,6 +128,10 @@ commands:
             long: --projectName
             arg: projectName
             help: set a name for the OpenRefine project
+          - &projectTags
+            long: --projectTags
+            help: set project tags (comma separated)
+            arg: projectTags
           - *quiet
         examples:
           - orcli import csv "file"
@@ -142,9 +150,22 @@ commands:
         args:
           - *file
         flags:
+          - *blankCellsAsStrings
+          - *columnNames
           - *encoding_import
+          - *guessCellValueTypes
+          - *headerLines
+          - *ignoreLines
+          - *ignoreQuoteCharacter
+          - *includeFileSources
+          - *includeArchiveFileName
+          - *limit
+          - *quoteCharacter
+          - *skipBlankRows
+          - *skipDataLines
           - *trimStrings
           - *projectName
+          - *projectTags
           - *quiet
         examples:
           - orcli import tsv "file"
