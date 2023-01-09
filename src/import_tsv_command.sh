@@ -24,8 +24,9 @@ if [[ ${args[--blankCellsAsStrings]} ]]; then
     options+='"storeBlankCellsAsNulls": false'
 fi
 if [[ ${args[--columnNames]} ]]; then
+    IFS=',' read -ra columnNames <<< "${args[--columnNames]}"
     options+=', '
-    options+="\"columnNames\": \"[${args[--columnNames]}\"]"
+    options+="\"columnNames\": [ $(printf ',"'%s'"' "${columnNames[@]}" | cut -c2-) ]"
 fi
 if [[ ${args[--guessCellValueTypes]} ]]; then
     options+=', '
@@ -76,8 +77,9 @@ if [[ ${args[--trimStrings]} ]]; then
     options+='"trimStrings": true'
 fi
 if [[ ${args[--projectTags]} ]]; then
+    IFS=',' read -ra projectTags <<< "${args[--projectTags]}"
     options+=', '
-    options+="\"projectTags\": \"[${args[--projectTags]}\"]"
+    options+="\"projectTags\": [ $(printf ',"'%s'"' "${projectTags[@]}" | cut -c2-) ]"
 fi
 options+=' }'
 data+=("options=${options}")
