@@ -1,14 +1,12 @@
-# shellcheck shell=bash
+# shellcheck shell=bash disable=SC2154
 
 # call init_import function to eval args and to set basic post data
 init_import
 
 # check if stdin is present if selected
-if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]]; then
-    if ! read -u 0 -t 0; then
-        orcli_import_tsv_usage
-        exit 1
-    fi
+if [[ ${file} == '-' ]] && ! read -u 0 -t 0; then
+    orcli_import_tsv_usage
+    exit 1
 fi
 
 # assemble specific post data (some options require json format)

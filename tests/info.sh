@@ -18,8 +18,8 @@ DATA
 
 # action
 cd "${tmpdir}" || exit 1
-orcli import csv "${t}.csv"
-orcli info "${t} csv" | jq -r .columns[] > "${t}.output"
+orcli import csv "${t}.csv" --projectName "${t}"
+orcli info "${t}" | jq -r .columns[] > "${t}.output"
 
 # test
 diff -u "${t}.assert" "${t}.output"
