@@ -245,7 +245,7 @@ orcli_import_csv_usage() {
 
     # :flag.usage
     printf "  %s\n" "--columnNames COLUMNNAMES"
-    printf "    set column names (comma separated)\n"
+    printf "    set column names (comma separated)\n    hint: add --ignoreLines 1 to overwrite existing header row\n"
     echo
 
     # :flag.usage
@@ -383,7 +383,7 @@ orcli_import_tsv_usage() {
 
     # :flag.usage
     printf "  %s\n" "--columnNames COLUMNNAMES"
-    printf "    set column names (comma separated)\n"
+    printf "    set column names (comma separated)\n    hint: add --ignoreLines 1 to overwrite existing header row\n"
     echo
 
     # :flag.usage
@@ -2106,6 +2106,11 @@ orcli_import_csv_parse_requirements() {
 
       # :flag.case
       --columnNames)
+        # :flag.conflicts
+        if [[ -n "${args['--headerLines']:-}" ]]; then
+          printf "conflicting options: %s cannot be used with %s\n" "$key" "--headerLines" >&2
+          exit 1
+        fi
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -2144,6 +2149,11 @@ orcli_import_csv_parse_requirements() {
 
       # :flag.case
       --headerLines)
+        # :flag.conflicts
+        if [[ -n "${args['--columnNames']:-}" ]]; then
+          printf "conflicting options: %s cannot be used with %s\n" "$key" "--columnNames" >&2
+          exit 1
+        fi
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -2363,6 +2373,11 @@ orcli_import_tsv_parse_requirements() {
 
       # :flag.case
       --columnNames)
+        # :flag.conflicts
+        if [[ -n "${args['--headerLines']:-}" ]]; then
+          printf "conflicting options: %s cannot be used with %s\n" "$key" "--headerLines" >&2
+          exit 1
+        fi
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -2401,6 +2416,11 @@ orcli_import_tsv_parse_requirements() {
 
       # :flag.case
       --headerLines)
+        # :flag.conflicts
+        if [[ -n "${args['--columnNames']:-}" ]]; then
+          printf "conflicting options: %s cannot be used with %s\n" "$key" "--columnNames" >&2
+          exit 1
+        fi
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then

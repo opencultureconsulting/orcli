@@ -75,8 +75,11 @@ commands:
             help: store blank cells as empty strings instead of nulls
           - &columnNames
             long: --columnNames
-            help: set column names (comma separated)
+            help: |-
+              set column names (comma separated)
+              hint: add --ignoreLines 1 to overwrite existing header row
             arg: columnNames
+            conflicts: [--headerLines]
           - &encoding_import
             long: --encoding
             help: set character encoding
@@ -89,6 +92,7 @@ commands:
             help: parse x line(s) as column headers
             arg: headerLines
             default: "1"
+            conflicts: [--columnNames]
           - &ignoreLines
             long: --ignoreLines
             help: ignore first x line(s) at beginning of file

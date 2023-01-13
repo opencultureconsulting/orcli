@@ -10,8 +10,7 @@ trap '{ rm -rf "${tmpdir}"; }' 0 2 3 15
 cp data/example.csv "${tmpdir}/${t}.csv"
 
 # assertion (empty file)
-cat << "DATA" > "${tmpdir}/${t}.assert"
-DATA
+touch "${tmpdir}/${t}.assert"
 
 # action
 cd "${tmpdir}" || exit 1
