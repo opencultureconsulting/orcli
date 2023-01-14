@@ -74,6 +74,7 @@ orcli_usage() {
     printf "  orcli transform \"duplicates\" \"https://git.io/fj5ju\"\n"
     printf "  orcli export tsv \"duplicates\"\n"
     printf "  orcli export tsv \"duplicates\" --output \"duplicates.tsv\"\n"
+    printf "  orcli delete \"duplicates\"\n"
     printf "  orcli run --interactive\n"
     printf "  orcli run << EOF\n    orcli import csv \"https://git.io/fj5hF\" --projectName \"duplicates\"\n    orcli transform \"duplicates\" \"https://git.io/fj5ju\"\n    orcli export tsv \"duplicates\"\n  EOF\n"
     echo
@@ -165,7 +166,9 @@ orcli_delete_usage() {
     # :command.usage_examples
     printf "%s\n" "Examples:"
     printf "  orcli delete \"duplicates\"\n"
+    printf "  orcli delete \"duplicates\" --force\n"
     printf "  orcli delete 1234567890123\n"
+    printf "  for p in $(orcli list); do orcli delete ${p:0:13}; done\n"
     echo
 
   fi
@@ -343,7 +346,7 @@ orcli_import_csv_usage() {
     printf "  orcli import csv \"file1\" \"file2\"\n"
     printf "  head -n 100 \"file\" | orcli import csv\n"
     printf "  orcli import csv \"https://git.io/fj5hF\"\n"
-    printf "  orcli import csv \"file\" \\\\\n    --separator \";\" \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\"\n"
+    printf "  orcli import csv \"file\" \\\\\n    --separator \";\" \\\\\n    --columnNames \"foo,bar,baz\" \\\\\n    --ignoreLines 1 \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --limit 100 \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\"\n    --projectTags \"test,urgent\"\n"
     echo
 
   fi
@@ -481,7 +484,7 @@ orcli_import_tsv_usage() {
     printf "  orcli import tsv \"file1\" \"file2\"\n"
     printf "  head -n 100 \"file\" | orcli import tsv\n"
     printf "  orcli import tsv \"https://git.io/fj5hF\"\n"
-    printf "  orcli import tsv \"file\" \\\\\n    --separator \";\" \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\"\n"
+    printf "  orcli import tsv \"file\" \\\\\n    --separator \";\" \\\\\n    --columnNames \"foo,bar,baz\" \\\\\n    --ignoreLines 1 \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --limit 100 \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\"\n    --projectTags \"test,urgent\"\n"
     echo
 
   fi
@@ -554,6 +557,7 @@ orcli_info_usage() {
     printf "%s\n" "Examples:"
     printf "  orcli info \"duplicates\"\n"
     printf "  orcli info 1234567890123\n"
+    printf "  orcli info \"duplicates\" | jq -r .columns[]\n"
     echo
 
   fi
@@ -733,6 +737,7 @@ orcli_export_tsv_usage() {
     printf "%s\n" "Examples:"
     printf "  orcli export tsv \"duplicates\"\n"
     printf "  orcli export tsv \"duplicates\" --output \"duplicates.tsv\"\n"
+    printf "  orcli export tsv \"duplicates\" --encoding \"ISO-8859-1\"\n"
     echo
 
   fi
