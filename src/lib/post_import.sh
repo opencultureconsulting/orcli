@@ -1,15 +1,31 @@
 # post to create-project endpoint and validate
 # shellcheck shell=bash disable=SC2154
 function post_import() {
-    local curloptions
-    local projectid
-    local projectname
-    local rows
-    # post
+    local curloptions projectid projectname rows
     mapfile -t curloptions < <(for d in "$@"; do
-        echo "--form"
+        echo "--form-string"
         echo "$d"
     done)
+    # basic post data
+    if [[ ${file} == "-" ]]; then
+        curloptions+=("--form" "project-file=@-")
+    else
+        if ! path=$(readlink -e "${file}"); then
+            error "cannot open ${file} (no such file)!"
+        fi
+        curloptions+=("--form" "project-file=@${path}")
+    fi
+    if [[ ${args[--projectName]} ]]; then
+        curloptions+=("--form-string" "project-name=${args[--projectName]}")
+    else
+        if [[ ${file} == "-" ]]; then
+            name="Untitled"
+        else
+            name="$(basename "${path}" | tr '.' ' ')"
+        fi
+        curloptions+=("--form-string" "project-name=${name}")
+    fi
+    # post
     if ! redirect_url="$(curl -fs --write-out "%{redirect_url}\n" "${curloptions[@]}" "${OPENREFINE_URL}/command/core/create-project-from-upload$(get_csrf)")"; then
         error "importing ${args[file]} failed!"
     fi

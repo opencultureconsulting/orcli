@@ -11,7 +11,7 @@ cp data/example.csv "${tmpdir}/${t}.csv"
 
 # action
 cd "${tmpdir}" || exit 1
-orcli import csv "${t}.csv"
+orcli import csv "${t}.csv" --projectName "${t}"
 orcli list > "${t}.output"
 
 # test

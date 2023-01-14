@@ -14,8 +14,8 @@ cp data/example.tsv "${tmpdir}/${t}.assert"
 
 # action
 cd "${tmpdir}" || exit 1
-orcli import csv "${t}.csv"
-orcli export tsv "${t} csv" > "${t}.output"
+orcli import csv "${t}.csv" --projectName "${t}"
+orcli export tsv "${t}" > "${t}.output"
 
 # test
 diff -u "${t}.assert" "${t}.output"

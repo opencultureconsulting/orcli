@@ -1,25 +1,31 @@
 #!/bin/bash
 
-t="info"
+t="import-csv-unicode biểu tượng cảm xúc ⛲"
 
 # create tmp directory
 tmpdir="$(mktemp -d)"
 trap '{ rm -rf "${tmpdir}"; }' 0 2 3 15
 
 # input
-cp data/example.csv "${tmpdir}/${t}.csv"
+cat << "DATA" > "${tmpdir}/${t}.csv"
+⌨,code,meaning
+⛲,1F347,FOUNTAIN
+⛳,1F349,FLAG IN HOLE
+⛵,1F352,SAILBOAT
+DATA
 
 # assertion
 cat << "DATA" > "${tmpdir}/${t}.assert"
-a
-b
-c
+⌨	code	meaning
+⛲	1F347	FOUNTAIN
+⛳	1F349	FLAG IN HOLE
+⛵	1F352	SAILBOAT
 DATA
 
 # action
 cd "${tmpdir}" || exit 1
 orcli import csv "${t}.csv" --projectName "${t}"
-orcli info "${t}" | jq -r .columns[] > "${t}.output"
+orcli export tsv "${t}" > "${t}.output"
 
 # test
 diff -u "${t}.assert" "${t}.output"

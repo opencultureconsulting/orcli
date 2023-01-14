@@ -2,18 +2,18 @@
 # shellcheck shell=bash disable=SC2154
 function post_export() {
     local curloptions
-    # post
     mapfile -t curloptions < <(for d in "$@"; do
         echo "--data"
         echo "$d"
     done)
+    # support file output
     if [[ ${args[--output]} ]]; then
         if ! mkdir -p "$(dirname "${args[--output]}")"; then
             error "unable to create parent directory for ${args[--output]}"
         fi
-        curloptions+=("--output")
-        curloptions+=("${args[--output]}")
+        curloptions+=("--output" "${args[--output]}")
     fi
+    # post
     if ! curl -fs "${curloptions[@]}" "${OPENREFINE_URL}/command/core/export-rows"; then
         error "exporting ${args[project]} failed!"
     else
