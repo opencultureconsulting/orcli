@@ -1088,7 +1088,7 @@ function post_export() {
         curloptions+=("--data-urlencode")
         curloptions+=("$d")
     done
-    # support records mode and facets
+    # support filtering result sets with facets
     if [[ ${args[--mode]} == "records" ]]; then
         mode="record-based"
     else
