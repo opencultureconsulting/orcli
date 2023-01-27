@@ -2,10 +2,10 @@
 # shellcheck shell=bash disable=SC2154
 function post_import() {
     local curloptions projectid projectname rows
-    mapfile -t curloptions < <(for d in "$@"; do
-        echo "--form-string"
-        echo "$d"
-    done)
+    for d in "$@"; do
+        curloptions+=("--form-string")
+        curloptions+=("$d")
+    done
     # basic post data
     if [[ ${file} == "-" ]]; then
         curloptions+=("--form" "project-file=@-")

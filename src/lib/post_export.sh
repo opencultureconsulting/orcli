@@ -2,10 +2,18 @@
 # shellcheck shell=bash disable=SC2154
 function post_export() {
     local curloptions
-    mapfile -t curloptions < <(for d in "$@"; do
-        echo "--data"
-        echo "$d"
-    done)
+    for d in "$@"; do
+        curloptions+=("--data-urlencode")
+        curloptions+=("$d")
+    done
+    # support filtering result sets with facets
+    if [[ ${args[--mode]} == "records" ]]; then
+        mode="record-based"
+    else
+        mode="row-based"
+    fi
+    curloptions+=("--data-urlencode")
+    curloptions+=("engine={\"facets\":${args[--facets]},\"mode\":\"${mode}\"}")
     # support file output
     if [[ ${args[--output]} ]]; then
         if ! mkdir -p "$(dirname "${args[--output]}")"; then
@@ -18,7 +26,7 @@ function post_export() {
         error "exporting ${args[project]} failed!"
     else
         if [[ ${args[--output]} ]]; then
-            log "exported ${args[project]}" "file: ${args[--output]}" "rows: $(wc -l <"${args[--output]}")"
+            log "exported ${args[project]}" "file: ${args[--output]}" "lines: $(wc -l <"${args[--output]}")"
         fi
     fi
 }
