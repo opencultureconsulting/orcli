@@ -182,7 +182,7 @@ commands:
           - orcli import tsv "file"
           - orcli import tsv "file1" "file2"
           - head -n 100 "file" | orcli import tsv
-          - orcli import tsv "https://git.io/fj5hF"
+          - orcli import tsv "https://example.com/file.tsv"
           - |-
             orcli import tsv "file" \\\\
               --separator ";" \\\\
@@ -231,6 +231,11 @@ commands:
         args:
           - *project
         flags:
+          - &facets
+            long: --facets
+            help: filter result set by providing an OpenRefine facets config in json
+            arg: facets
+            default: "[]"
           - &output
             long: --output
             help: Write to file instead of stdout
@@ -245,6 +250,49 @@ commands:
           - orcli export tsv "duplicates"
           - orcli export tsv "duplicates" --output "duplicates.tsv"
           - orcli export tsv "duplicates" --encoding "ISO-8859-1"
+          - |-
+            orcli export tsv "duplicates" --facets '[ { "type": "text", "name": "foo", "columnName": "name", "mode": "regex", "caseSensitive": false, "query": "Ben" } ]'
+
+      - name: template
+        help: export to any text format by providing your own GREL template
+        args:
+          - *project
+          - name: file
+            help: Path to row/record template file or URL. When FILE is -, read standard input.
+            default: "-"
+        flags:
+          - long: --separator
+            help: insert character(s) between rows/records
+            arg: separator
+          - long: --prefix
+            help: insert character(s) at the beginning of the file
+            arg: prefix
+          - long: --suffix
+            help: insert character(s) at the end of the file
+            arg: suffix
+          - long: --mode
+            help: specify if template shall be applied to each row or record
+            arg: mode
+            allowed: [rows, records]
+            default: "rows"
+          - *facets
+          - *output
+          - *encoding_export
+          - *quiet
+        examples:
+          - orcli export template "duplicates" "template.txt"
+          - cat "template.txt" | orcli export template "duplicates"
+          - orcli export template "duplicates" "https://example.com/template.txt"
+          - orcli export template "duplicates" "template.txt" --output "duplicates.tsv"
+          - |-
+            orcli export template "duplicates" \\\\
+              <<< '{ "name" : {{jsonize(cells["name"].value)}}, "purchase" : {{jsonize(cells["purchase"].value)}} }' \\\\
+              --prefix '{ "events" : [' \\\\
+              --separator , \\\\
+              --mode records \\\\
+              --suffix ]}$'\\\n' \\\\
+              --facets '[ { "type": "text", "name": "foo", "columnName": "name", "mode": "regex", "caseSensitive": false, "query": "Ben" } ]' \\\\
+              | jq
 
   - name: run
     help: run tmp OpenRefine workspace and execute shell script(s)

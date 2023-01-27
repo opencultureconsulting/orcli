@@ -16,7 +16,7 @@ Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org
   * orcli calls specific endpoints for each operation to provide improved error handling and logging
   * supports stdin, multiple files and URLs
 * export to TSV, ~~CSV, HTML, XLS, XLSX, ODS~~
-* ~~[templating export](https://docs.openrefine.org/manual/exporting#templating-exporter) to additional formats like JSON or XML~~
+* [templating export](https://docs.openrefine.org/manual/exporting#templating-exporter) to additional formats like JSON or XML
 
 ## Requirements
 

@@ -25,7 +25,7 @@ for i in "${!files[@]}"; do
         if ! curl -fs --location "${files[$i]}" >"${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"; then
             error "download of ${files[$i]} failed!"
         fi
-        files[$i]="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
+        files[i]="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
     fi
 done
 

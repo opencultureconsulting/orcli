@@ -483,7 +483,7 @@ orcli_import_tsv_usage() {
     printf "  orcli import tsv \"file\"\n"
     printf "  orcli import tsv \"file1\" \"file2\"\n"
     printf "  head -n 100 \"file\" | orcli import tsv\n"
-    printf "  orcli import tsv \"https://git.io/fj5hF\"\n"
+    printf "  orcli import tsv \"https://example.com/file.tsv\"\n"
     printf "  orcli import tsv \"file\" \\\\\n    --separator \";\" \\\\\n    --columnNames \"foo,bar,baz\" \\\\\n    --ignoreLines 1 \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --limit 100 \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\"\n    --projectTags \"test,urgent\"\n"
     echo
 
@@ -667,7 +667,8 @@ orcli_export_usage() {
   echo
   # :command.usage_commands
   printf "%s\n" "Commands:"
-  printf "  %s   export tab-separated values (TSV)\n" "tsv"
+  printf "  %s   export tab-separated values (TSV)\n" "tsv     "
+  printf "  %s   export to any text format by providing your own GREL template\n" "template"
   echo
 
   # :command.long_usage
@@ -710,6 +711,12 @@ orcli_export_tsv_usage() {
 
     # :command.usage_flags
     # :flag.usage
+    printf "  %s\n" "--facets FACETS"
+    printf "    filter result set by providing an OpenRefine facets config in json\n"
+    printf "    Default: []\n"
+    echo
+
+    # :flag.usage
     printf "  %s\n" "--output FILE"
     printf "    Write to file instead of stdout\n"
     echo
@@ -738,6 +745,104 @@ orcli_export_tsv_usage() {
     printf "  orcli export tsv \"duplicates\"\n"
     printf "  orcli export tsv \"duplicates\" --output \"duplicates.tsv\"\n"
     printf "  orcli export tsv \"duplicates\" --encoding \"ISO-8859-1\"\n"
+    printf "  orcli export tsv \"duplicates\" --facets '[ { \"type\": \"text\", \"name\": \"foo\",\n  \"columnName\": \"name\", \"mode\": \"regex\", \"caseSensitive\": false, \"query\": \"Ben\"\n  } ]'\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+orcli_export_template_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "orcli export template - export to any text format by providing your own GREL template\n"
+    echo
+
+  else
+    printf "orcli export template - export to any text format by providing your own GREL template\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  orcli export template PROJECT [FILE] [OPTIONS]\n"
+  printf "  orcli export template --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--separator SEPARATOR"
+    printf "    insert character(s) between rows/records\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--prefix PREFIX"
+    printf "    insert character(s) at the beginning of the file\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--suffix SUFFIX"
+    printf "    insert character(s) at the end of the file\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--mode MODE"
+    printf "    specify if template shall be applied to each row or record\n"
+    printf "    Allowed: rows, records\n"
+    printf "    Default: rows\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--facets FACETS"
+    printf "    filter result set by providing an OpenRefine facets config in json\n"
+    printf "    Default: []\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--output FILE"
+    printf "    Write to file instead of stdout\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--encoding ENCODING"
+    printf "    set character encoding\n"
+    printf "    Default: UTF-8\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--quiet, -q"
+    printf "    suppress log output, print errors only\n"
+    echo
+
+    # :command.usage_args
+    printf "%s\n" "Arguments:"
+
+    # :argument.usage
+    printf "  %s\n" "PROJECT"
+    printf "    project name or id\n"
+    echo
+
+    # :argument.usage
+    printf "  %s\n" "FILE"
+    printf "    Path to row/record template file or URL. When FILE is -, read standard\n    input.\n"
+    printf "    Default: -\n"
+    echo
+
+    # :command.usage_examples
+    printf "%s\n" "Examples:"
+    printf "  orcli export template \"duplicates\" \"template.txt\"\n"
+    printf "  cat \"template.txt\" | orcli export template \"duplicates\"\n"
+    printf "  orcli export template \"duplicates\" \"https://example.com/template.txt\"\n"
+    printf "  orcli export template \"duplicates\" \"template.txt\" --output \"duplicates.tsv\"\n"
+    printf "  orcli export template \"duplicates\" \\\\\n    <<< '{ \"name\" : {{jsonize(cells[\"name\"].value)}}, \"purchase\" :\n  {{jsonize(cells[\"purchase\"].value)}} }' \\\\\n    --prefix '{ \"events\" : [' \\\\\n    --separator , \\\\\n    --mode records \\\\\n    --suffix ]}$'\\\n' \\\\\n    --facets '[ { \"type\": \"text\", \"name\": \"foo\", \"columnName\": \"name\", \"mode\":\n  \"regex\", \"caseSensitive\": false, \"query\": \"Ben\" } ]' \\\\\n    | jq\n"
     echo
 
   fi
@@ -979,10 +1084,18 @@ function log() {
 # shellcheck shell=bash disable=SC2154
 function post_export() {
     local curloptions
-    mapfile -t curloptions < <(for d in "$@"; do
-        echo "--data"
-        echo "$d"
-    done)
+    for d in "$@"; do
+        curloptions+=("--data-urlencode")
+        curloptions+=("$d")
+    done
+    # support filtering result sets with facets
+    if [[ ${args[--mode]} == "records" ]]; then
+        mode="record-based"
+    else
+        mode="row-based"
+    fi
+    curloptions+=("--data-urlencode")
+    curloptions+=("engine={\"facets\":${args[--facets]},\"mode\":\"${mode}\"}")
     # support file output
     if [[ ${args[--output]} ]]; then
         if ! mkdir -p "$(dirname "${args[--output]}")"; then
@@ -995,7 +1108,7 @@ function post_export() {
         error "exporting ${args[project]} failed!"
     else
         if [[ ${args[--output]} ]]; then
-            log "exported ${args[project]}" "file: ${args[--output]}" "rows: $(wc -l <"${args[--output]}")"
+            log "exported ${args[project]}" "file: ${args[--output]}" "lines: $(wc -l <"${args[--output]}")"
         fi
     fi
 }
@@ -1005,10 +1118,10 @@ function post_export() {
 # shellcheck shell=bash disable=SC2154
 function post_import() {
     local curloptions projectid projectname rows
-    mapfile -t curloptions < <(for d in "$@"; do
-        echo "--form-string"
-        echo "$d"
-    done)
+    for d in "$@"; do
+        curloptions+=("--form-string")
+        curloptions+=("$d")
+    done
     # basic post data
     if [[ ${file} == "-" ]]; then
         curloptions+=("--form" "project-file=@-")
@@ -1079,6 +1192,14 @@ send_completions() {
   echo $'  local compline="${compwords[*]}"'
   echo $''
   echo $'  case "$compline" in'
+  echo $'    \'export template\'*\'--mode\')'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "rows records")" -- "$cur" )'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'export template\'*)'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --facets --help --mode --output --prefix --quiet --separator --suffix -h -q")" -- "$cur" )'
+  echo $'      ;;'
+  echo $''
   echo $'    \'completions\'*)'
   echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h")" -- "$cur" )'
   echo $'      ;;'
@@ -1092,7 +1213,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'export tsv\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --help --output --quiet -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --facets --help --output --quiet -h -q")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'transform\'*)'
@@ -1108,7 +1229,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'export\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h tsv")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h template tsv")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'list\'*)'
@@ -1508,7 +1629,7 @@ orcli_transform_command() {
           if ! curl -fs --location "${files[$i]}" >"${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"; then
               error "download of ${files[$i]} failed!"
           fi
-          files[$i]="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
+          files[i]="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
       fi
   done
 
@@ -1606,6 +1727,59 @@ orcli_export_tsv_command() {
   fi
   options+=' }'
   data+=("options=${options}")
+
+  # call post_export function to post data and validate results
+  post_export "${data[@]}"
+
+}
+
+# :command.function
+orcli_export_template_command() {
+  # src/export_template_command.sh
+  # shellcheck shell=bash disable=SC2154 disable=SC2155
+
+  # get project id
+  projectid="$(get_id "${args[project]}")"
+
+  # create tmp directory
+  tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' 0 2 3 15
+
+  # download file if name starts with http:// or https://
+  if [[ ${args[file]} == "http://"* ]] || [[ ${args[file]} == "https://"* ]]; then
+      if ! curl -fs --location "${args[file]}" >"${tmpdir}/${args[file]//[^A-Za-z0-9._-]/_}"; then
+          error "download of ${args[file]} failed!"
+      fi
+      args[file]="${tmpdir}/${args[file]//[^A-Za-z0-9._-]/_}"
+  fi
+
+  # check existence of file or stdin
+  if [[ "${args[file]}" == '-' ]] || [[ "${args[file]}" == '"-"' ]]; then
+      # exit if stdin is selected but not present
+      if ! read -u 0 -t 0; then
+          orcli_export_template_usage
+          exit 1
+      fi
+  else
+      # exit if file does not exist
+      if ! [[ -f "${args[file]}" ]]; then
+          error "cannot open ${args[file]} (no such file)!"
+      fi
+  fi
+
+  # assemble specific post data
+  data+=("project=${projectid}")
+  data+=("format=template")
+  data+=("template@${args[file]}")
+  if [[ ${args[--prefix]} ]]; then
+      data+=("prefix=${args[--prefix]}")
+  fi
+  if [[ ${args[--suffix]} ]]; then
+      data+=("suffix=${args[--suffix]}")
+  fi
+  if [[ ${args[--separator]} ]]; then
+      data+=("separator=${args[--separator]}")
+  fi
 
   # call post_export function to post data and validate results
   post_export "${data[@]}"
@@ -2854,6 +3028,13 @@ orcli_export_parse_requirements() {
       shift $#
       ;;
 
+    template)
+      action="template"
+      shift
+      orcli_export_template_parse_requirements "$@"
+      shift $#
+      ;;
+
     # :command.command_fallback
     "")
       orcli_export_usage >&2
@@ -2915,6 +3096,21 @@ orcli_export_tsv_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+      # :flag.case
+      --facets)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args['--facets']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--facets requires an argument: --facets FACETS" >&2
+          exit 1
+        fi
+        ;;
+
       # :flag.case
       --output)
 
@@ -2982,7 +3178,192 @@ orcli_export_tsv_parse_requirements() {
   fi
 
   # :command.default_assignments
+  [[ -n ${args['--facets']:-} ]] || args['--facets']="[]"
   [[ -n ${args['--encoding']:-} ]] || args['--encoding']="UTF-8"
+
+}
+
+# :command.parse_requirements
+orcli_export_template_parse_requirements() {
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        orcli_export_template_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="export template"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      # :flag.case
+      --separator)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args['--separator']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--separator requires an argument: --separator SEPARATOR" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --prefix)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args['--prefix']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--prefix requires an argument: --prefix PREFIX" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --suffix)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args['--suffix']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--suffix requires an argument: --suffix SUFFIX" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --mode)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args['--mode']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--mode requires an argument: --mode MODE" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --facets)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args['--facets']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--facets requires an argument: --facets FACETS" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --output)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args['--output']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--output requires an argument: --output FILE" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --encoding)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args['--encoding']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--encoding requires an argument: --encoding ENCODING" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --quiet | -q)
+
+        # :flag.case_no_arg
+        args['--quiet']=1
+        shift
+        ;;
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        if [[ -z ${args['project']+x} ]]; then
+
+          args['project']=$1
+          shift
+        elif [[ -z ${args['file']+x} ]]; then
+
+          args['file']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  # :command.required_args_filter
+  if [[ -z ${args['project']+x} ]]; then
+    printf "missing required argument: PROJECT\nusage: orcli export template PROJECT [FILE] [OPTIONS]\n" >&2
+    exit 1
+  fi
+
+  # :command.default_assignments
+  [[ -n ${args['file']:-} ]] || args['file']="-"
+  [[ -n ${args['--mode']:-} ]] || args['--mode']="rows"
+  [[ -n ${args['--facets']:-} ]] || args['--facets']="[]"
+  [[ -n ${args['--encoding']:-} ]] || args['--encoding']="UTF-8"
+
+  # :command.whitelist_filter
+  if [[ ! ${args['--mode']} =~ ^(rows|records)$ ]]; then
+    printf "%s\n" "--mode must be one of: rows, records" >&2
+    exit 1
+  fi
 
 }
 
@@ -3204,6 +3585,15 @@ run() {
         orcli_export_tsv_usage
       else
         orcli_export_tsv_command
+      fi
+      ;;
+
+    "export template")
+      if [[ ${args['--help']:-} ]]; then
+        long_usage=yes
+        orcli_export_template_usage
+      else
+        orcli_export_template_command
       fi
       ;;
 
