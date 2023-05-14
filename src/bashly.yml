@@ -153,7 +153,7 @@ commands:
               --encoding "ISO-8859-1" \\\\
               --limit 100 \\\\
               --trimStrings \\\\
-              --projectName "duplicates"
+              --projectName "duplicates" \\\\
               --projectTags "test,urgent"
 
       - name: tsv
@@ -191,7 +191,44 @@ commands:
               --encoding "ISO-8859-1" \\\\
               --limit 100 \\\\
               --trimStrings \\\\
-              --projectName "duplicates"
+              --projectName "duplicates" \\\\
+              --projectTags "test,urgent"
+
+      - name: txt
+        help: import text files (txt)
+        args:
+          - *file
+        flags:
+          - *blankCellsAsStrings
+          - &columnWidths
+            long: --columnWidths
+            help: set columnWidths (numbers separated by comma)
+            arg: columnWidths
+            default: ""
+          - *encoding_import
+          - *guessCellValueTypes
+          - *headerLines
+          - *ignoreLines
+          - *includeFileSources
+          - *includeArchiveFileName
+          - *limit
+          - *projectName
+          - *projectTags
+          - *quiet
+          - *skipBlankRows
+          - *skipDataLines
+        examples:
+          - orcli import txt "file"
+          - orcli import txt "file1" "file2"
+          - head -n 100 "file" | orcli import txt
+          - orcli import txt "https://example.com/file.txt"
+          - |-
+            orcli import txt "file" \\\\
+              --columnWidths "7,5" \\\\
+              --ignoreLines 1 \\\\
+              --encoding "ISO-8859-1" \\\\
+              --limit 100 \\\\
+              --projectName "duplicates" \\\\
               --projectTags "test,urgent"
 
   - name: list
