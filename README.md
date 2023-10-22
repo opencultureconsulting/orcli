@@ -2,6 +2,8 @@
 
 Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org/technical-reference/openrefine-api).
 
+![Demo](demo.gif)
+
 ## Features
 
 * works with latest OpenRefine version (currently 3.7)
