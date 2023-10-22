@@ -145,3 +145,9 @@ orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-
   ```sh
   ./orcli test
   ```
+
+5. Generate help files
+
+  ```sh
+  ./help.sh
+  ```
