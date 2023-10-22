@@ -108,7 +108,7 @@ Optional:
 
 ## Usage
 
-* Use integrated help screens for available options and examples for each command.
+* Use [help screens](help/README.md) for available options and examples for each command.
 
   ```sh
   orcli --help
