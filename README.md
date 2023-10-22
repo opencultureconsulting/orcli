@@ -108,7 +108,7 @@ Optional:
 
 ## Usage
 
-* Use integrated help screens for available options and examples for each command.
+* Use [help screens](help/README.md) for available options and examples for each command.
 
   ```sh
   orcli --help
@@ -144,4 +144,10 @@ orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-
 
   ```sh
   ./orcli test
+  ```
+
+5. Generate help files
+
+  ```sh
+  ./help.sh
   ```

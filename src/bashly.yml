@@ -32,7 +32,7 @@ commands:
   - name: completions
     help: |-
       Generate bash completions
-      Usage: eval "\$(orcli completions)"
+      Usage: source <(orcli completions)
 
   - name: delete
     help: delete OpenRefine project
@@ -53,7 +53,7 @@ commands:
       - orcli delete "duplicates"
       - orcli delete "duplicates" --force
       - orcli delete 1234567890123
-      - for p in $(orcli list); do orcli delete ${p:0:13}; done
+      - for p in \$(orcli list); do orcli delete \${p:0:13}; done
 
   - name: import
     help: commands to create OpenRefine projects from files or URLs
@@ -153,7 +153,7 @@ commands:
               --encoding "ISO-8859-1" \\\\
               --limit 100 \\\\
               --trimStrings \\\\
-              --projectName "duplicates"
+              --projectName "duplicates" \\\\
               --projectTags "test,urgent"
 
       - name: tsv
@@ -191,7 +191,7 @@ commands:
               --encoding "ISO-8859-1" \\\\
               --limit 100 \\\\
               --trimStrings \\\\
-              --projectName "duplicates"
+              --projectName "duplicates" \\\\
               --projectTags "test,urgent"
 
   - name: list

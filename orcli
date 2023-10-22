@@ -92,7 +92,7 @@ orcli_completions_usage() {
     printf "orcli completions\n"
     echo
 
-    printf "  Generate bash completions\n  Usage: eval \"\$(orcli completions)\"\n"
+    printf "  Generate bash completions\n  Usage: source <(orcli completions)\n"
     echo
 
   else
@@ -168,7 +168,7 @@ orcli_delete_usage() {
     printf "  orcli delete \"duplicates\"\n"
     printf "  orcli delete \"duplicates\" --force\n"
     printf "  orcli delete 1234567890123\n"
-    printf "  for p in $(orcli list); do orcli delete ${p:0:13}; done\n"
+    printf "  for p in \$(orcli list); do orcli delete \${p:0:13}; done\n"
     echo
 
   fi
@@ -346,7 +346,7 @@ orcli_import_csv_usage() {
     printf "  orcli import csv \"file1\" \"file2\"\n"
     printf "  head -n 100 \"file\" | orcli import csv\n"
     printf "  orcli import csv \"https://git.io/fj5hF\"\n"
-    printf "  orcli import csv \"file\" \\\\\n    --separator \";\" \\\\\n    --columnNames \"foo,bar,baz\" \\\\\n    --ignoreLines 1 \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --limit 100 \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\"\n    --projectTags \"test,urgent\"\n"
+    printf "  orcli import csv \"file\" \\\\\n    --separator \";\" \\\\\n    --columnNames \"foo,bar,baz\" \\\\\n    --ignoreLines 1 \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --limit 100 \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\" \\\\\n    --projectTags \"test,urgent\"\n"
     echo
 
   fi
@@ -484,7 +484,7 @@ orcli_import_tsv_usage() {
     printf "  orcli import tsv \"file1\" \"file2\"\n"
     printf "  head -n 100 \"file\" | orcli import tsv\n"
     printf "  orcli import tsv \"https://example.com/file.tsv\"\n"
-    printf "  orcli import tsv \"file\" \\\\\n    --separator \";\" \\\\\n    --columnNames \"foo,bar,baz\" \\\\\n    --ignoreLines 1 \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --limit 100 \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\"\n    --projectTags \"test,urgent\"\n"
+    printf "  orcli import tsv \"file\" \\\\\n    --separator \";\" \\\\\n    --columnNames \"foo,bar,baz\" \\\\\n    --ignoreLines 1 \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --limit 100 \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\" \\\\\n    --projectTags \"test,urgent\"\n"
     echo
 
   fi
