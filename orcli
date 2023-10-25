@@ -1584,10 +1584,8 @@ orcli_test_command() {
   for i in "${!files[@]}"; do
       set +e # do not exit on failed tests
       bash -e <(
-          if ! command -v orcli &>/dev/null; then
-              echo "shopt -s expand_aliases"
-              echo "alias orcli=${scriptpath}/orcli"
-          fi
+          echo "shopt -s expand_aliases"
+          echo "alias orcli=${scriptpath}/orcli"
           awk 1 "${files[$i]}"
       ) &>"$OPENREFINE_TMPDIR/test.log"
       results+=(${?})
@@ -1877,9 +1875,7 @@ orcli_run_command() {
           # case 1: interactive mode if stdin is selected but not present
           bash --rcfile <(
               cat ~/.bashrc
-              if ! command -v orcli &>/dev/null; then
-                  echo "alias orcli=${scriptpath}/orcli"
-              fi
+              echo "alias orcli=${scriptpath}/orcli"
               interactive
           ) -i </dev/tty
           exit
@@ -1889,9 +1885,7 @@ orcli_run_command() {
       # case 2: execute scripts and keep shell running
       bash --rcfile <(
           cat ~/.bashrc
-          if ! command -v orcli &>/dev/null; then
-              echo "alias orcli=${scriptpath}/orcli"
-          fi
+          echo "alias orcli=${scriptpath}/orcli"
           for i in "${!files[@]}"; do
               log "executing script ${files[$i]}..."
               awk 1 "${files[$i]}"
@@ -1903,10 +1897,8 @@ orcli_run_command() {
       for i in "${!files[@]}"; do
           log "executing script ${files[$i]}..."
           bash -e <(
-              if ! command -v orcli &>/dev/null; then
-                  echo "shopt -s expand_aliases"
-                  echo "alias orcli=${scriptpath}/orcli"
-              fi
+              echo "shopt -s expand_aliases"
+              echo "alias orcli=${scriptpath}/orcli"
               awk 1 "${files[$i]}"
           )
       done

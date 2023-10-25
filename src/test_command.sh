@@ -54,10 +54,8 @@ results=()
 for i in "${!files[@]}"; do
     set +e # do not exit on failed tests
     bash -e <(
-        if ! command -v orcli &>/dev/null; then
-            echo "shopt -s expand_aliases"
-            echo "alias orcli=${scriptpath}/orcli"
-        fi
+        echo "shopt -s expand_aliases"
+        echo "alias orcli=${scriptpath}/orcli"
         awk 1 "${files[$i]}"
     ) &>"$OPENREFINE_TMPDIR/test.log"
     results+=(${?})
