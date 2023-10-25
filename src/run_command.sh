@@ -73,9 +73,7 @@ if [[ ${args[file]} == '-' || ${args[file]} == '"-"' ]]; then
         # case 1: interactive mode if stdin is selected but not present
         bash --rcfile <(
             cat ~/.bashrc
-            if ! command -v orcli &>/dev/null; then
-                echo "alias orcli=${scriptpath}/orcli"
-            fi
+            echo "alias orcli=${scriptpath}/orcli"
             interactive
         ) -i </dev/tty
         exit
@@ -85,9 +83,7 @@ if [[ ${args[--interactive]} ]]; then
     # case 2: execute scripts and keep shell running
     bash --rcfile <(
         cat ~/.bashrc
-        if ! command -v orcli &>/dev/null; then
-            echo "alias orcli=${scriptpath}/orcli"
-        fi
+        echo "alias orcli=${scriptpath}/orcli"
         for i in "${!files[@]}"; do
             log "executing script ${files[$i]}..."
             awk 1 "${files[$i]}"
@@ -99,10 +95,8 @@ else
     for i in "${!files[@]}"; do
         log "executing script ${files[$i]}..."
         bash -e <(
-            if ! command -v orcli &>/dev/null; then
-                echo "shopt -s expand_aliases"
-                echo "alias orcli=${scriptpath}/orcli"
-            fi
+            echo "shopt -s expand_aliases"
+            echo "alias orcli=${scriptpath}/orcli"
             awk 1 "${files[$i]}"
         )
     done
