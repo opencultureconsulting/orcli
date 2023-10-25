@@ -12,9 +12,7 @@ cp data/duplicates.csv "${tmpdir}/${t}.csv"
 
 # assertion
 cat << "DATA" > "${tmpdir}/${t}.assert"
-{ "events" : [{ "name" : "Ben Tyler", "purchase" : "Flashlight" }
-,{ "name" : "Ben Morisson", "purchase" : "Amplifier" }
-]}
+{ "events" : [{ "name" : "Ben Tyler", "purchase" : "Flashlight" },{ "name" : "Ben Morisson", "purchase" : "Amplifier" }]}
 DATA
 
 # action
@@ -24,7 +22,7 @@ orcli export template "${t}" --output "${t}.output" \
 <<< '{ "name" : {{jsonize(cells["name"].value)}}, "purchase" : {{jsonize(cells["purchase"].value)}} }' \
 --prefix '{ "events" : [' \
 --separator , \
---mode rows \
+--mode records \
 --suffix ]}$'\n' \
 --facets '[ { "type": "text", "name": "foo", "columnName": "name", "mode": "regex", "caseSensitive": false, "query": "Ben" } ]'
 

@@ -29,10 +29,13 @@ else
     fi
 fi
 
+# read args[file] into variable to remove trailing newline
+template=$(cat "${args[file]}")
+
 # assemble specific post data
 data+=("project=${projectid}")
 data+=("format=template")
-data+=("template@${args[file]}")
+data+=("template=${template}")
 if [[ ${args[--prefix]} ]]; then
     data+=("prefix=${args[--prefix]}")
 fi
