@@ -1578,7 +1578,7 @@ orcli_test_command() {
           break
       fi
       if [[ $i == 20 ]]; then
-          error "starting OpenRefine server failed!""
+          error "starting OpenRefine server failed!"
       fi
   done
 
