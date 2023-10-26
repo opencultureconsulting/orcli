@@ -62,7 +62,7 @@ for i in {1..20}; do
         break
     fi
     if [[ $i == 20 ]]; then
-        error "starting OpenRefine server failed!" "$(cat "$OPENREFINE_TMPDIR/openrefine.log")"
+        error "starting OpenRefine server failed!"
     fi
 done
 
