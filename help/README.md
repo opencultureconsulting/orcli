@@ -11,6 +11,7 @@
 - [info](info.md)
 - [list](list.md)
 - [run](run.md)
+- [search](search.md)
 - [test](test.md)
 - [transform](transform.md)
 
@@ -30,6 +31,7 @@ Commands:
   import        commands to create OpenRefine projects from files or URLs
   list          list projects on OpenRefine server
   info          show OpenRefine project's metadata
+  search        apply regex to each column and print matches in flattened tsv format
   test          run functional tests on tmp OpenRefine workspace
   transform     apply undo/redo JSON file(s) to an OpenRefine project
   export        commands to export data from OpenRefine projects to files
@@ -52,6 +54,7 @@ Examples:
   orcli list
   orcli info "duplicates"
   orcli transform "duplicates" "https://git.io/fj5ju"
+  orcli search "duplicates" "^Ben"
   orcli export tsv "duplicates"
   orcli export tsv "duplicates" --output "duplicates.tsv"
   orcli delete "duplicates"
