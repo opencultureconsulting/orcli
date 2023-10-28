@@ -12,7 +12,7 @@ fi
 # assemble specific post data (some options require json format)
 data+=("format=text/json")
 options='{ '
-options+="\"recordPath\": ${args[--recordPath]}"
+options+="\"recordPath\": [\"_\"]"
 if [[ ${args[--guessCellValueTypes]} ]]; then
     options+=', '
     options+='"guessCellValueTypes": true'

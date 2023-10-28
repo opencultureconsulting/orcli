@@ -616,12 +616,6 @@ orcli_import_jsonl_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--recordPath JSON"
-    printf "    specify record path elements in JSON array\n"
-    printf "    Default: [ \"_\" ]\n"
-    echo
-
-    # :flag.usage
     printf "  %s\n" "--guessCellValueTypes"
     printf "    attempt to parse cell text into numbers\n"
     echo
@@ -1479,7 +1473,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'import jsonl\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--guessCellValueTypes --help --includeArchiveFileName --includeFileSources --limit --projectName --projectTags --quiet --recordPath --storeEmptyStrings --trimStrings -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--guessCellValueTypes --help --includeArchiveFileName --includeFileSources --limit --projectName --projectTags --quiet --storeEmptyStrings --trimStrings -h -q")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'completions\'*)'
@@ -1849,7 +1843,7 @@ orcli_import_jsonl_command() {
   # assemble specific post data (some options require json format)
   data+=("format=text/json")
   options='{ '
-  options+="\"recordPath\": ${args[--recordPath]}"
+  options+="\"recordPath\": [\"_\"]"
   if [[ ${args[--guessCellValueTypes]} ]]; then
       options+=', '
       options+='"guessCellValueTypes": true'
@@ -3443,21 +3437,6 @@ orcli_import_jsonl_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --recordPath)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-
-          args['--recordPath']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--recordPath requires an argument: --recordPath JSON" >&2
-          exit 1
-        fi
-        ;;
-
-      # :flag.case
       --guessCellValueTypes)
 
         # :flag.case_no_arg
@@ -3574,7 +3553,6 @@ orcli_import_jsonl_parse_requirements() {
 
   # :command.default_assignments
   [[ -n ${args['file']:-} ]] || args['file']="-"
-  [[ -n ${args['--recordPath']:-} ]] || args['--recordPath']="[ \"_\" ]"
   [[ -n ${args['--limit']:-} ]] || args['--limit']="-1"
 
 }

@@ -233,18 +233,11 @@ commands:
         args:
           - *file
         flags:
-          - &recordPath
-            long: --recordPath
-            help: specify record path elements in JSON array
-            arg: json
-            default: "[ \\\"_\\\" ]"
           - *guessCellValueTypes
           - *includeFileSources
           - *includeArchiveFileName
           - *limit
-          - &storeEmptyStrings
-            long: --storeEmptyStrings
-            help: preserve empty strings
+          - *storeEmptyStrings
           - *trimStrings
           - *projectName
           - *projectTags

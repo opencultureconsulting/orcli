@@ -8,10 +8,6 @@ Usage:
   orcli import jsonl --help | -h
 
 Options:
-  --recordPath JSON
-    specify record path elements in JSON array
-    Default: [ "_" ]
-
   --guessCellValueTypes
     attempt to parse cell text into numbers
 
