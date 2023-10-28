@@ -808,7 +808,7 @@ orcli_export_tsv_usage() {
     printf "  orcli export tsv \"duplicates\"\n"
     printf "  orcli export tsv \"duplicates\" --output \"duplicates.tsv\"\n"
     printf "  orcli export tsv \"duplicates\" --encoding \"ISO-8859-1\"\n"
-    printf "  orcli export tsv \"duplicates\" --facets '[ { \"type\": \"text\", \"columnName\":\n  \"name\", \"mode\": \"regex\", \"caseSensitive\": false, \"query\": \"^Ben\" } ]'\n"
+    printf "  orcli export tsv \"duplicates\" --facets '[ { \"type\": \"text\", \"columnName\":\n  \"name\", \"mode\": \"regex\", \"caseSensitive\": false, \"invert\": false, \"query\":\n  \"^Ben\" } ]'\n"
     printf "  orcli export tsv \"duplicates\" --facets '[{ \"type\": \"list\", \"expression\":\n  \"grel:filter([\\\\\"gender\\\\\",\\\\\"purchase\\\\\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0\",\n  \"columnName\": \"\", \"selection\": [{\"v\": {\"v\": true}}] }]'\n"
     echo
 
@@ -906,7 +906,7 @@ orcli_export_template_usage() {
     printf "  cat \"template.txt\" | orcli export template \"duplicates\"\n"
     printf "  orcli export template \"duplicates\" \"https://example.com/template.txt\"\n"
     printf "  orcli export template \"duplicates\" \"template.txt\" --output \"duplicates.tsv\"\n"
-    printf "  orcli export template \"duplicates\" \\\\\n    <<< '{ \"name\" : {{jsonize(cells[\"name\"].value)}}, \"purchase\" :\n  {{jsonize(cells[\"purchase\"].value)}} }' \\\\\n    --prefix '{ \"events\" : [' \\\\\n    --separator , \\\\\n    --mode records \\\\\n    --suffix ]}$'\\\n' \\\\\n    --facets '[ { \"type\": \"text\", \"columnName\": \"name\", \"mode\": \"regex\",\n  \"caseSensitive\": false, \"query\": \"^Ben\" } ]' \\\\\n    | jq\n"
+    printf "  orcli export template \"duplicates\" \\\\\n    <<< '{ \"name\" : {{jsonize(cells[\"name\"].value)}}, \"purchase\" :\n  {{jsonize(cells[\"purchase\"].value)}} }' \\\\\n    --prefix '{ \"events\" : [' \\\\\n    --separator , \\\\\n    --mode records \\\\\n    --suffix ]}$'\\\n' \\\\\n    --facets '[ { \"type\": \"text\", \"columnName\": \"name\", \"mode\": \"regex\",\n  \"caseSensitive\": false, \"invert\": false, \"query\": \"^Ben\" } ]' \\\\\n    | jq\n"
     echo
 
   fi

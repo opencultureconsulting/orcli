@@ -61,7 +61,7 @@ Examples:
     --mode records \
     --suffix ]}$'\n' \
     --facets '[ { "type": "text", "columnName": "name", "mode": "regex",
-  "caseSensitive": false, "query": "^Ben" } ]' \
+  "caseSensitive": false, "invert": false, "query": "^Ben" } ]' \
     | jq
 
 ```
