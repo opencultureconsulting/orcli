@@ -67,7 +67,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'search\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --index -h")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'export\'*)'
