@@ -7,6 +7,8 @@
 - [export template](export_template.md)
 - [export tsv](export_tsv.md)
 - [import csv](import_csv.md)
+- [import json](import_json.md)
+- [import jsonl](import_jsonl.md)
 - [import tsv](import_tsv.md)
 - [info](info.md)
 - [list](list.md)
