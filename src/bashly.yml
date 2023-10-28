@@ -211,6 +211,8 @@ commands:
     help: |-
       apply regex to each column and print matches in flattened tsv format
       output: index	column	value
+      note that any exporter supports search by using --facets (see examples)
+
     args:
       - *project
       - &regex
@@ -223,8 +225,12 @@ commands:
     examples:
       - orcli search "duplicates" "^Ben"
       - orcli search 1234567890123 "^Ben"
-      - orcli search "duplicates" "^F$" --index "email"
+      - orcli search "duplicates" "^F" --index "email"
       - orcli search "duplicates" | column -t -s \$'\t'
+      - |-
+        orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter(row.columnNames,cn,cells[cn].value.find(/^Ben/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'
+      - |-
+        orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\\\\"gender\\\\",\\\\"purchase\\\\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'
 
   - name: test
     help: run functional tests on tmp OpenRefine workspace
@@ -271,7 +277,9 @@ commands:
           - orcli export tsv "duplicates" --output "duplicates.tsv"
           - orcli export tsv "duplicates" --encoding "ISO-8859-1"
           - |-
-            orcli export tsv "duplicates" --facets '[ { "type": "text", "name": "foo", "columnName": "name", "mode": "regex", "caseSensitive": false, "query": "Ben" } ]'
+            orcli export tsv "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "query": "^Ben" } ]'
+          - |-
+            orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\\\\"gender\\\\",\\\\"purchase\\\\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'
 
       - name: template
         help: export to any text format by providing your own GREL template
@@ -311,7 +319,7 @@ commands:
               --separator , \\\\
               --mode records \\\\
               --suffix ]}$'\\\n' \\\\
-              --facets '[ { "type": "text", "name": "foo", "columnName": "name", "mode": "regex", "caseSensitive": false, "query": "Ben" } ]' \\\\
+              --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "query": "^Ben" } ]' \\\\
               | jq
 
   - name: run

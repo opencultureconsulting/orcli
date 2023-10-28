@@ -21,7 +21,7 @@ cd "${tmpdir}" || exit 1
 orcli import csv "${t}.csv" --projectName "${t}"
 orcli export tsv "${t}" \
 --output "${t}.output" \
---facets '[ { "type": "text", "name": "foo", "columnName": "name", "mode": "regex", "caseSensitive": false, "query": "Ben"  } ]'
+--facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "query": "^Ben"  } ]'
 
 # test
 diff -u "${t}.assert" "${t}.output"

@@ -60,8 +60,8 @@ Examples:
     --separator , \
     --mode records \
     --suffix ]}$'\n' \
-    --facets '[ { "type": "text", "name": "foo", "columnName": "name", "mode":
-  "regex", "caseSensitive": false, "query": "Ben" } ]' \
+    --facets '[ { "type": "text", "columnName": "name", "mode": "regex",
+  "caseSensitive": false, "query": "^Ben" } ]' \
     | jq
 
 ```

@@ -571,7 +571,7 @@ orcli_search_usage() {
     printf "orcli search\n"
     echo
 
-    printf "  apply regex to each column and print matches in flattened tsv format\n  output: index	column	value\n"
+    printf "  apply regex to each column and print matches in flattened tsv format\n  output: index	column	value\n  note that any exporter supports search by using --facets (see examples)\n"
     echo
 
   else
@@ -617,8 +617,10 @@ orcli_search_usage() {
     printf "%s\n" "Examples:"
     printf "  orcli search \"duplicates\" \"^Ben\"\n"
     printf "  orcli search 1234567890123 \"^Ben\"\n"
-    printf "  orcli search \"duplicates\" \"^F$\" --index \"email\"\n"
+    printf "  orcli search \"duplicates\" \"^F\" --index \"email\"\n"
     printf "  orcli search \"duplicates\" | column -t -s \$'\t'\n"
+    printf "  orcli export tsv \"duplicates\" --facets '[{ \"type\": \"list\", \"expression\":\n  \"grel:filter(row.columnNames,cn,cells[cn].value.find(/^Ben/).length()>0).length()>0\",\n  \"columnName\": \"\", \"selection\": [{\"v\": {\"v\": true}}] }]'\n"
+    printf "  orcli export tsv \"duplicates\" --facets '[{ \"type\": \"list\", \"expression\":\n  \"grel:filter([\\\\\"gender\\\\\",\\\\\"purchase\\\\\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0\",\n  \"columnName\": \"\", \"selection\": [{\"v\": {\"v\": true}}] }]'\n"
     echo
 
   fi
@@ -806,7 +808,8 @@ orcli_export_tsv_usage() {
     printf "  orcli export tsv \"duplicates\"\n"
     printf "  orcli export tsv \"duplicates\" --output \"duplicates.tsv\"\n"
     printf "  orcli export tsv \"duplicates\" --encoding \"ISO-8859-1\"\n"
-    printf "  orcli export tsv \"duplicates\" --facets '[ { \"type\": \"text\", \"name\": \"foo\",\n  \"columnName\": \"name\", \"mode\": \"regex\", \"caseSensitive\": false, \"query\": \"Ben\"\n  } ]'\n"
+    printf "  orcli export tsv \"duplicates\" --facets '[ { \"type\": \"text\", \"columnName\":\n  \"name\", \"mode\": \"regex\", \"caseSensitive\": false, \"query\": \"^Ben\" } ]'\n"
+    printf "  orcli export tsv \"duplicates\" --facets '[{ \"type\": \"list\", \"expression\":\n  \"grel:filter([\\\\\"gender\\\\\",\\\\\"purchase\\\\\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0\",\n  \"columnName\": \"\", \"selection\": [{\"v\": {\"v\": true}}] }]'\n"
     echo
 
   fi
@@ -903,7 +906,7 @@ orcli_export_template_usage() {
     printf "  cat \"template.txt\" | orcli export template \"duplicates\"\n"
     printf "  orcli export template \"duplicates\" \"https://example.com/template.txt\"\n"
     printf "  orcli export template \"duplicates\" \"template.txt\" --output \"duplicates.tsv\"\n"
-    printf "  orcli export template \"duplicates\" \\\\\n    <<< '{ \"name\" : {{jsonize(cells[\"name\"].value)}}, \"purchase\" :\n  {{jsonize(cells[\"purchase\"].value)}} }' \\\\\n    --prefix '{ \"events\" : [' \\\\\n    --separator , \\\\\n    --mode records \\\\\n    --suffix ]}$'\\\n' \\\\\n    --facets '[ { \"type\": \"text\", \"name\": \"foo\", \"columnName\": \"name\", \"mode\":\n  \"regex\", \"caseSensitive\": false, \"query\": \"Ben\" } ]' \\\\\n    | jq\n"
+    printf "  orcli export template \"duplicates\" \\\\\n    <<< '{ \"name\" : {{jsonize(cells[\"name\"].value)}}, \"purchase\" :\n  {{jsonize(cells[\"purchase\"].value)}} }' \\\\\n    --prefix '{ \"events\" : [' \\\\\n    --separator , \\\\\n    --mode records \\\\\n    --suffix ]}$'\\\n' \\\\\n    --facets '[ { \"type\": \"text\", \"columnName\": \"name\", \"mode\": \"regex\",\n  \"caseSensitive\": false, \"query\": \"^Ben\" } ]' \\\\\n    | jq\n"
     echo
 
   fi

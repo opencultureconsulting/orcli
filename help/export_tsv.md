@@ -33,9 +33,11 @@ Examples:
   orcli export tsv "duplicates"
   orcli export tsv "duplicates" --output "duplicates.tsv"
   orcli export tsv "duplicates" --encoding "ISO-8859-1"
-  orcli export tsv "duplicates" --facets '[ { "type": "text", "name": "foo",
-  "columnName": "name", "mode": "regex", "caseSensitive": false, "query": "Ben"
-  } ]'
+  orcli export tsv "duplicates" --facets '[ { "type": "text", "columnName":
+  "name", "mode": "regex", "caseSensitive": false, "query": "^Ben" } ]'
+  orcli export tsv "duplicates" --facets '[{ "type": "list", "expression":
+  "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0",
+  "columnName": "", "selection": [{"v": {"v": true}}] }]'
 
 ```
 
