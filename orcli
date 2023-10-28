@@ -39,6 +39,7 @@ orcli_usage() {
   printf "  %s   commands to create OpenRefine projects from files or URLs\n" "import     "
   printf "  %s   list projects on OpenRefine server\n" "list       "
   printf "  %s   show OpenRefine project's metadata\n" "info       "
+  printf "  %s   apply regex to each column and print matches in flattened tsv format\n" "search     "
   printf "  %s   run functional tests on tmp OpenRefine workspace\n" "test       "
   printf "  %s   apply undo/redo JSON file(s) to an OpenRefine project\n" "transform  "
   printf "  %s   commands to export data from OpenRefine projects to files\n" "export     "
@@ -72,6 +73,7 @@ orcli_usage() {
     printf "  orcli list\n"
     printf "  orcli info \"duplicates\"\n"
     printf "  orcli transform \"duplicates\" \"https://git.io/fj5ju\"\n"
+    printf "  orcli search \"duplicates\" \"^Ben\"\n"
     printf "  orcli export tsv \"duplicates\"\n"
     printf "  orcli export tsv \"duplicates\" --output \"duplicates.tsv\"\n"
     printf "  orcli delete \"duplicates\"\n"
@@ -558,6 +560,65 @@ orcli_info_usage() {
     printf "  orcli info \"duplicates\"\n"
     printf "  orcli info 1234567890123\n"
     printf "  orcli info \"duplicates\" | jq -r .columns[]\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+orcli_search_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "orcli search\n"
+    echo
+
+    printf "  apply regex to each column and print matches in flattened tsv format\n  output: index	column	value\n"
+    echo
+
+  else
+    printf "orcli search - apply regex to each column and print matches in flattened tsv format\n"
+    echo
+
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  orcli search PROJECT [REGEX] [OPTIONS]\n"
+  printf "  orcli search --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--index COLUMN"
+    printf "    print column values instead of row.index in the first column of the output\n"
+    echo
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_args
+    printf "%s\n" "Arguments:"
+
+    # :argument.usage
+    printf "  %s\n" "PROJECT"
+    printf "    project name or id\n"
+    echo
+
+    # :argument.usage
+    printf "  %s\n" "REGEX"
+    printf "    search term (regular expression, case-sensitive)\n"
+    echo
+
+    # :command.usage_examples
+    printf "%s\n" "Examples:"
+    printf "  orcli search \"duplicates\" \"^Ben\"\n"
+    printf "  orcli search 1234567890123 \"^Ben\"\n"
+    printf "  orcli search \"duplicates\" \"^F$\" --index \"email\"\n"
+    printf "  orcli search \"duplicates\" | column -t -s \$'\t'\n"
     echo
 
   fi
@@ -1242,6 +1303,10 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h csv tsv")" -- "$cur" )'
   echo $'      ;;'
   echo $''
+  echo $'    \'search\'*)'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --index -h")" -- "$cur" )'
+  echo $'      ;;'
+  echo $''
   echo $'    \'export\'*)'
   echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help -h template tsv")" -- "$cur" )'
   echo $'      ;;'
@@ -1263,7 +1328,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    *)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --version -h -v completions delete export import info list run test transform")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--help --version -h -v completions delete export import info list run search test transform")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'  esac'
@@ -1528,6 +1593,46 @@ orcli_info_command() {
       columns="$(curl -fs --get --data "project=${projectid}" "${OPENREFINE_URL}/command/core/get-models" | jq '[ .columnModel | .columns[] | .name ]')"
       jq "{ id: ${projectid} } + . + {columns: $columns }" <<<"$response"
   fi
+
+}
+
+# :command.function
+orcli_search_command() {
+  # src/search_command.sh
+  # shellcheck shell=bash disable=SC2154
+
+  # get project id
+  projectid="$(get_id "${args[project]}")"
+
+  # set facets config
+  args['--facets']='[ { "type": "list", "expression": "grel:filter(row.columnNames,cn,cells[cn].value.find(/'
+  args['--facets']+="${args[regex]}"
+  args['--facets']+='/).length()>0).length()>0", "columnName": "", "selection": [ { "v": { "v": true } } ] } ]'
+
+  # set template
+  template='{{'
+  template+='forEach(filter(row.columnNames, cn, cells[cn].value.find(/'
+  template+="${args[regex]}"
+  template+='/).length()>0), cn,'
+  if [[ ${args[--index]} ]]; then
+      template+='cells["'
+      template+="${args[--index]}"
+      template+='"].value'
+  else
+      template+='(row.index + 1)'
+  fi
+  template+='+ "\t" + cn + "\t" +'
+  template+='forNonBlank(cells[cn].value, v, if(v.contains("	"), if(v.contains('\''"'\''), '\''"'\'' + v.replace('\''"'\'','\''""'\'') + '\''"'\'', '\''"'\'' + v + '\''"'\''), v),"")'
+  template+='+ "\n")'
+  template+='}}'
+
+  # assemble specific post data
+  data+=("project=${projectid}")
+  data+=("format=template")
+  data+=("template=${template}")
+
+  # call post_export function to post data and validate results
+  post_export "${data[@]}"
 
 }
 
@@ -1996,6 +2101,13 @@ parse_requirements() {
       action="info"
       shift
       orcli_info_parse_requirements "$@"
+      shift $#
+      ;;
+
+    search)
+      action="search"
+      shift
+      orcli_search_parse_requirements "$@"
       shift $#
       ;;
 
@@ -2901,6 +3013,80 @@ orcli_info_parse_requirements() {
 }
 
 # :command.parse_requirements
+orcli_search_parse_requirements() {
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        orcli_search_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="search"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      # :flag.case
+      --index)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args['--index']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--index requires an argument: --index COLUMN" >&2
+          exit 1
+        fi
+        ;;
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        if [[ -z ${args['project']+x} ]]; then
+
+          args['project']=$1
+          shift
+        elif [[ -z ${args['regex']+x} ]]; then
+
+          args['regex']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  # :command.required_args_filter
+  if [[ -z ${args['project']+x} ]]; then
+    printf "missing required argument: PROJECT\nusage: orcli search PROJECT [REGEX] [OPTIONS]\n" >&2
+    exit 1
+  fi
+
+}
+
+# :command.parse_requirements
 orcli_test_parse_requirements() {
   # :command.fixed_flags_filter
   while [[ $# -gt 0 ]]; do
@@ -3514,6 +3700,7 @@ run() {
     "import tsv") orcli_import_tsv_command ;;
     "list") orcli_list_command ;;
     "info") orcli_info_command ;;
+    "search") orcli_search_command ;;
     "test") orcli_test_command ;;
     "transform") orcli_transform_command ;;
     "export") orcli_export_command ;;
