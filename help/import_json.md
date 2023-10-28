@@ -12,6 +12,9 @@ Options:
     specify record path elements in JSON array
     Default: [ "_" , "_" ]
 
+  --rename
+    rename columns after import to remove record path fragments
+
   --guessCellValueTypes
     attempt to parse cell text into numbers
 
@@ -54,7 +57,8 @@ Examples:
   orcli import json "https://example.com/file.json"
   orcli import json "file" \
     --recordPath '[ "_", "rows", "_" ]' \
-    --limit 100 \
+    --rename \
+    --storeEmptyStrings \
     --trimStrings \
     --projectName "duplicates" \
     --projectTags "test,urgent"

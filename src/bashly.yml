@@ -205,6 +205,9 @@ commands:
             help: specify record path elements in JSON array
             arg: json
             default: "[ \\\"_\\\" , \\\"_\\\" ]"
+          - &rename
+            long: --rename
+            help: rename columns after import to remove record path fragments
           - *guessCellValueTypes
           - *includeFileSources
           - *includeArchiveFileName
@@ -223,7 +226,8 @@ commands:
           - |-
             orcli import json "file" \\\\
               --recordPath '[ "_", "rows", "_" ]' \\\\
-              --limit 100 \\\\
+              --rename \\\\
+              --storeEmptyStrings \\\\
               --trimStrings \\\\
               --projectName "duplicates" \\\\
               --projectTags "test,urgent"
@@ -233,6 +237,7 @@ commands:
         args:
           - *file
         flags:
+          - *rename
           - *guessCellValueTypes
           - *includeFileSources
           - *includeArchiveFileName
@@ -248,8 +253,8 @@ commands:
           - orcli import jsonl "https://example.com/file.json"
           - |-
             orcli import jsonl "file" \\\\
-              --recordPath '[ "_" ]' \\\\
-              --limit 100 \\\\
+              --rename \\\\
+              --storeEmptyStrings \\\\
               --trimStrings \\\\
               --projectName "duplicates" \\\\
               --projectTags "test,urgent"

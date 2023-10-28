@@ -8,6 +8,9 @@ Usage:
   orcli import jsonl --help | -h
 
 Options:
+  --rename
+    rename columns after import to remove record path fragments
+
   --guessCellValueTypes
     attempt to parse cell text into numbers
 
@@ -49,8 +52,8 @@ Examples:
   orcli import jsonl "file1" "file2"
   orcli import jsonl "https://example.com/file.json"
   orcli import jsonl "file" \
-    --recordPath '[ "_" ]' \
-    --limit 100 \
+    --rename \
+    --storeEmptyStrings \
     --trimStrings \
     --projectName "duplicates" \
     --projectTags "test,urgent"

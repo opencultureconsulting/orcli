@@ -523,6 +523,11 @@ orcli_import_json_usage() {
     echo
 
     # :flag.usage
+    printf "  %s\n" "--rename"
+    printf "    rename columns after import to remove record path fragments\n"
+    echo
+
+    # :flag.usage
     printf "  %s\n" "--guessCellValueTypes"
     printf "    attempt to parse cell text into numbers\n"
     echo
@@ -587,7 +592,7 @@ orcli_import_json_usage() {
     printf "  orcli import json \"file\"\n"
     printf "  orcli import json \"file1\" \"file2\"\n"
     printf "  orcli import json \"https://example.com/file.json\"\n"
-    printf "  orcli import json \"file\" \\\\\n    --recordPath '[ \"_\", \"rows\", \"_\" ]' \\\\\n    --limit 100 \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\" \\\\\n    --projectTags \"test,urgent\"\n"
+    printf "  orcli import json \"file\" \\\\\n    --recordPath '[ \"_\", \"rows\", \"_\" ]' \\\\\n    --rename \\\\\n    --storeEmptyStrings \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\" \\\\\n    --projectTags \"test,urgent\"\n"
     echo
 
   fi
@@ -615,6 +620,11 @@ orcli_import_jsonl_usage() {
     printf "%s\n" "Options:"
 
     # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--rename"
+    printf "    rename columns after import to remove record path fragments\n"
+    echo
+
     # :flag.usage
     printf "  %s\n" "--guessCellValueTypes"
     printf "    attempt to parse cell text into numbers\n"
@@ -680,7 +690,7 @@ orcli_import_jsonl_usage() {
     printf "  orcli import jsonl \"file\"\n"
     printf "  orcli import jsonl \"file1\" \"file2\"\n"
     printf "  orcli import jsonl \"https://example.com/file.json\"\n"
-    printf "  orcli import jsonl \"file\" \\\\\n    --recordPath '[ \"_\" ]' \\\\\n    --limit 100 \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\" \\\\\n    --projectTags \"test,urgent\"\n"
+    printf "  orcli import jsonl \"file\" \\\\\n    --rename \\\\\n    --storeEmptyStrings \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\" \\\\\n    --projectTags \"test,urgent\"\n"
     echo
 
   fi
@@ -1430,6 +1440,17 @@ function post_import() {
     else
         log "imported ${args[file]}" "${redirect_url}" "name: ${projectname}" "rows: ${rows}"
     fi
+    # json / jsonl --rename
+    if [[ ${args[--rename]} ]]; then
+        csrf="$(get_csrf)"
+        readarray -t columns < <(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-columns-info" | jq -r '.[].name')
+        for c in "${columns[@]}"; do
+            if ! curl -fs -o /dev/null --data project="$projectid" --data "oldColumnName=${c}" --data "newColumnName=${c##_ - }" "${OPENREFINE_URL}/command/core/rename-column${csrf}"; then
+                error "renaming columns in ${projectname} failed!"
+            fi
+        done
+        log "renamed columns in ${projectname}"
+    fi
 }
 
 # src/lib/send_completions.sh
@@ -1473,7 +1494,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'import jsonl\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--guessCellValueTypes --help --includeArchiveFileName --includeFileSources --limit --projectName --projectTags --quiet --storeEmptyStrings --trimStrings -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--guessCellValueTypes --help --includeArchiveFileName --includeFileSources --limit --projectName --projectTags --quiet --rename --storeEmptyStrings --trimStrings -h -q")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'completions\'*)'
@@ -1481,7 +1502,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'import json\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--guessCellValueTypes --help --includeArchiveFileName --includeFileSources --limit --projectName --projectTags --quiet --recordPath --storeEmptyStrings --trimStrings -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--guessCellValueTypes --help --includeArchiveFileName --includeFileSources --limit --projectName --projectTags --quiet --recordPath --rename --storeEmptyStrings --trimStrings -h -q")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'import csv\'*)'
@@ -3290,6 +3311,14 @@ orcli_import_json_parse_requirements() {
         ;;
 
       # :flag.case
+      --rename)
+
+        # :flag.case_no_arg
+        args['--rename']=1
+        shift
+        ;;
+
+      # :flag.case
       --guessCellValueTypes)
 
         # :flag.case_no_arg
@@ -3436,6 +3465,14 @@ orcli_import_jsonl_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+      # :flag.case
+      --rename)
+
+        # :flag.case_no_arg
+        args['--rename']=1
+        shift
+        ;;
+
       # :flag.case
       --guessCellValueTypes)
 

@@ -42,4 +42,15 @@ function post_import() {
     else
         log "imported ${args[file]}" "${redirect_url}" "name: ${projectname}" "rows: ${rows}"
     fi
+    # json / jsonl --rename
+    if [[ ${args[--rename]} ]]; then
+        csrf="$(get_csrf)"
+        readarray -t columns < <(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-columns-info" | jq -r '.[].name')
+        for c in "${columns[@]}"; do
+            if ! curl -fs -o /dev/null --data project="$projectid" --data "oldColumnName=${c}" --data "newColumnName=${c##_ - }" "${OPENREFINE_URL}/command/core/rename-column${csrf}"; then
+                error "renaming columns in ${projectname} failed!"
+            fi
+        done
+        log "renamed columns in ${projectname}"
+    fi
 }
