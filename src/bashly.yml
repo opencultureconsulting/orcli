@@ -195,6 +195,72 @@ commands:
               --projectName "duplicates" \\\\
               --projectTags "test,urgent"
 
+      - name: json
+        help: import JSON
+        args:
+          - *file
+        flags:
+          - &recordPath
+            long: --recordPath
+            help: specify record path elements in JSON array
+            arg: json
+            default: "[ \\\"_\\\" , \\\"_\\\" ]"
+          - *guessCellValueTypes
+          - *includeFileSources
+          - *includeArchiveFileName
+          - *limit
+          - &storeEmptyStrings
+            long: --storeEmptyStrings
+            help: preserve empty strings
+          - *trimStrings
+          - *projectName
+          - *projectTags
+          - *quiet
+        examples:
+          - orcli import json "file"
+          - orcli import json "file1" "file2"
+          - orcli import json "https://example.com/file.json"
+          - |-
+            orcli import json "file" \\\\
+              --recordPath '[ "_", "rows", "_" ]' \\\\
+              --limit 100 \\\\
+              --trimStrings \\\\
+              --projectName "duplicates" \\\\
+              --projectTags "test,urgent"
+
+      - name: jsonl
+        help: import JSON Lines / newline-delimited JSON
+        args:
+          - *file
+        flags:
+          - &recordPath
+            long: --recordPath
+            help: specify record path elements in JSON array
+            arg: json
+            default: "[ \\\"_\\\" ]"
+          - *guessCellValueTypes
+          - *includeFileSources
+          - *includeArchiveFileName
+          - *limit
+          - &storeEmptyStrings
+            long: --storeEmptyStrings
+            help: preserve empty strings
+          - *trimStrings
+          - *projectName
+          - *projectTags
+          - *quiet
+        examples:
+          - orcli import jsonl "file"
+          - orcli import jsonl "file1" "file2"
+          - orcli import jsonl "https://example.com/file.json"
+          - |-
+            orcli import jsonl "file" \\\\
+              --recordPath '[ "_" ]' \\\\
+              --limit 100 \\\\
+              --trimStrings \\\\
+              --projectName "duplicates" \\\\
+              --projectTags "test,urgent"
+
   - name: list
     help: list projects on OpenRefine server
 

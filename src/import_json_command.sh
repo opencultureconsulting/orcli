@@ -5,42 +5,17 @@ init_import
 
 # check if stdin is present if selected
 if [[ ${file} == '-' ]] && ! read -u 0 -t 0; then
-    orcli_import_tsv_usage
+    orcli_import_json_usage
     exit 1
 fi
 
 # assemble specific post data (some options require json format)
-data+=("format=text/line-based/*sv")
+data+=("format=text/json")
 options='{ '
-options+="\"separator\": \"\\t\""
-if [[ ${args[--encoding]} ]]; then
-    options+=', '
-    options+="\"encoding\": \"${args[--encoding]}\""
-fi
-if [[ ${args[--blankCellsAsStrings]} ]]; then
-    options+=', '
-    options+='"storeBlankCellsAsNulls": false'
-fi
-if [[ ${args[--columnNames]} ]]; then
-    IFS=',' read -ra columnNames <<< "${args[--columnNames]}"
-    options+=', '
-    options+="\"columnNames\": [ $(printf ',"'%s'"' "${columnNames[@]}" | cut -c2-) ]"
-fi
+options+="\"recordPath\": ${args[--recordPath]}"
 if [[ ${args[--guessCellValueTypes]} ]]; then
     options+=', '
     options+='"guessCellValueTypes": true'
-fi
-if [[ ${args[--headerLines]} ]]; then
-    options+=', '
-    options+="\"headerLines\": ${args[--headerLines]}"
-fi
-if [[ ${args[--ignoreLines]} ]]; then
-    options+=', '
-    options+="\"ignoreLines\": ${args[--ignoreLines]}"
-fi
-if [[ ${args[--ignoreQuoteCharacter]} ]]; then
-    options+=', '
-    options+='"processQuotes": false'
 fi
 if [[ ${args[--includeFileSources]} ]]; then
     options+=', '
@@ -54,17 +29,9 @@ if [[ ${args[--limit]} ]]; then
     options+=', '
     options+="\"limit\": ${args[--limit]}"
 fi
-if [[ ${args[--quoteCharacter]} ]]; then
+if [[ ${args[--storeEmptyStrings]} ]]; then
     options+=', '
-    options+="\"quoteCharacter\": \"${args[--quoteCharacter]}\""
-fi
-if [[ ${args[--skipBlankRows]} ]]; then
-    options+=', '
-    options+='"storeBlankRows": false'
-fi
-if [[ ${args[--skipDataLines]} ]]; then
-    options+=', '
-    options+="\"skipDataLines\": ${args[--skipDataLines]}"
+    options+='"storeEmptyStrings": true'
 fi
 if [[ ${args[--projectName]} ]]; then
     options+=', '

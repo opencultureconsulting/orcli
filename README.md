@@ -12,7 +12,7 @@ Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org
   * allows execution of arbitrary bash scripts
   * interactive mode for playing around and debugging
   * your existing OpenRefine data will not be touched
-* import CSV, TSV, ~~line-based TXT, fixed-width TXT, JSON or XML~~
+* import CSV, TSV, JSON, JSONL, ~~line-based TXT, fixed-width TXT or XML~~
   * supports stdin, multiple files and URLs
 * transform data by providing an [undo/redo](https://docs.openrefine.org/manual/running#history-undoredo) JSON file
   * orcli calls specific endpoints for each operation to provide improved error handling and logging

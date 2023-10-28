@@ -54,10 +54,6 @@ if [[ ${args[--limit]} ]]; then
     options+=', '
     options+="\"limit\": ${args[--limit]}"
 fi
-if [[ ${args[--projectName]} ]]; then
-    options+=', '
-    options+="\"projectName\": \"${args[--projectName]}\""
-fi
 if [[ ${args[--quoteCharacter]} ]]; then
     options+=', '
     options+="\"quoteCharacter\": \"${args[--quoteCharacter]}\""
@@ -70,14 +66,18 @@ if [[ ${args[--skipDataLines]} ]]; then
     options+=', '
     options+="\"skipDataLines\": ${args[--skipDataLines]}"
 fi
-if [[ ${args[--trimStrings]} ]]; then
+if [[ ${args[--projectName]} ]]; then
     options+=', '
-    options+='"trimStrings": true'
+    options+="\"projectName\": \"${args[--projectName]}\""
 fi
 if [[ ${args[--projectTags]} ]]; then
     IFS=',' read -ra projectTags <<< "${args[--projectTags]}"
     options+=', '
     options+="\"projectTags\": [ $(printf ',"'%s'"' "${projectTags[@]}" | cut -c2-) ]"
+fi
+if [[ ${args[--trimStrings]} ]]; then
+    options+=', '
+    options+='"trimStrings": true'
 fi
 options+=' }'
 data+=("options=${options}")
