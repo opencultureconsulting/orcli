@@ -17,7 +17,7 @@ Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org
 * transform data by providing an [undo/redo](https://docs.openrefine.org/manual/running#history-undoredo) JSON file
   * orcli calls specific endpoints for each operation to provide improved error handling and logging
   * supports stdin, multiple files and URLs
-* export to TSV, ~~CSV, HTML, XLS, XLSX, ODS~~
+* export to TSV, JSONL, ~~CSV, HTML, XLS, XLSX, ODS~~
 * [templating export](https://docs.openrefine.org/manual/exporting#templating-exporter) to additional formats like JSON or XML
 
 ## Requirements

@@ -251,6 +251,7 @@ commands:
           - orcli import jsonl "file"
           - orcli import jsonl "file1" "file2"
           - orcli import jsonl "https://example.com/file.json"
+          - orcli import jsonl --rename <(orcli export jsonl "duplicates")
           - |-
             orcli import jsonl "file" \\\\
               --rename \\\\
@@ -316,11 +317,22 @@ commands:
     help: commands to export data from OpenRefine projects to files
 
     commands:
-      - name: tsv
-        help: export tab-separated values (TSV)
+      - name: jsonl
+        help: export JSON Lines / newline-delimited JSON
         args:
           - *project
         flags:
+          - &mode
+            long: --mode
+            help: specify if project contains multi-row records
+            arg: mode
+            allowed: [rows, records]
+            default: "rows"
+            conflicts: [--separator]
+          - long: --separator
+            help: character(s) that separates multiple values in one cell (row mode only)
+            arg: separator
+            conflicts: [--mode]
           - &facets
             long: --facets
             help: filter result set by providing an OpenRefine facets config in json
@@ -335,6 +347,25 @@ commands:
             help: set character encoding
             arg: encoding
             default: "UTF-8"
+          - *quiet
+        examples:
+          - orcli export jsonl "duplicates"
+          - orcli export jsonl "duplicates" --output "duplicates.jsonl"
+          - orcli export jsonl "duplicates" --separator ' '
+          - orcli export jsonl "duplicates" --mode records
+          - |-
+            orcli export jsonl "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]'
+          - |-
+            orcli export jsonl "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\\\\"gender\\\\",\\\\"purchase\\\\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'
+      - name: tsv
+        help: export tab-separated values (TSV)
+        args:
+          - *project
+        flags:
+          - *mode
+          - *facets
+          - *output
+          - *encoding_export
           - *quiet
         examples:
           - orcli export tsv "duplicates"
@@ -362,11 +393,7 @@ commands:
           - long: --suffix
             help: insert character(s) at the end of the file
             arg: suffix
-          - long: --mode
-            help: specify if template shall be applied to each row or record
-            arg: mode
-            allowed: [rows, records]
-            default: "rows"
+          - *mode
           - *facets
           - *output
           - *encoding_export

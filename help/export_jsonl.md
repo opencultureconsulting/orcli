@@ -1,17 +1,20 @@
-# orcli export tsv
+# orcli export jsonl
 
 ```
-orcli export tsv - export tab-separated values (TSV)
+orcli export jsonl - export JSON Lines / newline-delimited JSON
 
 Usage:
-  orcli export tsv PROJECT [OPTIONS]
-  orcli export tsv --help | -h
+  orcli export jsonl PROJECT [OPTIONS]
+  orcli export jsonl --help | -h
 
 Options:
   --mode MODE
     specify if project contains multi-row records
     Allowed: rows, records
     Default: rows
+
+  --separator SEPARATOR
+    character(s) that separates multiple values in one cell (row mode only)
 
   --facets FACETS
     filter result set by providing an OpenRefine facets config in json
@@ -35,16 +38,17 @@ Arguments:
     project name or id
 
 Examples:
-  orcli export tsv "duplicates"
-  orcli export tsv "duplicates" --output "duplicates.tsv"
-  orcli export tsv "duplicates" --encoding "ISO-8859-1"
-  orcli export tsv "duplicates" --facets '[ { "type": "text", "columnName":
+  orcli export jsonl "duplicates"
+  orcli export jsonl "duplicates" --output "duplicates.jsonl"
+  orcli export jsonl "duplicates" --separator ' '
+  orcli export jsonl "duplicates" --mode records
+  orcli export jsonl "duplicates" --facets '[ { "type": "text", "columnName":
   "name", "mode": "regex", "caseSensitive": false, "invert": false, "query":
   "^Ben" } ]'
-  orcli export tsv "duplicates" --facets '[{ "type": "list", "expression":
+  orcli export jsonl "duplicates" --facets '[{ "type": "list", "expression":
   "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0",
   "columnName": "", "selection": [{"v": {"v": true}}] }]'
 
 ```
 
-code: [src/export_tsv_command.sh](../src/export_tsv_command.sh)
+code: [src/export_jsonl_command.sh](../src/export_jsonl_command.sh)

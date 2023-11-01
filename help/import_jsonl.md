@@ -51,6 +51,7 @@ Examples:
   orcli import jsonl "file"
   orcli import jsonl "file1" "file2"
   orcli import jsonl "https://example.com/file.json"
+  orcli import jsonl --rename <(orcli export jsonl "duplicates")
   orcli import jsonl "file" \
     --rename \
     --storeEmptyStrings \
