@@ -18,7 +18,7 @@ Options:
     insert character(s) at the end of the file
 
   --mode MODE
-    specify if template shall be applied to each row or record
+    specify if project contains multi-row records
     Allowed: rows, records
     Default: rows
 

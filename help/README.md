@@ -4,6 +4,7 @@
 
 - [completions](completions.md)
 - [delete](delete.md)
+- [export jsonl](export_jsonl.md)
 - [export template](export_template.md)
 - [export tsv](export_tsv.md)
 - [import csv](import_csv.md)
