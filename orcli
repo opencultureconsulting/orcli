@@ -2309,7 +2309,11 @@ orcli_export_jsonl_command() {
   fi
 
   # set template
-  template='{ {{'
+  template='{{'
+  if [[ ${args[--mode]} == "records" ]]; then
+      template+='if(row.index - row.record.fromRowIndex == 0,'
+  fi
+  template+='"%7B".unescape("url") + " " +'
   template+='forEach('
   if [[ ${args[--separator]} || ${args[--mode]} == "records" ]]; then
       template+="$multivalued"
@@ -2323,7 +2327,7 @@ orcli_export_jsonl_command() {
       template+="v.split(\"${args[--separator]}\").jsonize()"
       fi
       if [[ ${args[--mode]} == "records" ]]; then
-      template+='row.record.cells[cn].jsonize()'
+      template+='row.record.cells[cn.chomp("⊌")].value.jsonize()'
       fi
       template+=', "\"" + cn + "\": " + v.jsonize())'
   else
@@ -2331,8 +2335,11 @@ orcli_export_jsonl_command() {
   fi
   template+=', null)'
   template+=').join(", ")'
-  template+='}} }'
-  template+='{{ "\n" }}'
+  template+='+ " " + "%7D".unescape("url") + "\n"'
+  if [[ ${args[--mode]} == "records" ]]; then
+      template+=', "")'
+  fi
+  template+='}}'
 
   # assemble specific post data
   data+=("project=${projectid}")
@@ -4162,11 +4169,6 @@ orcli_export_jsonl_parse_requirements() {
     case "$key" in
       # :flag.case
       --mode)
-        # :flag.conflicts
-        if [[ -n "${args['--separator']:-}" ]]; then
-          printf "conflicting options: %s cannot be used with %s\n" "$key" "--separator" >&2
-          exit 1
-        fi
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -4182,11 +4184,6 @@ orcli_export_jsonl_parse_requirements() {
 
       # :flag.case
       --separator)
-        # :flag.conflicts
-        if [[ -n "${args['--mode']:-}" ]]; then
-          printf "conflicting options: %s cannot be used with %s\n" "$key" "--mode" >&2
-          exit 1
-        fi
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -4321,11 +4318,6 @@ orcli_export_tsv_parse_requirements() {
     case "$key" in
       # :flag.case
       --mode)
-        # :flag.conflicts
-        if [[ -n "${args['--separator']:-}" ]]; then
-          printf "conflicting options: %s cannot be used with %s\n" "$key" "--separator" >&2
-          exit 1
-        fi
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -4505,11 +4497,6 @@ orcli_export_template_parse_requirements() {
 
       # :flag.case
       --mode)
-        # :flag.conflicts
-        if [[ -n "${args['--separator']:-}" ]]; then
-          printf "conflicting options: %s cannot be used with %s\n" "$key" "--separator" >&2
-          exit 1
-        fi
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then

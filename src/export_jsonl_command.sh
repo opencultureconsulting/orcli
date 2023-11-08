@@ -29,7 +29,11 @@ if [[ ${args[--separator]} || ${args[--mode]} == "records" ]]; then
 fi
 
 # set template
-template='{ {{'
+template='{{'
+if [[ ${args[--mode]} == "records" ]]; then
+    template+='if(row.index - row.record.fromRowIndex == 0,'
+fi
+template+='"%7B".unescape("url") + " " +'
 template+='forEach('
 if [[ ${args[--separator]} || ${args[--mode]} == "records" ]]; then
     template+="$multivalued"
@@ -43,7 +47,7 @@ if [[ ${args[--separator]} || ${args[--mode]} == "records" ]]; then
     template+="v.split(\"${args[--separator]}\").jsonize()"
     fi
     if [[ ${args[--mode]} == "records" ]]; then
-    template+='row.record.cells[cn].jsonize()'
+    template+='row.record.cells[cn.chomp("⊌")].value.jsonize()'
     fi
     template+=', "\"" + cn + "\": " + v.jsonize())'
 else
@@ -51,8 +55,11 @@ else
 fi
 template+=', null)'
 template+=').join(", ")'
-template+='}} }'
-template+='{{ "\n" }}'
+template+='+ " " + "%7D".unescape("url") + "\n"'
+if [[ ${args[--mode]} == "records" ]]; then
+    template+=', "")'
+fi
+template+='}}'
 
 # assemble specific post data
 data+=("project=${projectid}")

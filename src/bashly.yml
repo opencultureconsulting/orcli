@@ -328,11 +328,9 @@ commands:
             arg: mode
             allowed: [rows, records]
             default: "rows"
-            conflicts: [--separator]
           - long: --separator
             help: character(s) that separates multiple values in one cell (row mode only)
             arg: separator
-            conflicts: [--mode]
           - &facets
             long: --facets
             help: filter result set by providing an OpenRefine facets config in json
