@@ -11,6 +11,21 @@ if [[ ${args[--encoding]} ]]; then
     options+=', '
     options+="\"encoding\": \"${args[--encoding]}\""
 fi
+if [[ ${args[--select]} ]]; then
+    options+=', '
+    options+='"columns": ['
+    IFS=',' read -ra columns <<< "${args[--select]}"
+    options+='{"name":"'
+    options+="${columns[0]}"
+    options+='"}'
+    for cn in "${columns[@]:1}"; do
+        options+=', '
+        options+='{"name":"'
+        options+="${cn}"
+        options+='"}'
+    done
+    options+="]"
+fi
 options+=' }'
 data+=("options=${options}")
 

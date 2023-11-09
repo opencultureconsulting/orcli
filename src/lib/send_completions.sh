@@ -71,7 +71,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'export tsv\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --facets --help --mode --output --quiet -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --facets --help --mode --output --quiet --select -h -q")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'transform\'*)'
