@@ -8,6 +8,10 @@ Usage:
   orcli export tsv --help | -h
 
 Options:
+  --select COLUMNS
+    filter result set to one or more columns (comma separated)
+    example: --select "foo,bar,baz"
+
   --mode MODE
     specify if project contains multi-row records
     Allowed: rows, records
@@ -38,6 +42,7 @@ Examples:
   orcli export tsv "duplicates"
   orcli export tsv "duplicates" --output "duplicates.tsv"
   orcli export tsv "duplicates" --encoding "ISO-8859-1"
+  orcli export tsv "duplicates" --select "name,email,purchase"
   orcli export tsv "duplicates" --facets '[ { "type": "text", "columnName":
   "name", "mode": "regex", "caseSensitive": false, "invert": false, "query":
   "^Ben" } ]'

@@ -1057,6 +1057,11 @@ orcli_export_tsv_usage() {
 
     # :command.usage_flags
     # :flag.usage
+    printf "  %s\n" "--select COLUMNS"
+    printf "    filter result set to one or more columns (comma separated)\n    example: --select \"foo,bar,baz\"\n"
+    echo
+
+    # :flag.usage
     printf "  %s\n" "--mode MODE"
     printf "    specify if project contains multi-row records\n"
     printf "    Allowed: rows, records\n"
@@ -1103,6 +1108,7 @@ orcli_export_tsv_usage() {
     printf "  orcli export tsv \"duplicates\"\n"
     printf "  orcli export tsv \"duplicates\" --output \"duplicates.tsv\"\n"
     printf "  orcli export tsv \"duplicates\" --encoding \"ISO-8859-1\"\n"
+    printf "  orcli export tsv \"duplicates\" --select \"name,email,purchase\"\n"
     printf "  orcli export tsv \"duplicates\" --facets '[ { \"type\": \"text\", \"columnName\":\n  \"name\", \"mode\": \"regex\", \"caseSensitive\": false, \"invert\": false, \"query\":\n  \"^Ben\" } ]'\n"
     printf "  orcli export tsv \"duplicates\" --facets '[{ \"type\": \"list\", \"expression\":\n  \"grel:filter([\\\\\"gender\\\\\",\\\\\"purchase\\\\\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0\",\n  \"columnName\": \"\", \"selection\": [{\"v\": {\"v\": true}}] }]'\n"
     echo
@@ -1617,7 +1623,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'export tsv\'*)'
-  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --facets --help --mode --output --quiet -h -q")" -- "$cur" )'
+  echo $'      while read -r; do COMPREPLY+=( "$REPLY" ); done < <( compgen -W "$(_orcli_completions_filter "--encoding --facets --help --mode --output --quiet --select -h -q")" -- "$cur" )'
   echo $'      ;;'
   echo $''
   echo $'    \'transform\'*)'
@@ -2366,6 +2372,21 @@ orcli_export_tsv_command() {
   if [[ ${args[--encoding]} ]]; then
       options+=', '
       options+="\"encoding\": \"${args[--encoding]}\""
+  fi
+  if [[ ${args[--select]} ]]; then
+      options+=', '
+      options+='"columns": ['
+      IFS=',' read -ra columns <<< "${args[--select]}"
+      options+='{"name":"'
+      options+="${columns[0]}"
+      options+='"}'
+      for cn in "${columns[@]:1}"; do
+          options+=', '
+          options+='{"name":"'
+          options+="${cn}"
+          options+='"}'
+      done
+      options+="]"
   fi
   options+=' }'
   data+=("options=${options}")
@@ -4316,6 +4337,21 @@ orcli_export_tsv_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+      # :flag.case
+      --select)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+
+          args['--select']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--select requires an argument: --select COLUMNS" >&2
+          exit 1
+        fi
+        ;;
+
       # :flag.case
       --mode)
 
