@@ -55,7 +55,8 @@ for i in "${!files[@]}"; do
     fi
     for line in "${jsonlines[@]}"; do
         # parse one line/operation into array
-        declare -A array="($(echo "$line" | jq -r 'to_entries | map("[\(.key)]=" + @sh "\(.value|tostring)") | .[]'))"
+        filter='[to_entries[]|"["+(.key|@sh)+"]="+(.value|tostring|@sh)]|"("+join(" ")+")"'
+        declare -A array=$(jq --join-output "${filter}" <<< "$line")
         if [[ ! ${array[op]} ]]; then
             error "parsing ${files[$i]} failed!"
         fi
@@ -83,6 +84,8 @@ for i in "${!files[@]}"; do
         unset "array[engineConfig]"
         # drop description
         unset "array[description]"
+        # remove line breaks in expression
+        array[expression]="${array[expression]//$'\n'/}"
         # prepare curl options
         mapfile -t curloptions < <(for K in "${!array[@]}"; do
             echo "--data"
