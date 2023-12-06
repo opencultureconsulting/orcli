@@ -88,7 +88,7 @@ for i in "${!files[@]}"; do
         array[expression]="${array[expression]//$'\n'/}"
         # prepare curl options
         mapfile -t curloptions < <(for K in "${!array[@]}"; do
-            echo "--data"
+            echo "--data-urlencode"
             echo "$K=${array[$K]}"
         done)
         # get csrf token and post data to it's individual endpoint
