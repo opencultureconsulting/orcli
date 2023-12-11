@@ -1,6 +1,6 @@
 name: orcli
 help: OpenRefine command-line interface written in Bash
-version: 0.2.2
+version: 0.3.0
 footer: https://github.com/opencultureconsulting/orcli
 
 dependencies:
@@ -18,6 +18,7 @@ examples:
   - orcli info "duplicates"
   - orcli transform "duplicates" "https://git.io/fj5ju"
   - orcli search "duplicates" "^Ben"
+  - orcli sort columns "duplicates"
   - orcli export tsv "duplicates"
   - orcli export tsv "duplicates" --output "duplicates.tsv"
   - orcli delete "duplicates"
@@ -296,6 +297,23 @@ commands:
         orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter(row.columnNames,cn,cells[cn].value.find(/^Ben/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'
       - |-
         orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\\\\"gender\\\\",\\\\"purchase\\\\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'
+
+  - name: sort
+    help: commands to sort OpenRefine projects
+
+    commands:
+      - name: columns
+        help: re-order columns alphabetically
+        args:
+          - *project
+        flags:
+          - long: --first
+            help: set key column(s)
+            arg: column
+            repeatable: true
+        examples:
+          - orcli sort columns "duplicates"
+          - orcli sort columns "duplicates" --first name
 
   - name: test
     help: run functional tests on tmp OpenRefine workspace

@@ -1,4 +1,4 @@
-# orcli 0.2.2
+# orcli 0.3.0
 
 ## command help screens
 
@@ -15,6 +15,7 @@
 - [list](list.md)
 - [run](run.md)
 - [search](search.md)
+- [sort columns](sort_columns.md)
 - [test](test.md)
 - [transform](transform.md)
 
@@ -35,6 +36,7 @@ Commands:
   list          list projects on OpenRefine server
   info          show OpenRefine project's metadata
   search        apply regex to each column and print matches in flattened tsv format
+  sort          commands to sort OpenRefine projects
   test          run functional tests on tmp OpenRefine workspace
   transform     apply undo/redo JSON file(s) to an OpenRefine project
   export        commands to export data from OpenRefine projects to files
@@ -58,6 +60,7 @@ Examples:
   orcli info "duplicates"
   orcli transform "duplicates" "https://git.io/fj5ju"
   orcli search "duplicates" "^Ben"
+  orcli sort columns "duplicates"
   orcli export tsv "duplicates"
   orcli export tsv "duplicates" --output "duplicates.tsv"
   orcli delete "duplicates"
