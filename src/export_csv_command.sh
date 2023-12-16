@@ -1,5 +1,4 @@
 # shellcheck shell=bash
-inspect_args
 projectid="$(get_id "${args[project]}")"
 separator="${args[--separator]:-,}"
 
