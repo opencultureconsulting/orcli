@@ -2579,7 +2579,6 @@ orcli_export_jsonl_command() {
 orcli_export_csv_command() {
   # src/export_csv_command.sh
   # shellcheck shell=bash
-  inspect_args
   projectid="$(get_id "${args[project]}")"
   separator="${args[--separator]:-,}"
 
