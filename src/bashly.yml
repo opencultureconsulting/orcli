@@ -1,6 +1,6 @@
 name: orcli
 help: OpenRefine command-line interface written in Bash
-version: 0.3.0
+version: 0.4.0
 footer: https://github.com/opencultureconsulting/orcli
 
 dependencies:
@@ -373,16 +373,41 @@ commands:
             orcli export jsonl "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]'
           - |-
             orcli export jsonl "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\\\\"gender\\\\",\\\\"purchase\\\\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'
+
+      - name: csv
+        help: export comma-separated values (CSV)
+        args:
+          - *project
+        flags:
+          - *separator
+          - &select
+            long: --select
+            help: |-
+              filter result set to one or more columns (comma separated)
+              example: --select "foo,bar,baz"
+            arg: columns
+          - *mode
+          - *facets
+          - *output
+          - *encoding_export
+          - *quiet
+        examples:
+          - orcli export csv "duplicates"
+          - orcli export csv "duplicates" --output "duplicates.tsv"
+          - orcli export csv "duplicates" --separator ";"
+          - orcli export csv "duplicates" --encoding "ISO-8859-1"
+          - orcli export csv "duplicates" --select "name,email,purchase"
+          - |-
+            orcli export csv "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]'
+          - |-
+            orcli export csv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\\\\"gender\\\\",\\\\"purchase\\\\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'
+
       - name: tsv
         help: export tab-separated values (TSV)
         args:
           - *project
         flags:
-          - long: --select
-            help: |-
-              filter result set to one or more columns (comma separated)
-              example: --select "foo,bar,baz"
-            arg: columns
+          - *select
           - *mode
           - *facets
           - *output

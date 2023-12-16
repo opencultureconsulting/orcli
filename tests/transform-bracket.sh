@@ -40,9 +40,9 @@ DATA
 
 # action
 cd "${tmpdir}" || exit 1
-orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-orcli transform "duplicates" "${t}.history"
-orcli export tsv "duplicates" --output "${t}.output"
+orcli import csv "https://git.io/fj5hF" --projectName "${t}"
+orcli transform "${t}" "${t}.history"
+orcli export tsv "${t}" --output "${t}.output"
 
 # test
 diff -u "${t}.assert" "${t}.output"

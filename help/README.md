@@ -1,9 +1,10 @@
-# orcli 0.3.0
+# orcli 0.4.0
 
 ## command help screens
 
 - [completions](completions.md)
 - [delete](delete.md)
+- [export csv](export_csv.md)
 - [export jsonl](export_jsonl.md)
 - [export template](export_template.md)
 - [export tsv](export_tsv.md)
