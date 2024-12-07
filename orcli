@@ -1636,6 +1636,7 @@ function log() {
 # post to export-rows endpoint
 # shellcheck shell=bash disable=SC2154
 function post_export() {
+    csrf="$(get_csrf)"
     local curloptions
     for d in "$@"; do
         curloptions+=("--data-urlencode")
@@ -1657,7 +1658,7 @@ function post_export() {
         curloptions+=("--output" "${args[--output]}")
     fi
     # post
-    if ! curl -fs "${curloptions[@]}" "${OPENREFINE_URL}/command/core/export-rows"; then
+    if ! curl -fs "${curloptions[@]}" "${OPENREFINE_URL}/command/core/export-rows${csrf}"; then
         error "exporting ${args[project]} failed!"
     else
         if [[ ${args[--output]} ]]; then
