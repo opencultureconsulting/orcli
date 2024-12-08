@@ -11,7 +11,7 @@ if [[ ${args[--separator]} || ${args[--mode]} == "records" ]]; then
     if [[ ${args[--mode]} == "records" ]]; then
         engine='{"facets":[{"type":"list","columnName":"","expression":"grel:filter(row.columnNames,cn,row.record.cells[cn].value.length()>1)","selection":[]}],"mode":"row-based"}'
     fi
-    readarray -t columns_mv < <(curl -fs --data project="$projectid" --data "engine=${engine}" "${OPENREFINE_URL}/command/core/compute-facets" | jq -r '.facets[].choices[].v.v')
+    readarray -t columns_mv < <(curl -fs --data project="$projectid" --data "engine=${engine}" "${OPENREFINE_URL}/command/core/compute-facets$(get_csrf)" | jq -r '.facets[].choices[].v.v')
     readarray -t columns < <(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-columns-info" | jq -r '.[].name')
     readarray -t columns_mix < <(for i in "${columns[@]}"; do
         skip=
