@@ -22,7 +22,7 @@ function post_export() {
         curloptions+=("--output" "${args[--output]}")
     fi
     # post
-    if ! curl -fs "${curloptions[@]}" "${OPENREFINE_URL}/command/core/export-rows"; then
+    if ! curl -fs "${curloptions[@]}" "${OPENREFINE_URL}/command/core/export-rows$(get_csrf)"; then
         error "exporting ${args[project]} failed!"
     else
         if [[ ${args[--output]} ]]; then
