@@ -1496,6 +1496,7 @@ function log() {
 # post to export-rows endpoint
 # shellcheck shell=bash disable=SC2154
 function post_export() {
+    csrf="$(get_csrf)"
     local curloptions
     for d in "$@"; do
         curloptions+=("--data-urlencode")
