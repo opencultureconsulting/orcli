@@ -15,10 +15,10 @@ cat << "DATA" > "${tmpdir}/${t}.assert"
 Archive	a	b	c
 Untitled.zip	1	2	3
 Untitled.zip	0	0	0
-Untitled.zip	$	\	'
+Untitled.zip	$	/	'
 Untitled.zip	1	2	3
 Untitled.zip	0	0	0
-Untitled.zip	$	\	'
+Untitled.zip	$	/	'
 DATA
 
 # action

@@ -15,7 +15,7 @@ Column 1	Column 2	Column 3
 a	b	c
 1	2	3
 0	0	0
-$	\	'
+$	/	'
 DATA
 
 # action

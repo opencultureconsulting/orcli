@@ -11,7 +11,7 @@ cat << "DATA" > "${tmpdir}/${t}.csv"
 a,b,c
 1,2,3
 0,,0
-$,\,'
+$,/,'
 DATA
 
 cat << "DATA" > "${tmpdir}/${t}.transform"

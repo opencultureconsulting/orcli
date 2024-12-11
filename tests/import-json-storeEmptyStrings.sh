@@ -21,7 +21,7 @@ cat << "DATA" > "${tmpdir}/${t}.json"
     },
     {
       "a": "$",
-      "b": "\\",
+      "b": "/",
       "c": "'"
     }
 ]
@@ -32,7 +32,7 @@ cat << "DATA" > "${tmpdir}/${t}.assert"
 _ - a	_ - b	_ - c
 1	2	3
 		
-$	\	'
+$	/	'
 DATA
 
 # action

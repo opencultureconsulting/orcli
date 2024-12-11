@@ -14,7 +14,7 @@ cat << "DATA" > "${tmpdir}/${t}.assert"
 a;b;c
 1;2;3
 0;0;0
-$;\;'
+$;/;'
 DATA
 
 # action

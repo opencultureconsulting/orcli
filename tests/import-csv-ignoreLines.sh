@@ -13,7 +13,7 @@ cp data/example.csv "${tmpdir}/${t}.csv"
 cat << "DATA" > "${tmpdir}/${t}.assert"
 1	2	3
 0	0	0
-$	\	'
+$	/	'
 DATA
 
 # action

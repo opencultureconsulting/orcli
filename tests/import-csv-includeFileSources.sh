@@ -15,10 +15,10 @@ cat << "DATA" > "${tmpdir}/${t}.assert"
 File	a	b	c
 import-csv-includeFileSources-1.csv	1	2	3
 import-csv-includeFileSources-1.csv	0	0	0
-import-csv-includeFileSources-1.csv	$	\	'
+import-csv-includeFileSources-1.csv	$	/	'
 import-csv-includeFileSources-2.csv	1	2	3
 import-csv-includeFileSources-2.csv	0	0	0
-import-csv-includeFileSources-2.csv	$	\	'
+import-csv-includeFileSources-2.csv	$	/	'
 DATA
 
 # action

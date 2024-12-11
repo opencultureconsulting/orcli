@@ -11,14 +11,14 @@ cat << "DATA" > "${tmpdir}/${t}.csv"
 a,b,c
 1,2,3
 ,,
-$,\,'
+$,/,'
 DATA
 
 # assertion
 cat << "DATA" > "${tmpdir}/${t}.assert"
 a	b	c
 1	2	3
-$	\	'
+$	/	'
 DATA
 
 # action

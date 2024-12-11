@@ -15,7 +15,7 @@ foo	bar	baz
 a	b	c
 1	2	3
 0	0	0
-$	\	'
+$	/	'
 DATA
 
 # action
