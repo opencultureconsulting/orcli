@@ -1,4 +1,4 @@
-# orcli 0.4.0
+# orcli 0.4.1
 
 ## command help screens
 
@@ -67,10 +67,10 @@ Examples:
   orcli delete "duplicates"
   orcli run --interactive
   orcli run << EOF
-    orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-    orcli transform "duplicates" "https://git.io/fj5ju"
-    orcli export tsv "duplicates"
-  EOF
+  orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+  orcli transform "duplicates" "https://git.io/fj5ju"
+  orcli export tsv "duplicates"
+EOF
 
 https://github.com/opencultureconsulting/orcli
 

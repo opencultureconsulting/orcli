@@ -33,23 +33,23 @@ Arguments:
 Examples:
   orcli run --interactive
   orcli run << EOF
-    orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-    orcli transform "duplicates" "https://git.io/fj5ju"
-    orcli export tsv "duplicates"
-  EOF
+  orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+  orcli transform "duplicates" "https://git.io/fj5ju"
+  orcli export tsv "duplicates"
+EOF
   orcli run --memory "2000M" --port "3334" << EOF
-    orcli import csv "https://git.io/fj5hF" --projectName "duplicates" &
-    orcli import csv "https://git.io/fj5hF" --projectName "copy" &
-    wait
-    echo "finished import"
-    orcli export csv "duplicates" --output duplicates.csv &
-    orcli export tsv "duplicates" --output duplicates.tsv &
-    wait
-    wc duplicates*
-  EOF
+  orcli import csv "https://git.io/fj5hF" --projectName "duplicates" &
+  orcli import csv "https://git.io/fj5hF" --projectName "copy" &
+  wait
+  echo "finished import"
+  orcli export csv "duplicates" --output duplicates.csv &
+  orcli export tsv "duplicates" --output duplicates.tsv &
+  wait
+  wc duplicates*
+EOF
   orcli run --interactive "file1.sh" "file2.sh" - << EOF
-    echo "finished in $SECONDS seconds"
-  EOF
+  echo "finished in $SECONDS seconds"
+EOF
 
 ```
 

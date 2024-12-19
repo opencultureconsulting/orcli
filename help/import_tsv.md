@@ -14,6 +14,7 @@ Options:
   --columnNames COLUMNNAMES
     set column names (comma separated)
     hint: add --ignoreLines 1 to overwrite existing header row
+    Conflicts: --headerLines
 
   --encoding ENCODING
     set character encoding
@@ -24,6 +25,7 @@ Options:
   --headerLines HEADERLINES
     parse x line(s) as column headers
     Default: 1
+    Conflicts: --columnNames
 
   --ignoreLines IGNORELINES
     ignore first x line(s) at beginning of file
@@ -44,7 +46,7 @@ Options:
 
   --quoteCharacter QUOTECHARACTER
     quote character to enclose cells containing column separators
-    Default: "
+    Default: \"
 
   --skipBlankRows
     do not store blank rows
