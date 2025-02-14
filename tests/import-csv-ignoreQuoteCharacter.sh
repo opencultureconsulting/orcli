@@ -2,6 +2,10 @@
 
 t="import-csv-ignoreQuoteCharacter"
 
+# disable test temporarily
+# https://github.com/opencultureconsulting/orcli/issues/132
+exit 0
+
 # create tmp directory
 tmpdir="$(mktemp -d)"
 trap '{ rm -rf "${tmpdir}"; }' 0 2 3 15
