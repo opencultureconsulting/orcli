@@ -1,7 +1,4 @@
 {
-	"image": "mcr.microsoft.com/devcontainers/universal:2",
-	"features": {
-	},
 	"postCreateCommand": "gem install --silent bashly && wget -q -O openrefine.tar.gz https://github.com/OpenRefine/OpenRefine/releases/download/3.9.0/openrefine-linux-3.9.0.tar.gz && tar --exclude 'licenses' --exclude 'LICENSE.txt' --exclude 'licenses.xml' --exclude 'README.md' -xzf openrefine.tar.gz --strip 1 && rm openrefine.tar.gz && ln -s \"${PWD}/orcli\" ~/.local/bin/",
 	"forwardPorts": [3333],
 	"portsAttributes": {
