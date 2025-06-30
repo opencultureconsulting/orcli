@@ -1,0 +1,2 @@
+long: --guessCellValueTypes
+help: attempt to parse cell text into numbers

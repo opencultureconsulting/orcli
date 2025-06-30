@@ -1,0 +1,2 @@
+long: --ignoreQuoteCharacter
+help: do not use any quote character to enclose cells containing column separators

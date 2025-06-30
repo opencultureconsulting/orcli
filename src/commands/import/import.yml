@@ -1,0 +1,8 @@
+name: import
+help: commands to create OpenRefine projects from files or URLs
+
+commands:
+  - import: src/commands/import/csv.yml
+  - import: src/commands/import/tsv.yml
+  - import: src/commands/import/json.yml
+  - import: src/commands/import/jsonl.yml

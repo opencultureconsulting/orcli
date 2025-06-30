@@ -1,0 +1,4 @@
+long: --separator
+help: character(s) that separates columns
+arg: separator
+default: ","

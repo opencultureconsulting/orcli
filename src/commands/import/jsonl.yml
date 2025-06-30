@@ -1,0 +1,27 @@
+name: jsonl
+help: import JSON Lines / newline-delimited JSON
+args:
+  - import: src/args/file.yml
+flags:
+  - import: src/flags/rename.yml
+  - import: src/flags/guessCellValueTypes.yml
+  - import: src/flags/includeFileSources.yml
+  - import: src/flags/includeArchiveFileName.yml
+  - import: src/flags/limit.yml
+  - import: src/flags/storeEmptyStrings.yml
+  - import: src/flags/trimStrings.yml
+  - import: src/flags/projectName.yml
+  - import: src/flags/projectTags.yml
+  - import: src/flags/quiet.yml
+examples:
+  - orcli import jsonl "file"
+  - orcli import jsonl "file1" "file2"
+  - orcli import jsonl "https://example.com/file.json"
+  - orcli import jsonl --rename <(orcli export jsonl "duplicates")
+  - |-
+    orcli import jsonl "file" \\\\
+      --rename \\\\
+      --storeEmptyStrings \\\\
+      --trimStrings \\\\
+      --projectName "duplicates" \\\\
+      --projectTags "test,urgent"

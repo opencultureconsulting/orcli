@@ -1,0 +1,3 @@
+long: --projectTags
+help: set project tags (comma separated)
+arg: projectTags

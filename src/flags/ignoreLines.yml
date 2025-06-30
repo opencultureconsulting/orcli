@@ -1,0 +1,4 @@
+long: --ignoreLines
+help: ignore first x line(s) at beginning of file
+arg: ignoreLines
+default: "-1"

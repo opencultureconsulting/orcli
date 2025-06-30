@@ -1,0 +1,4 @@
+long: --skipDataLines
+help: discard initial x row(s) of data
+arg: skipDataLines
+default: "0"

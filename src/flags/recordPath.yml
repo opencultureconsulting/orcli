@@ -1,0 +1,4 @@
+long: --recordPath
+help: specify record path elements in JSON array
+arg: json
+default: "[ \\\"_\\\" , \\\"_\\\" ]"

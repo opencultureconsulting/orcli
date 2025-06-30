@@ -1,0 +1,2 @@
+long: --rename
+help: rename columns after import to remove record path fragments

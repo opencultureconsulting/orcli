@@ -1,0 +1,4 @@
+name: file
+help: Path to one or more files or URLs. When FILE is -, read standard input.
+default: "-"
+repeatable: true

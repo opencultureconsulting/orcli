@@ -1,0 +1,37 @@
+name: tsv
+help: import tab-separated values (TSV)
+args:
+  - import: src/args/file.yml
+flags:
+  - import: src/flags/blankCellsAsStrings.yml
+  - import: src/flags/columnNames.yml
+  - import: src/flags/encoding_import.yml
+  - import: src/flags/guessCellValueTypes.yml
+  - import: src/flags/headerLines.yml
+  - import: src/flags/ignoreLines.yml
+  - import: src/flags/ignoreQuoteCharacter.yml
+  - import: src/flags/includeFileSources.yml
+  - import: src/flags/includeArchiveFileName.yml
+  - import: src/flags/limit.yml
+  - import: src/flags/quoteCharacter.yml
+  - import: src/flags/skipBlankRows.yml
+  - import: src/flags/skipDataLines.yml
+  - import: src/flags/trimStrings.yml
+  - import: src/flags/projectName.yml
+  - import: src/flags/projectTags.yml
+  - import: src/flags/quiet.yml
+examples:
+  - orcli import tsv "file"
+  - orcli import tsv "file1" "file2"
+  - head -n 100 "file" | orcli import tsv
+  - orcli import tsv "https://example.com/file.tsv"
+  - |-
+    orcli import tsv "file" \\\\
+      --separator ";" \\\\
+      --columnNames "foo,bar,baz" \\\\
+      --ignoreLines 1 \\\\
+      --encoding "ISO-8859-1" \\\\
+      --limit 100 \\\\
+      --trimStrings \\\\
+      --projectName "duplicates" \\\\
+      --projectTags "test,urgent"

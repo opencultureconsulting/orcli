@@ -1,0 +1,5 @@
+long: --headerLines
+help: parse x line(s) as column headers
+arg: headerLines
+default: "1"
+conflicts: [--columnNames]

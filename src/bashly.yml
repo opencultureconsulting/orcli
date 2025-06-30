@@ -33,210 +33,8 @@ examples:
 commands:
   - import: src/commands/completions.yml
   - import: src/commands/delete.yml
+  - import: src/commands/import/import.yml
 
-  - name: import
-    help: commands to create OpenRefine projects from files or URLs
-
-    commands:
-      - name: csv
-        help: import character-separated values (CSV)
-        args:
-          - &file
-            name: file
-            help: Path to one or more files or URLs. When FILE is -, read standard input.
-            default: "-"
-            repeatable: true
-        flags:
-          - &separator
-            long: --separator
-            help: character(s) that separates columns
-            arg: separator
-            default: ","
-          - &blankCellsAsStrings
-            long: --blankCellsAsStrings
-            help: store blank cells as empty strings instead of nulls
-          - &columnNames
-            long: --columnNames
-            help: |-
-              set column names (comma separated)
-              hint: add --ignoreLines 1 to overwrite existing header row
-            arg: columnNames
-            conflicts: [--headerLines]
-          - &encoding_import
-            long: --encoding
-            help: set character encoding
-            arg: encoding
-          - &guessCellValueTypes
-            long: --guessCellValueTypes
-            help: attempt to parse cell text into numbers
-          - &headerLines
-            long: --headerLines
-            help: parse x line(s) as column headers
-            arg: headerLines
-            default: "1"
-            conflicts: [--columnNames]
-          - &ignoreLines
-            long: --ignoreLines
-            help: ignore first x line(s) at beginning of file
-            arg: ignoreLines
-            default: "-1"
-          - &ignoreQuoteCharacter
-            long: --ignoreQuoteCharacter
-            help: do not use any quote character to enclose cells containing column separators
-          - &includeFileSources
-            long: --includeFileSources
-            help: add column with file source
-          - &includeArchiveFileName
-            long: --includeArchiveFileName
-            help: add column with archive file name
-          - &limit
-            long: --limit
-            help: load at most x row(s) of data
-            arg: limit
-            default: "-1"
-          - &quoteCharacter
-            long: --quoteCharacter
-            help: quote character to enclose cells containing column separators
-            arg: quoteCharacter
-            default: '\\\"'
-          - &skipBlankRows
-            long: --skipBlankRows
-            help: do not store blank rows
-          - &skipDataLines
-            long: --skipDataLines
-            help: discard initial x row(s) of data
-            arg: skipDataLines
-            default: "0"
-          - &trimStrings
-            long: --trimStrings
-            help: trim leading & trailing whitespace from strings
-          - &projectName
-            long: --projectName
-            arg: projectName
-            help: set a name for the OpenRefine project
-          - &projectTags
-            long: --projectTags
-            help: set project tags (comma separated)
-            arg: projectTags
-          - import: src/flags/quiet.yml
-        examples:
-          - orcli import csv "file"
-          - orcli import csv "file1" "file2"
-          - head -n 100 "file" | orcli import csv
-          - orcli import csv "https://git.io/fj5hF"
-          - |-
-            orcli import csv "file" \\\\
-              --separator ";" \\\\
-              --columnNames "foo,bar,baz" \\\\
-              --ignoreLines 1 \\\\
-              --encoding "ISO-8859-1" \\\\
-              --limit 100 \\\\
-              --trimStrings \\\\
-              --projectName "duplicates" \\\\
-              --projectTags "test,urgent"
-
-      - name: tsv
-        help: import tab-separated values (TSV)
-        args:
-          - *file
-        flags:
-          - *blankCellsAsStrings
-          - *columnNames
-          - *encoding_import
-          - *guessCellValueTypes
-          - *headerLines
-          - *ignoreLines
-          - *ignoreQuoteCharacter
-          - *includeFileSources
-          - *includeArchiveFileName
-          - *limit
-          - *quoteCharacter
-          - *skipBlankRows
-          - *skipDataLines
-          - *trimStrings
-          - *projectName
-          - *projectTags
-          - import: src/flags/quiet.yml
-        examples:
-          - orcli import tsv "file"
-          - orcli import tsv "file1" "file2"
-          - head -n 100 "file" | orcli import tsv
-          - orcli import tsv "https://example.com/file.tsv"
-          - |-
-            orcli import tsv "file" \\\\
-              --separator ";" \\\\
-              --columnNames "foo,bar,baz" \\\\
-              --ignoreLines 1 \\\\
-              --encoding "ISO-8859-1" \\\\
-              --limit 100 \\\\
-              --trimStrings \\\\
-              --projectName "duplicates" \\\\
-              --projectTags "test,urgent"
-
-      - name: json
-        help: import JSON
-        args:
-          - *file
-        flags:
-          - &recordPath
-            long: --recordPath
-            help: specify record path elements in JSON array
-            arg: json
-            default: "[ \\\"_\\\" , \\\"_\\\" ]"
-          - &rename
-            long: --rename
-            help: rename columns after import to remove record path fragments
-          - *guessCellValueTypes
-          - *includeFileSources
-          - *includeArchiveFileName
-          - *limit
-          - &storeEmptyStrings
-            long: --storeEmptyStrings
-            help: preserve empty strings
-          - *trimStrings
-          - *projectName
-          - *projectTags
-          - import: src/flags/quiet.yml
-        examples:
-          - orcli import json "file"
-          - orcli import json "file1" "file2"
-          - orcli import json "https://example.com/file.json"
-          - |-
-            orcli import json "file" \\\\
-              --recordPath '[ "_", "rows", "_" ]' \\\\
-              --rename \\\\
-              --storeEmptyStrings \\\\
-              --trimStrings \\\\
-              --projectName "duplicates" \\\\
-              --projectTags "test,urgent"
-
-      - name: jsonl
-        help: import JSON Lines / newline-delimited JSON
-        args:
-          - *file
-        flags:
-          - *rename
-          - *guessCellValueTypes
-          - *includeFileSources
-          - *includeArchiveFileName
-          - *limit
-          - *storeEmptyStrings
-          - *trimStrings
-          - *projectName
-          - *projectTags
-          - import: src/flags/quiet.yml
-        examples:
-          - orcli import jsonl "file"
-          - orcli import jsonl "file1" "file2"
-          - orcli import jsonl "https://example.com/file.json"
-          - orcli import jsonl --rename <(orcli export jsonl "duplicates")
-          - |-
-            orcli import jsonl "file" \\\\
-              --rename \\\\
-              --storeEmptyStrings \\\\
-              --trimStrings \\\\
-              --projectName "duplicates" \\\\
-              --projectTags "test,urgent"
 
   - name: list
     help: list projects on OpenRefine server
@@ -299,7 +97,7 @@ commands:
     help: apply undo/redo JSON file(s) to an OpenRefine project
     args:
       - import: src/args/project.yml
-      - *file
+      - import: src/args/file.yml
     flags:
       - import: src/flags/quiet.yml
     examples:
@@ -356,7 +154,7 @@ commands:
         args:
           - import: src/args/project.yml
         flags:
-          - *separator
+          - import: src/flags/separator.yml
           - &select
             long: --select
             help: |-
@@ -440,7 +238,7 @@ commands:
   - name: run
     help: run tmp OpenRefine workspace and execute shell script(s)
     args:
-      - *file
+      - import: src/args/file.yml
     flags:
       - long: --memory
         help: maximum RAM for OpenRefine java heap space

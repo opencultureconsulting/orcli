@@ -1,0 +1,4 @@
+long: --limit
+help: load at most x row(s) of data
+arg: limit
+default: "-1"

@@ -1,0 +1,6 @@
+long: --columnNames
+help: |-
+  set column names (comma separated)
+  hint: add --ignoreLines 1 to overwrite existing header row
+arg: columnNames
+conflicts: [--headerLines]

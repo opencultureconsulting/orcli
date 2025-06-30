@@ -1,0 +1,3 @@
+long: --projectName
+arg: projectName
+help: set a name for the OpenRefine project
