@@ -1,0 +1,14 @@
+name: delete
+help: delete OpenRefine project
+args:
+  - import: src/args/project.yml
+flags:
+  - long: --force
+    short: -f
+    help: delete all projects with the same name
+  - import: src/flags/quiet.yml
+examples:
+  - orcli delete "duplicates"
+  - orcli delete "duplicates" --force
+  - orcli delete 1234567890123
+  - for p in \$(orcli list); do orcli delete \${p:0:13}; done

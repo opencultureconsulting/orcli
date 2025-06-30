@@ -1,0 +1,3 @@
+long: --quiet
+short: -q
+help: suppress log output, print errors only

@@ -31,31 +31,8 @@ examples:
     EOF
 
 commands:
-  - name: completions
-    help: |-
-      Generate bash completions
-      Usage: source <(orcli completions)
-
-  - name: delete
-    help: delete OpenRefine project
-    args:
-      - &project
-        name: project
-        help: project name or id
-        required: true
-    flags:
-      - long: --force
-        short: -f
-        help: delete all projects with the same name
-      - &quiet
-        long: --quiet
-        short: -q
-        help: suppress log output, print errors only
-    examples:
-      - orcli delete "duplicates"
-      - orcli delete "duplicates" --force
-      - orcli delete 1234567890123
-      - for p in \$(orcli list); do orcli delete \${p:0:13}; done
+  - import: src/commands/completions.yml
+  - import: src/commands/delete.yml
 
   - name: import
     help: commands to create OpenRefine projects from files or URLs
@@ -141,7 +118,7 @@ commands:
             long: --projectTags
             help: set project tags (comma separated)
             arg: projectTags
-          - *quiet
+          - import: src/flags/quiet.yml
         examples:
           - orcli import csv "file"
           - orcli import csv "file1" "file2"
@@ -179,7 +156,7 @@ commands:
           - *trimStrings
           - *projectName
           - *projectTags
-          - *quiet
+          - import: src/flags/quiet.yml
         examples:
           - orcli import tsv "file"
           - orcli import tsv "file1" "file2"
@@ -219,7 +196,7 @@ commands:
           - *trimStrings
           - *projectName
           - *projectTags
-          - *quiet
+          - import: src/flags/quiet.yml
         examples:
           - orcli import json "file"
           - orcli import json "file1" "file2"
@@ -247,7 +224,7 @@ commands:
           - *trimStrings
           - *projectName
           - *projectTags
-          - *quiet
+          - import: src/flags/quiet.yml
         examples:
           - orcli import jsonl "file"
           - orcli import jsonl "file1" "file2"
@@ -267,7 +244,7 @@ commands:
   - name: info
     help: show OpenRefine project's metadata
     args:
-      - *project
+      - import: src/args/project.yml
     examples:
       - orcli info "duplicates"
       - orcli info 1234567890123
@@ -280,7 +257,7 @@ commands:
       note that any exporter supports search by using --facets (see examples)
 
     args:
-      - *project
+      - import: src/args/project.yml
       - &regex
         name: regex
         help: search term (regular expression, case-sensitive)
@@ -305,7 +282,7 @@ commands:
       - name: columns
         help: re-order columns alphabetically
         args:
-          - *project
+          - import: src/args/project.yml
         flags:
           - long: --first
             help: set key column(s)
@@ -321,10 +298,10 @@ commands:
   - name: transform
     help: apply undo/redo JSON file(s) to an OpenRefine project
     args:
-      - *project
+      - import: src/args/project.yml
       - *file
     flags:
-      - *quiet
+      - import: src/flags/quiet.yml
     examples:
       - orcli transform "duplicates" "history.json"
       - cat "history.json" | orcli transform "duplicates"
@@ -338,7 +315,7 @@ commands:
       - name: jsonl
         help: export JSON Lines / newline-delimited JSON
         args:
-          - *project
+          - import: src/args/project.yml
         flags:
           - &mode
             long: --mode
@@ -363,7 +340,7 @@ commands:
             help: set character encoding
             arg: encoding
             default: "UTF-8"
-          - *quiet
+          - import: src/flags/quiet.yml
         examples:
           - orcli export jsonl "duplicates"
           - orcli export jsonl "duplicates" --output "duplicates.jsonl"
@@ -377,7 +354,7 @@ commands:
       - name: csv
         help: export comma-separated values (CSV)
         args:
-          - *project
+          - import: src/args/project.yml
         flags:
           - *separator
           - &select
@@ -390,7 +367,7 @@ commands:
           - *facets
           - *output
           - *encoding_export
-          - *quiet
+          - import: src/flags/quiet.yml
         examples:
           - orcli export csv "duplicates"
           - orcli export csv "duplicates" --output "duplicates.tsv"
@@ -405,14 +382,14 @@ commands:
       - name: tsv
         help: export tab-separated values (TSV)
         args:
-          - *project
+          - import: src/args/project.yml
         flags:
           - *select
           - *mode
           - *facets
           - *output
           - *encoding_export
-          - *quiet
+          - import: src/flags/quiet.yml
         examples:
           - orcli export tsv "duplicates"
           - orcli export tsv "duplicates" --output "duplicates.tsv"
@@ -426,7 +403,7 @@ commands:
       - name: template
         help: export to any text format by providing your own GREL template
         args:
-          - *project
+          - import: src/args/project.yml
           - name: file
             help: Path to row/record template file or URL. When FILE is -, read standard input.
             default: "-"
@@ -444,7 +421,7 @@ commands:
           - *facets
           - *output
           - *encoding_export
-          - *quiet
+          - import: src/flags/quiet.yml
         examples:
           - orcli export template "duplicates" "template.txt"
           - cat "template.txt" | orcli export template "duplicates"
@@ -475,7 +452,7 @@ commands:
         default: "3333"
       - long: --interactive
         help: do not exit on error and keep bash shell open
-      - *quiet
+      - import: src/flags/quiet.yml
     examples:
       - orcli run --interactive
       - |-
