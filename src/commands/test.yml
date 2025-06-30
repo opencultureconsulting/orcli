@@ -1,0 +1,2 @@
+name: test
+help: run functional tests on tmp OpenRefine workspace

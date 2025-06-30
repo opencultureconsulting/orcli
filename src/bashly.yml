@@ -34,19 +34,11 @@ commands:
   - import: src/commands/completions.yml
   - import: src/commands/delete.yml
   - import: src/commands/import/import.yml
+  - import: src/commands/list.yml
+  - import: src/commands/info.yml
 
 
-  - name: list
-    help: list projects on OpenRefine server
 
-  - name: info
-    help: show OpenRefine project's metadata
-    args:
-      - import: src/args/project.yml
-    examples:
-      - orcli info "duplicates"
-      - orcli info 1234567890123
-      - orcli info "duplicates" | jq -r .columns[]
 
   - name: search
     help: |-
@@ -90,21 +82,9 @@ commands:
           - orcli sort columns "duplicates"
           - orcli sort columns "duplicates" --first name
 
-  - name: test
-    help: run functional tests on tmp OpenRefine workspace
+  - import: src/commands/test.yml
+  - import: src/commands/transform.yml
 
-  - name: transform
-    help: apply undo/redo JSON file(s) to an OpenRefine project
-    args:
-      - import: src/args/project.yml
-      - import: src/args/file.yml
-    flags:
-      - import: src/flags/quiet.yml
-    examples:
-      - orcli transform "duplicates" "history.json"
-      - cat "history.json" | orcli transform "duplicates"
-      - orcli transform "duplicates" "https://git.io/fj5ju"
-      - orcli transform 1234567890123 "history.json"
 
   - name: export
     help: commands to export data from OpenRefine projects to files
@@ -235,42 +215,4 @@ commands:
               --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]' \\\\
               | jq
 
-  - name: run
-    help: run tmp OpenRefine workspace and execute shell script(s)
-    args:
-      - import: src/args/file.yml
-    flags:
-      - long: --memory
-        help: maximum RAM for OpenRefine java heap space
-        arg: ram
-        default: "2048M"
-      - long: --port
-        help: PORT on which OpenRefine should listen
-        arg: port
-        default: "3333"
-      - long: --interactive
-        help: do not exit on error and keep bash shell open
-      - import: src/flags/quiet.yml
-    examples:
-      - orcli run --interactive
-      - |-
-        orcli run << EOF
-          orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-          orcli transform "duplicates" "https://git.io/fj5ju"
-          orcli export tsv "duplicates"
-        EOF
-      - |-
-        orcli run --memory "2000M" --port "3334" << EOF
-          orcli import csv "https://git.io/fj5hF" --projectName "duplicates" &
-          orcli import csv "https://git.io/fj5hF" --projectName "copy" &
-          wait
-          echo "finished import"
-          orcli export csv "duplicates" --output duplicates.csv &
-          orcli export tsv "duplicates" --output duplicates.tsv &
-          wait
-          wc duplicates*
-        EOF
-      - |-
-        orcli run --interactive "file1.sh" "file2.sh" - << EOF
-          echo "finished in \$SECONDS seconds"
-        EOF
+  - import: src/commands/run.yml

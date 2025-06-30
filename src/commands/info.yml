@@ -1,0 +1,8 @@
+name: info
+help: show OpenRefine project's metadata
+args:
+  - import: src/args/project.yml
+examples:
+  - orcli info "duplicates"
+  - orcli info 1234567890123
+  - orcli info "duplicates" | jq -r .columns[]
