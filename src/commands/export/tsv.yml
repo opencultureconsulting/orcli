@@ -1,7 +1,9 @@
 name: tsv
 help: export tab-separated values (TSV)
+
 args:
   - import: src/args/project.yml
+
 flags:
   - import: src/flags/select.yml
   - import: src/flags/mode.yml
@@ -9,6 +11,7 @@ flags:
   - import: src/flags/output.yml
   - import: src/flags/encoding_export.yml
   - import: src/flags/quiet.yml
+
 examples:
   - orcli export tsv "duplicates"
   - orcli export tsv "duplicates" --output "duplicates.tsv"

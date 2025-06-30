@@ -1,7 +1,9 @@
 name: run
 help: run tmp OpenRefine workspace and execute shell script(s)
+
 args:
   - import: src/args/file.yml
+
 flags:
   - long: --memory
     help: maximum RAM for OpenRefine java heap space
@@ -13,7 +15,9 @@ flags:
     default: "3333"
   - long: --interactive
     help: do not exit on error and keep bash shell open
+
   - import: src/flags/quiet.yml
+
 examples:
   - orcli run --interactive
   - |-

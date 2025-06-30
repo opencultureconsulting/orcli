@@ -1,7 +1,9 @@
 name: csv
 help: import character-separated values (CSV)
+
 args:
   - import: src/args/file.yml
+
 flags:
   - import: src/flags/separator.yml
   - import: src/flags/blankCellsAsStrings.yml
@@ -21,6 +23,7 @@ flags:
   - import: src/flags/projectName.yml
   - import: src/flags/projectTags.yml
   - import: src/flags/quiet.yml
+
 examples:
   - orcli import csv "file"
   - orcli import csv "file1" "file2"

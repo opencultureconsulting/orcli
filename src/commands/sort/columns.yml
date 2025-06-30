@@ -1,12 +1,15 @@
 name: columns
 help: re-order columns alphabetically
+
 args:
   - import: src/args/project.yml
+
 flags:
   - long: --first
     help: set key column(s)
     arg: column
     repeatable: true
+
 examples:
   - orcli sort columns "duplicates"
   - orcli sort columns "duplicates" --first name

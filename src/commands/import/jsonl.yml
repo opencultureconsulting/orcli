@@ -1,7 +1,9 @@
 name: jsonl
 help: import JSON Lines / newline-delimited JSON
+
 args:
   - import: src/args/file.yml
+
 flags:
   - import: src/flags/rename.yml
   - import: src/flags/guessCellValueTypes.yml
@@ -13,6 +15,7 @@ flags:
   - import: src/flags/projectName.yml
   - import: src/flags/projectTags.yml
   - import: src/flags/quiet.yml
+
 examples:
   - orcli import jsonl "file"
   - orcli import jsonl "file1" "file2"

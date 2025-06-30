@@ -1,7 +1,9 @@
 name: json
 help: import JSON
+
 args:
   - import: src/args/file.yml
+
 flags:
   - import: src/flags/recordPath.yml
   - import: src/flags/rename.yml
@@ -14,6 +16,7 @@ flags:
   - import: src/flags/projectName.yml
   - import: src/flags/projectTags.yml
   - import: src/flags/quiet.yml
+
 examples:
   - orcli import json "file"
   - orcli import json "file1" "file2"

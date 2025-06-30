@@ -7,10 +7,12 @@ help: |-
 args:
   - import: src/args/project.yml
   - import: src/args/regex.yml
+
 flags:
   - long: --index
     help: print column values instead of row.index in the first column of the output
     arg: column
+
 examples:
   - orcli search "duplicates" "^Ben"
   - orcli search 1234567890123 "^Ben"

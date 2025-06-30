@@ -1,10 +1,12 @@
 name: template
 help: export to any text format by providing your own GREL template
+
 args:
   - import: src/args/project.yml
   - name: file
     help: Path to row/record template file or URL. When FILE is -, read standard input.
     default: "-"
+
 flags:
   - long: --separator
     help: insert character(s) between rows/records
@@ -15,11 +17,13 @@ flags:
   - long: --suffix
     help: insert character(s) at the end of the file
     arg: suffix
+
   - import: src/flags/mode.yml
   - import: src/flags/facets.yml
   - import: src/flags/output.yml
   - import: src/flags/encoding_export.yml
   - import: src/flags/quiet.yml
+
 examples:
   - orcli export template "duplicates" "template.txt"
   - cat "template.txt" | orcli export template "duplicates"

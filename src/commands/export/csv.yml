@@ -1,7 +1,9 @@
 name: csv
 help: export comma-separated values (CSV)
+
 args:
   - import: src/args/project.yml
+
 flags:
   - import: src/flags/separator.yml
   - import: src/flags/select.yml
@@ -10,6 +12,7 @@ flags:
   - import: src/flags/output.yml
   - import: src/flags/encoding_export.yml
   - import: src/flags/quiet.yml
+
 examples:
   - orcli export csv "duplicates"
   - orcli export csv "duplicates" --output "duplicates.tsv"

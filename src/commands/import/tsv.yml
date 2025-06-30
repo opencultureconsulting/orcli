@@ -1,7 +1,9 @@
 name: tsv
 help: import tab-separated values (TSV)
+
 args:
   - import: src/args/file.yml
+
 flags:
   - import: src/flags/blankCellsAsStrings.yml
   - import: src/flags/columnNames.yml
@@ -20,6 +22,7 @@ flags:
   - import: src/flags/projectName.yml
   - import: src/flags/projectTags.yml
   - import: src/flags/quiet.yml
+
 examples:
   - orcli import tsv "file"
   - orcli import tsv "file1" "file2"

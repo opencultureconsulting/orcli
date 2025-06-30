@@ -1,10 +1,13 @@
 name: transform
 help: apply undo/redo JSON file(s) to an OpenRefine project
+
 args:
   - import: src/args/project.yml
   - import: src/args/file.yml
+
 flags:
   - import: src/flags/quiet.yml
+
 examples:
   - orcli transform "duplicates" "history.json"
   - cat "history.json" | orcli transform "duplicates"

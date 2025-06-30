@@ -1,16 +1,20 @@
 name: jsonl
 help: export JSON Lines / newline-delimited JSON
+
 args:
   - import: src/args/project.yml
+
 flags:
   - long: --separator
     help: character(s) that separates multiple values in one cell (row mode only)
     arg: separator
+
   - import: src/flags/mode.yml
   - import: src/flags/facets.yml
   - import: src/flags/output.yml
   - import: src/flags/encoding_export.yml
   - import: src/flags/quiet.yml
+
 examples:
   - orcli export jsonl "duplicates"
   - orcli export jsonl "duplicates" --output "duplicates.jsonl"
