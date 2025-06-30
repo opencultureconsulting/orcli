@@ -1,0 +1,4 @@
+long: --facets
+help: filter result set by providing an OpenRefine facets config in json
+arg: facets
+default: "[]"

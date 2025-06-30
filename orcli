@@ -932,15 +932,15 @@ orcli_export_jsonl_usage() {
 
     # :command.usage_flags
     # :flag.usage
+    printf "  %s\n" "--separator SEPARATOR"
+    printf "    character(s) that separates multiple values in one cell (row mode only)\n"
+    echo
+
+    # :flag.usage
     printf "  %s\n" "--mode MODE"
     printf "    specify if project contains multi-row records\n"
     printf "    %s\n" "Allowed: rows, records"
     printf "    %s\n" "Default: rows"
-    echo
-
-    # :flag.usage
-    printf "  %s\n" "--separator SEPARATOR"
-    printf "    character(s) that separates multiple values in one cell (row mode only)\n"
     echo
 
     # :flag.usage
@@ -4478,20 +4478,6 @@ orcli_export_jsonl_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --mode)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-          args['--mode']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--mode requires an argument: --mode MODE" >&2
-          exit 1
-        fi
-        ;;
-
-      # :flag.case
       --separator)
 
         # :flag.case_arg
@@ -4501,6 +4487,20 @@ orcli_export_jsonl_parse_requirements() {
           shift
         else
           printf "%s\n" "--separator requires an argument: --separator SEPARATOR" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --mode)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--mode']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--mode requires an argument: --mode MODE" >&2
           exit 1
         fi
         ;;

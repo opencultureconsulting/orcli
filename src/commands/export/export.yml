@@ -1,0 +1,8 @@
+name: export
+help: commands to export data from OpenRefine projects to files
+
+commands:
+  - import: src/commands/export/jsonl.yml
+  - import: src/commands/export/csv.yml
+  - import: src/commands/export/tsv.yml
+  - import: src/commands/export/template.yml

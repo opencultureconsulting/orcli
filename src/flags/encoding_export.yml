@@ -1,0 +1,4 @@
+long: --encoding
+help: set character encoding
+arg: encoding
+default: "UTF-8"

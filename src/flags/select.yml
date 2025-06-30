@@ -1,0 +1,5 @@
+long: --select
+help: |-
+  filter result set to one or more columns (comma separated)
+  example: --select "foo,bar,baz"
+arg: columns

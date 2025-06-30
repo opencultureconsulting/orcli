@@ -1,0 +1,36 @@
+name: template
+help: export to any text format by providing your own GREL template
+args:
+  - import: src/args/project.yml
+  - name: file
+    help: Path to row/record template file or URL. When FILE is -, read standard input.
+    default: "-"
+flags:
+  - long: --separator
+    help: insert character(s) between rows/records
+    arg: separator
+  - long: --prefix
+    help: insert character(s) at the beginning of the file
+    arg: prefix
+  - long: --suffix
+    help: insert character(s) at the end of the file
+    arg: suffix
+  - import: src/flags/mode.yml
+  - import: src/flags/facets.yml
+  - import: src/flags/output.yml
+  - import: src/flags/encoding_export.yml
+  - import: src/flags/quiet.yml
+examples:
+  - orcli export template "duplicates" "template.txt"
+  - cat "template.txt" | orcli export template "duplicates"
+  - orcli export template "duplicates" "https://example.com/template.txt"
+  - orcli export template "duplicates" "template.txt" --output "duplicates.tsv"
+  - |-
+    orcli export template "duplicates" \\\\
+      <<< '{ "name" : {{jsonize(cells["name"].value)}}, "purchase" : {{jsonize(cells["purchase"].value)}} }' \\\\
+      --prefix '{ "events" : [' \\\\
+      --separator , \\\\
+      --mode records \\\\
+      --suffix ]}$'\\\n' \\\\
+      --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]' \\\\
+      | jq

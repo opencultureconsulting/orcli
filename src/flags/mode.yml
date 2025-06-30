@@ -1,0 +1,5 @@
+long: --mode
+help: specify if project contains multi-row records
+arg: mode
+allowed: [rows, records]
+default: "rows"

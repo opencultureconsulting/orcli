@@ -1,0 +1,3 @@
+long: --output
+help: Write to file instead of stdout
+arg: file
