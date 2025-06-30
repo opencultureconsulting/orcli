@@ -1,0 +1,4 @@
+name: completions
+help: |-
+  Generate bash completions
+  Usage: source <(orcli completions)
