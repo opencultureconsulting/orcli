@@ -1,0 +1,5 @@
+name: sort
+help: commands to sort OpenRefine projects
+
+commands:
+  - import: src/commands/sort/columns.yml

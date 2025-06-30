@@ -37,25 +37,7 @@ commands:
   - import: src/commands/list.yml
   - import: src/commands/info.yml
   - import: src/commands/search.yml
-
-
-  - name: sort
-    help: commands to sort OpenRefine projects
-
-    commands:
-      - name: columns
-        help: re-order columns alphabetically
-        args:
-          - import: src/args/project.yml
-        flags:
-          - long: --first
-            help: set key column(s)
-            arg: column
-            repeatable: true
-        examples:
-          - orcli sort columns "duplicates"
-          - orcli sort columns "duplicates" --first name
-
+  - import: src/commands/sort.yml
   - import: src/commands/test.yml
   - import: src/commands/transform.yml
 
