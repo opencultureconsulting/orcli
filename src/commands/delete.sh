@@ -1,5 +1,23 @@
-echo "# This file is located at 'src/commands/delete.sh'."
-echo "# It contains the implementation for the 'orcli delete' command."
-echo "# The code you write here will be wrapped by a function named 'orcli_delete_command()'."
-echo "# Feel free to edit this file; your changes will persist when regenerating."
-inspect_args
+# shellcheck shell=bash disable=SC2154
+
+# get project id(s)
+if [[ ${args[--force]} ]]; then
+    projectids="$(get_ids "${args[project]}")"
+else
+    projectids="$(get_id "${args[project]}")"
+fi
+
+# loop over one or more project ids
+for projectid in ${projectids}; do
+    # get csrf token and post data
+    if response="$(curl -fs --data "project=${projectid}" "${OPENREFINE_URL}/command/core/delete-project$(get_csrf)")"; then
+        response_code="$(jq -r '.code' <<<"$response")"
+        if [[ $response_code == "ok" ]]; then
+            log "deleted ${args[project]} (${projectid})"
+        else
+            error "deleting ${args[project]} failed!"
+        fi
+    else
+        error "deleting ${args[project]} failed!"
+    fi
+done

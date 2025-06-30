@@ -1,5 +1,11 @@
-echo "# This file is located at 'src/commands/list.sh'."
-echo "# It contains the implementation for the 'orcli list' command."
-echo "# The code you write here will be wrapped by a function named 'orcli_list_command()'."
-echo "# Feel free to edit this file; your changes will persist when regenerating."
-inspect_args
+# get all project metadata and reshape json to print a list
+# shellcheck shell=bash
+if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
+  error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
+else
+  if [[ "${response}" == '{"projects":{}}' ]]; then
+    log "${OPENREFINE_URL} does not contain any projects yet."
+  else
+    echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"'
+  fi
+fi

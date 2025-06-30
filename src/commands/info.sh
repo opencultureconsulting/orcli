@@ -1,5 +1,11 @@
-echo "# This file is located at 'src/commands/info.sh'."
-echo "# It contains the implementation for the 'orcli info' command."
-echo "# The code you write here will be wrapped by a function named 'orcli_info_command()'."
-echo "# Feel free to edit this file; your changes will persist when regenerating."
-inspect_args
+# shellcheck shell=bash disable=SC2154
+
+# get project id
+projectid="$(get_id "${args[project]}")"
+
+if ! response="$(curl -fs --get --data "project=${projectid}" "${OPENREFINE_URL}/command/core/get-project-metadata")"; then
+    error "reading metadata of ${args[project]} failed!"
+else
+    columns="$(curl -fs --get --data "project=${projectid}" "${OPENREFINE_URL}/command/core/get-models" | jq '[ .columnModel | .columns[] | .name ]')"
+    jq "{ id: ${projectid} } + . + {columns: $columns }" <<<"$response"
+fi

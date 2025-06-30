@@ -1,5 +1,5 @@
-echo "# This file is located at 'src/commands/completions.sh'."
-echo "# It contains the implementation for the 'orcli completions' command."
-echo "# The code you write here will be wrapped by a function named 'orcli_completions_command()'."
-echo "# Feel free to edit this file; your changes will persist when regenerating."
-inspect_args
+# Users can now enable bash completion for this script by running:
+#
+#   $ eval "$(orcli completions)"
+#
+send_completions
