@@ -57,4 +57,4 @@ Examples:
 
 ```
 
-code: [src/export_csv_command.sh](../src/export_csv_command.sh)
+code: [src/commands/export/csv.sh](../src/commands/export/csv.sh)

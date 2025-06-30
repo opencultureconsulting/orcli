@@ -61,4 +61,4 @@ Examples:
 
 ```
 
-code: [src/import_jsonl_command.sh](../src/import_jsonl_command.sh)
+code: [src/commands/import/jsonl.sh](../src/commands/import/jsonl.sh)

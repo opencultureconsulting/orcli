@@ -5191,6 +5191,8 @@ initialize() {
   # :command.environment_variables_default
   export OPENREFINE_URL="${OPENREFINE_URL:-http://localhost:3333}"
 
+  # src/initialize.sh
+
 }
 
 # :command.run

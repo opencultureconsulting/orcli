@@ -29,4 +29,4 @@ Examples:
 
 ```
 
-code: [src/delete_command.sh](../src/delete_command.sh)
+code: [src/commands/delete.sh](../src/commands/delete.sh)

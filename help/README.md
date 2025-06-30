@@ -2,8 +2,6 @@
 
 ## command help screens
 
-- [completions](completions.md)
-- [delete](delete.md)
 - [export csv](export_csv.md)
 - [export jsonl](export_jsonl.md)
 - [export template](export_template.md)
@@ -12,11 +10,13 @@
 - [import json](import_json.md)
 - [import jsonl](import_jsonl.md)
 - [import tsv](import_tsv.md)
+- [sort columns](sort_columns.md)
+- [completions](completions.md)
+- [delete](delete.md)
 - [info](info.md)
 - [list](list.md)
 - [run](run.md)
 - [search](search.md)
-- [sort columns](sort_columns.md)
 - [test](test.md)
 - [transform](transform.md)
 

@@ -13,4 +13,4 @@ Options:
 
 ```
 
-code: [src/list_command.sh](../src/list_command.sh)
+code: [src/commands/list.sh](../src/commands/list.sh)

@@ -30,4 +30,4 @@ Examples:
 
 ```
 
-code: [src/transform_command.sh](../src/transform_command.sh)
+code: [src/commands/transform.sh](../src/commands/transform.sh)

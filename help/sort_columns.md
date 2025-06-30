@@ -24,4 +24,4 @@ Examples:
 
 ```
 
-code: [src/sort_columns_command.sh](../src/sort_columns_command.sh)
+code: [src/commands/sort/columns.sh](../src/commands/sort/columns.sh)

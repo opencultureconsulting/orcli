@@ -22,4 +22,4 @@ Examples:
 
 ```
 
-code: [src/info_command.sh](../src/info_command.sh)
+code: [src/commands/info.sh](../src/commands/info.sh)

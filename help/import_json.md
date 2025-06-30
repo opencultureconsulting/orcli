@@ -65,4 +65,4 @@ Examples:
 
 ```
 
-code: [src/import_json_command.sh](../src/import_json_command.sh)
+code: [src/commands/import/json.sh](../src/commands/import/json.sh)

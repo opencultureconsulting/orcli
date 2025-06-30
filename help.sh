@@ -6,12 +6,14 @@ orcli() {
 }
 
 version="$(${name} --version)"
-files=(src/*_command.sh)
+files=(src/commands/**/*.sh)
+files+=(src/commands/*.sh)
 
 for f in "${files[@]}"; do
-command="${f#src/}"
-command="${command%_command.sh}"
-commands+=( "${command}" )
+    command="${f#src/commands/}"
+    command="${command%.sh}"
+    command="${command//\//_}"  
+    commands+=( "${command}" )
 done
 
 mkdir -p help
@@ -20,7 +22,7 @@ for command in "${commands[@]}"; do
     { echo; echo '```'; } >> help/"${command}".md
     ${name} ${command//_/ } --help >> help/"${command}".md
     { echo '```'; echo; } >> help/"${command}".md
-    echo "code: [src/${command}_command.sh](../src/${command}_command.sh)" >> help/"${command}".md
+    echo "code: [src/commands/${command//_/\/}.sh](../src/commands/${command//_/\/}.sh)" >> help/"${command}".md
 done
 
 { echo "# ${name} ${version}"; echo; } > help/README.md

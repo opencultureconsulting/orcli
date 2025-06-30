@@ -39,4 +39,4 @@ Examples:
 
 ```
 
-code: [src/search_command.sh](../src/search_command.sh)
+code: [src/commands/search.sh](../src/commands/search.sh)

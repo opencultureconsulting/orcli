@@ -96,4 +96,4 @@ Examples:
 
 ```
 
-code: [src/import_csv_command.sh](../src/import_csv_command.sh)
+code: [src/commands/import/csv.sh](../src/commands/import/csv.sh)

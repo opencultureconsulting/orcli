@@ -92,4 +92,4 @@ Examples:
 
 ```
 
-code: [src/import_tsv_command.sh](../src/import_tsv_command.sh)
+code: [src/commands/import/tsv.sh](../src/commands/import/tsv.sh)

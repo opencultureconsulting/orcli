@@ -53,4 +53,4 @@ EOF
 
 ```
 
-code: [src/run_command.sh](../src/run_command.sh)
+code: [src/commands/run.sh](../src/commands/run.sh)

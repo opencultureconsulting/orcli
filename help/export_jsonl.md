@@ -8,13 +8,13 @@ Usage:
   orcli export jsonl --help | -h
 
 Options:
+  --separator SEPARATOR
+    character(s) that separates multiple values in one cell (row mode only)
+
   --mode MODE
     specify if project contains multi-row records
     Allowed: rows, records
     Default: rows
-
-  --separator SEPARATOR
-    character(s) that separates multiple values in one cell (row mode only)
 
   --facets FACETS
     filter result set by providing an OpenRefine facets config in json
@@ -51,4 +51,4 @@ Examples:
 
 ```
 
-code: [src/export_jsonl_command.sh](../src/export_jsonl_command.sh)
+code: [src/commands/export/jsonl.sh](../src/commands/export/jsonl.sh)

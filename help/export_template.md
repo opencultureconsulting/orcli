@@ -66,4 +66,4 @@ Examples:
 
 ```
 
-code: [src/export_template_command.sh](../src/export_template_command.sh)
+code: [src/commands/export/template.sh](../src/commands/export/template.sh)

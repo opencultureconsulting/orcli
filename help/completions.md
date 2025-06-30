@@ -16,4 +16,4 @@ Options:
 
 ```
 
-code: [src/completions_command.sh](../src/completions_command.sh)
+code: [src/commands/completions.sh](../src/commands/completions.sh)

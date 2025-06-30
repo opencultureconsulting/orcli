@@ -13,4 +13,4 @@ Options:
 
 ```
 
-code: [src/test_command.sh](../src/test_command.sh)
+code: [src/commands/test.sh](../src/commands/test.sh)
