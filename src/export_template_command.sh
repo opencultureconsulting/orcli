@@ -19,8 +19,11 @@ fi
 if [[ "${args[file]}" == '-' ]] || [[ "${args[file]}" == '"-"' ]]; then
     # exit if stdin is selected but not present
     if ! read -u 0 -t 0; then
-        orcli_export_template_usage
-        exit 1
+        sleep 1
+        if ! read -u 0 -t 0; then
+            orcli_export_template_usage
+            exit 1
+        fi
     fi
 else
     # exit if file does not exist

@@ -10,8 +10,11 @@ for i in "${!files[@]}"; do
         # exit if stdin is selected but not present
         if ! [[ ${args[--interactive]} ]]; then
             if ! read -u 0 -t 0; then
-                orcli_run_usage
-                exit 1
+                sleep 1
+                if ! read -u 0 -t 0; then
+                    orcli_run_usage
+                    exit 1
+                fi
             fi
         fi
     else
@@ -70,13 +73,16 @@ done
 export OPENREFINE_TMPDIR OPENREFINE_URL OPENREFINE_PID
 if [[ ${args[file]} == '-' || ${args[file]} == '"-"' ]]; then
     if ! read -u 0 -t 0; then
-        # case 1: interactive mode if stdin is selected but not present
-        bash --rcfile <(
-            cat ~/.bashrc
-            echo "alias orcli=${scriptpath}/orcli"
-            interactive
-        ) -i </dev/tty
-        exit
+        sleep 1
+        if ! read -u 0 -t 0; then
+            # case 1: interactive mode if stdin is selected but not present
+            bash --rcfile <(
+                cat ~/.bashrc
+                echo "alias orcli=${scriptpath}/orcli"
+                interactive
+            ) -i </dev/tty
+            exit
+        fi
     fi
 fi
 if [[ ${args[--interactive]} ]]; then
