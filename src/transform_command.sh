@@ -1,10 +1,13 @@
 # shellcheck shell=bash disable=SC2154 disable=SC2155
 
-# check if stdin is present if selected
+# exit if stdin is selected but not present
 if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]]; then
     if ! read -u 0 -t 0; then
-        orcli_transform_usage
-        exit 1
+        sleep 1
+        if ! read -u 0 -t 0; then
+            orcli_transform_usage
+            exit 1
+        fi
     fi
 fi
 
@@ -34,7 +37,7 @@ for i in "${!files[@]}"; do
     if [[ "${files[$i]}" == '-' ]] || [[ "${files[$i]}" == '"-"' ]]; then
         # exit if stdin is selected but not present
         if ! read -u 0 -t 0; then
-            orcli_transform_usage
+            orcli_run_usage
             exit 1
         fi
     else
