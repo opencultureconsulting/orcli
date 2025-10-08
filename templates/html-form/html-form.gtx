@@ -1,0 +1,256 @@
+> <!DOCTYPE html>
+> <html lang="en">
+> <head>
+>   <meta charset="UTF-8">
+>   <title>{{ full_name }} {{ version }}</title>
+>   <style>
+>     body { font-family: sans-serif; }
+>     form { margin-bottom: 2em; }
+>     fieldset { border: 1px solid #ccc; padding: 1em; margin-bottom: 1em; }
+>     legend { font-weight: bold; }
+>     label { display: block; margin-top: 0.5em; }
+>     input, select { margin-bottom: 0.5em; }
+>     small { color: #555; }
+>     hr { margin: 2em 0; }
+>   </style>
+> </head>
+> <body>
+
+# === Header
+
+> <h1>{{ full_name }} {{ version }}</h1>
+>
+> <p>{{ help }}</p>
+
+# === Examples
+
+if examples
+  > <h2>Examples</h2>
+  > <ul>
+  examples.each do |example|
+    > <li>{{ example }}</li>
+  end
+  > </ul>
+end
+
+# === Dependencies
+
+if dependencies.any?
+  > <h2>Dependencies</h2>
+  > <ul>
+  dependencies.each do |dependency|
+    dependency.commands.each do |command|
+    > <li>{{ dependency.commands.join ', ' }}: {{ dependency.help }}</li>
+    end
+  end
+  > </ul>
+end
+
+# === Environment Variables
+
+if visible_environment_variables.any?
+  > <h2>Enviroment Variables</h2>
+  > <form action="#" method="get">
+  visible_environment_variables.each do |environment_variable|
+    >   <label for="{{ environment_variable.name }}">{{ environment_variable.name.upcase }}</label>
+    >   <input type="text" id="{{ environment_variable.name }}" name="{{ environment_variable.name }}" placeholder="{{ environment_variable.default }}">
+    >   <br>
+  end
+  > </form>
+end
+
+# === Commands as Forms
+
+> <h2>Commands</h2>
+
+> <nav>
+>   <ul>
+commands.each do |command|
+  >     <li><a href="#{{ command.name }}">{{ command.name }}</a></li>
+end
+>   </ul>
+> </nav>
+
+commands.each do |command|
+  > <hr>
+  > <h3 id="{{ command.name }}">{{ command.name }}</h3>
+  if command.help
+    > <p>{{ command.help }}</p>
+  end
+  if command.examples && command.examples.any?
+    > <details>
+    >   <summary>Examples</summary>
+    >   <ul>
+    command.examples.each do |example|
+      >     <li><code>{{ example }}</code></li>
+    end
+    >   </ul>
+    > </details>
+    > <br>
+  end
+  > <form action="#" method="get">
+  if command.args.any?
+    >   <fieldset>
+    >     <legend>Arguments</legend>
+    command.args.each do |arg|
+      >     <label for="{{ arg.name }}">{{ arg.name.upcase }}</label>
+      if arg.allowed
+        if arg.repeatable
+          >     <select id="{{ arg.name }}" name="{{ arg.name }}" multiple repeatable{{ ' required' if arg.required }}>
+          arg.allowed.each do |val|
+            >       <option value="{{ val }}"{{ ' selected' if arg.default == val }}>{{ val }}</option>
+          end
+          >     </select>
+        else
+          >     <select id="{{ arg.name }}" name="{{ arg.name }}"{{ ' required' if arg.required }}>
+          arg.allowed.each do |val|
+            >       <option value="{{ val }}"{{ ' selected' if arg.default == val }}>{{ val }}</option>
+          end
+          >     </select>
+        end
+      else
+        >     <input type="text" id="{{ arg.name }}" name="{{ arg.name }}" placeholder="{{ arg.default }}"{{ ' required' if arg.required }}{{ ' repeatable' if arg.repeatable }}>
+      end
+      if arg.help
+        >     <br><small>{{ arg.help }}</small>
+      end
+      >     <br>
+    end
+    >   </fieldset>
+  end
+  if command.flags.any?
+    >   <fieldset>
+    >     <legend>Options</legend>
+    command.flags.each do |flag|
+      >     <label for="{{ flag.name }}">{{ flag.usage_string }}</label>
+      if flag.allowed
+        if flag.repeatable
+          >     <select id="{{ flag.name }}" name="{{ flag.name }}" multiple repeatable{{ ' required' if flag.required }}>
+          flag.allowed.each do |val|
+            >       <option value="{{ val }}"{{ ' selected' if flag.default == val }}>{{ val }}</option>
+          end
+          >     </select>
+        else
+          >     <select id="{{ flag.name }}" name="{{ flag.name }}"{{ ' required' if flag.required }}>
+          flag.allowed.each do |val|
+            >       <option value="{{ val }}"{{ ' selected' if flag.default == val }}>{{ val }}</option>
+          end
+          >     </select>
+        end
+      else
+        >     <input type="text" id="{{ flag.name }}" name="{{ flag.name }}" placeholder="{{ flag.default }}"{{ ' required' if flag.required }}{{ ' repeatable' if flag.repeatable }}>
+      end
+      if flag.help || flag.conflicts
+        >     <br><small>
+        if flag.help
+          >       {{ flag.help }}
+        end
+        if flag.conflicts
+          >       Conflicts with: {{ flag.conflicts.join(', ') }}
+        end
+        >     </small>
+      end
+      >     <br>
+    end
+    >   </fieldset>
+  end
+  > </form>
+  if command.deep_commands.any?
+    command.deep_commands.each do |subcommand|
+      > <h4>{{ subcommand.name }}</h4>
+      if subcommand.help
+        > <p>{{ subcommand.help }}</p>
+      end
+      if subcommand.examples && subcommand.examples.any?
+        > <details>
+        >   <summary>Examples</summary>
+        >   <ul>
+        subcommand.examples.each do |example|
+          >     <li><code>{{ example }}</code></li>
+        end
+        >   </ul>
+        > </details>
+        > <br>
+      end
+      > <form action="#" method="get">
+      if subcommand.args.any?
+        >   <fieldset>
+        >     <legend>Arguments</legend>
+        subcommand.args.each do |arg|
+          >     <label for="{{ arg.name }}">{{ arg.name.upcase }}</label>
+          if arg.allowed
+            if arg.repeatable
+              >     <select id="{{ arg.name }}" name="{{ arg.name }}" multiple repeatable{{ ' required' if arg.required }}>
+              arg.allowed.each do |val|
+                >       <option value="{{ val }}"{{ ' selected' if arg.default == val }}>{{ val }}</option>
+              end
+              >     </select>
+            else
+              >     <select id="{{ arg.name }}" name="{{ arg.name }}"{{ ' required' if arg.required }}>
+              arg.allowed.each do |val|
+                >       <option value="{{ val }}"{{ ' selected' if arg.default == val }}>{{ val }}</option>
+              end
+              >     </select>
+            end
+          else
+            >     <input type="text" id="{{ arg.name }}" name="{{ arg.name }}" placeholder="{{ arg.default }}"{{ ' required' if arg.required }}{{ ' repeatable' if arg.repeatable }}>
+          end
+          if arg.help
+            >     <br><small>{{ arg.help }}</small>
+          end
+          >     <br>
+        end
+        >   </fieldset>
+      end
+      if subcommand.flags.any?
+        >   <fieldset>
+        >     <legend>Options</legend>
+        subcommand.flags.each do |flag|
+          >     <label for="{{ flag.name }}">{{ flag.usage_string }}</label>
+          if flag.allowed
+            if flag.repeatable
+              >     <select id="{{ flag.name }}" name="{{ flag.name }}" multiple repeatable{{ ' required' if flag.required }}>
+              flag.allowed.each do |val|
+                >       <option value="{{ val }}"{{ ' selected' if flag.default == val }}>{{ val }}</option>
+              end
+              >     </select>
+            else
+              >     <select id="{{ flag.name }}" name="{{ flag.name }}"{{ ' required' if flag.required }}>
+              flag.allowed.each do |val|
+                >       <option value="{{ val }}"{{ ' selected' if flag.default == val }}>{{ val }}</option>
+              end
+              >     </select>
+            end
+          else
+            >     <input type="text" id="{{ flag.name }}" name="{{ flag.name }}" placeholder="{{ flag.default }}"{{ ' required' if flag.required }}{{ ' repeatable' if flag.repeatable }}>
+          end
+          if flag.help || flag.conflicts
+            >     <br><small>
+            if flag.help
+              >       {{ flag.help }}
+            end
+            if flag.conflicts
+              >       Conflicts with: {{ flag.conflicts.join(', ') }}
+            end
+            >     </small>
+          end
+          >     <br>
+        end
+        >   </fieldset>
+      end
+      > </form>
+    end
+  end
+end
+
+# === Footer
+
+if footer
+  > <hr>
+  > <footer>
+  >   <a href="{{ footer }}">{{ footer }}</a>
+  > </footer>
+end
+
+> </body>
+> </html>
