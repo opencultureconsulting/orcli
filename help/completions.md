@@ -3,8 +3,8 @@
 ```
 orcli completions
 
-  Generate bash completions
-  Usage: source <(orcli completions)
+  generate bash completions
+  usage: source <(orcli completions)
 
 Usage:
   orcli completions

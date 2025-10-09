@@ -31,7 +31,7 @@ Usage:
   orcli --version | -v
 
 Commands:
-  completions   Generate bash completions
+  completions   generate bash completions
   delete        delete OpenRefine project
   import        commands to create OpenRefine projects from files or URLs
   list          list projects on OpenRefine server

@@ -1,0 +1,9 @@
+body { font-family: sans-serif; }
+form { margin-bottom: 2em; }
+fieldset { border: 1px solid #ccc; padding: 1em; margin-bottom: 1em; }
+legend { font-weight: bold; }
+label { display: block; margin-top: 0.5em; }
+details { margin-bottom: 1.0em; }
+input, select, details { margin-top: 1.0em; }
+p { white-space: pre }
+hr { margin: 2em 0; }
