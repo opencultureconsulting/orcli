@@ -67,14 +67,16 @@ note that any exporter supports search by using --facets (see examples)</p>
  
 </form>
 <h2>Examples</h2>
-<div class="examples-block">
-<code>orcli search "duplicates" "^Ben"</code>
-<code>orcli search 1234567890123 "^Ben"</code>
-<code>orcli search "duplicates" "^F" --index "email"</code>
-<code>orcli search "duplicates" | column -t -s $'\t'</code>
-<code>orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter(row.columnNames,cn,cells[cn].value.find(/^Ben/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</code>
-<code>orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</code>
-</div>
+<pre><code>orcli search "duplicates" "^Ben"</code></pre>
+<pre><code>orcli search 1234567890123 "^Ben"</code></pre>
+<pre><code>orcli search "duplicates" "^F" --index "email"</code></pre>
+<pre><code>orcli search "duplicates" | column -t -s $'\t'</code></pre>
+<pre><code>orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter(row.columnNames,cn,cells[cn].value.find(/^Ben/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</code></pre>
+<pre><code>orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</code></pre>
+<hr>
+<footer>
+Code: <a href="https://github.com/opencultureconsulting/orcli/blob/main/src/search_command.sh">https://github.com/opencultureconsulting/orcli/blob/main/src/search_command.sh</a>
+</footer>
 </body>
 </html>
 </html>

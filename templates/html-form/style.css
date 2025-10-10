@@ -2,8 +2,10 @@ body { font-family: sans-serif; }
 form { margin-bottom: 2em; }
 fieldset { border: 1px solid #ccc; padding: 1em; margin-bottom: 1em; }
 legend { font-weight: bold; }
-p { white-space: pre }
 code { white-space: pre }
+p { white-space: pre }
+pre { margin: 0; margin-left: 2em; }
+hr  { margin-top: 2em; }
 table {
   border-collapse: separate;
   border-spacing: 0.5em 0.2em;
@@ -15,7 +17,4 @@ td, th {
 input {
   margin: 0;
   padding: 0;
-}
-.examples-block {
-  margin-left: 2em;
 }

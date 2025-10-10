@@ -189,11 +189,9 @@ end
 
 if examples
   > <h2>Examples</h2>
-  > <div class="examples-block">
   examples.each do |example|
-    > <code>{{ example.gsub('\\\\\\\\', '\\').gsub('\\$', '$') }}</code>
+    > <pre><code>{{ example.gsub('\\\\\\\\', '\\').gsub('\\$', '$') }}</code></pre>
   end
-  > </div>
 end
 
 # === Dependencies
@@ -211,12 +209,15 @@ end
 
 # === Footer
 
-if footer
-  > <hr>
-  > <footer>
-  >   Code: <a href="{{ footer }}">{{ footer }}</a>
-  > </footer>
+> <hr>
+> <footer>
+if args.any? || flags.any?
+  code_link = "https://github.com/opencultureconsulting/orcli/blob/main/src/" + full_name.gsub('orcli ','').gsub(' ','_') + "_command.sh"
+  > Code: <a href="{{ code_link }}">{{ code_link }}</a>
+else
+  > Code: <a href="https://github.com/opencultureconsulting/orcli">https://github.com/opencultureconsulting/orcli</a>
 end
+> </footer>
 
 > </body>
 > </html>

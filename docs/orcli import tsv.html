@@ -201,12 +201,11 @@ hint: add --ignoreLines 1 to overwrite existing header row<br>conflicts: --heade
  
 </form>
 <h2>Examples</h2>
-<div class="examples-block">
-<code>orcli import tsv "file"</code>
-<code>orcli import tsv "file1" "file2"</code>
-<code>head -n 100 "file" | orcli import tsv</code>
-<code>orcli import tsv "https://example.com/file.tsv"</code>
-<code>orcli import tsv "file" \
+<pre><code>orcli import tsv "file"</code></pre>
+<pre><code>orcli import tsv "file1" "file2"</code></pre>
+<pre><code>head -n 100 "file" | orcli import tsv</code></pre>
+<pre><code>orcli import tsv "https://example.com/file.tsv"</code></pre>
+<pre><code>orcli import tsv "file" \
   --separator ";" \
   --columnNames "foo,bar,baz" \
   --ignoreLines 1 \
@@ -214,8 +213,11 @@ hint: add --ignoreLines 1 to overwrite existing header row<br>conflicts: --heade
   --limit 100 \
   --trimStrings \
   --projectName "duplicates" \
-  --projectTags "test,urgent"</code>
-</div>
+  --projectTags "test,urgent"</code></pre>
+<hr>
+<footer>
+Code: <a href="https://github.com/opencultureconsulting/orcli/blob/main/src/import_tsv_command.sh">https://github.com/opencultureconsulting/orcli/blob/main/src/import_tsv_command.sh</a>
+</footer>
 </body>
 </html>
 </html>

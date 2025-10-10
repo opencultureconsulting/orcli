@@ -104,14 +104,16 @@
  
 </form>
 <h2>Examples</h2>
-<div class="examples-block">
-<code>orcli export jsonl "duplicates"</code>
-<code>orcli export jsonl "duplicates" --output "duplicates.jsonl"</code>
-<code>orcli export jsonl "duplicates" --separator ' '</code>
-<code>orcli export jsonl "duplicates" --mode records</code>
-<code>orcli export jsonl "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]'</code>
-<code>orcli export jsonl "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</code>
-</div>
+<pre><code>orcli export jsonl "duplicates"</code></pre>
+<pre><code>orcli export jsonl "duplicates" --output "duplicates.jsonl"</code></pre>
+<pre><code>orcli export jsonl "duplicates" --separator ' '</code></pre>
+<pre><code>orcli export jsonl "duplicates" --mode records</code></pre>
+<pre><code>orcli export jsonl "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]'</code></pre>
+<pre><code>orcli export jsonl "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</code></pre>
+<hr>
+<footer>
+Code: <a href="https://github.com/opencultureconsulting/orcli/blob/main/src/export_jsonl_command.sh">https://github.com/opencultureconsulting/orcli/blob/main/src/export_jsonl_command.sh</a>
+</footer>
 </body>
 </html>
 </html>

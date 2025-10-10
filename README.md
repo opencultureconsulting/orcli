@@ -107,7 +107,7 @@ Optional:
 
 ## Usage
 
-* Use [help screens](help/README.md) for available options and examples for each command.
+* Use [📖 HTML form docs](https://code.opencultureconsulting.com/orcli) or integrated help screens for available options and examples for each command.
 
   ```sh
   orcli --help
@@ -123,7 +123,7 @@ Optional:
 
 ## Development
 
-orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-file script from files in the `src` directory
+orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-file script from files in the `src` directory.
 
 1. Install bashly (requires ruby)
 
@@ -145,8 +145,8 @@ orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-
   ./orcli test
   ```
 
-5. Generate help files
+5. Generate docs
 
   ```sh
-  ./help.sh
+  bashly render templates/html-form docs
   ```

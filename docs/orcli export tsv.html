@@ -105,14 +105,16 @@ example: --select "foo,bar,baz"</code>
  
 </form>
 <h2>Examples</h2>
-<div class="examples-block">
-<code>orcli export tsv "duplicates"</code>
-<code>orcli export tsv "duplicates" --output "duplicates.tsv"</code>
-<code>orcli export tsv "duplicates" --encoding "ISO-8859-1"</code>
-<code>orcli export tsv "duplicates" --select "name,email,purchase"</code>
-<code>orcli export tsv "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]'</code>
-<code>orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</code>
-</div>
+<pre><code>orcli export tsv "duplicates"</code></pre>
+<pre><code>orcli export tsv "duplicates" --output "duplicates.tsv"</code></pre>
+<pre><code>orcli export tsv "duplicates" --encoding "ISO-8859-1"</code></pre>
+<pre><code>orcli export tsv "duplicates" --select "name,email,purchase"</code></pre>
+<pre><code>orcli export tsv "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]'</code></pre>
+<pre><code>orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</code></pre>
+<hr>
+<footer>
+Code: <a href="https://github.com/opencultureconsulting/orcli/blob/main/src/export_tsv_command.sh">https://github.com/opencultureconsulting/orcli/blob/main/src/export_tsv_command.sh</a>
+</footer>
 </body>
 </html>
 </html>

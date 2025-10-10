@@ -83,14 +83,13 @@
  
 </form>
 <h2>Examples</h2>
-<div class="examples-block">
-<code>orcli run --interactive</code>
-<code>orcli run << EOF
+<pre><code>orcli run --interactive</code></pre>
+<pre><code>orcli run << EOF
   orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
   orcli transform "duplicates" "https://git.io/fj5ju"
   orcli export tsv "duplicates"
-EOF</code>
-<code>orcli run --memory "2000M" --port "3334" << EOF
+EOF</code></pre>
+<pre><code>orcli run --memory "2000M" --port "3334" << EOF
   orcli import csv "https://git.io/fj5hF" --projectName "duplicates" &
   orcli import csv "https://git.io/fj5hF" --projectName "copy" &
   wait
@@ -99,11 +98,14 @@ EOF</code>
   orcli export tsv "duplicates" --output duplicates.tsv &
   wait
   wc duplicates*
-EOF</code>
-<code>orcli run --interactive "file1.sh" "file2.sh" - << EOF
+EOF</code></pre>
+<pre><code>orcli run --interactive "file1.sh" "file2.sh" - << EOF
   echo "finished in $SECONDS seconds"
-EOF</code>
-</div>
+EOF</code></pre>
+<hr>
+<footer>
+Code: <a href="https://github.com/opencultureconsulting/orcli/blob/main/src/run_command.sh">https://github.com/opencultureconsulting/orcli/blob/main/src/run_command.sh</a>
+</footer>
 </body>
 </html>
 </html>

@@ -131,20 +131,22 @@
  
 </form>
 <h2>Examples</h2>
-<div class="examples-block">
-<code>orcli export template "duplicates" "template.txt"</code>
-<code>cat "template.txt" | orcli export template "duplicates"</code>
-<code>orcli export template "duplicates" "https://example.com/template.txt"</code>
-<code>orcli export template "duplicates" "template.txt" --output "duplicates.tsv"</code>
-<code>orcli export template "duplicates" \
+<pre><code>orcli export template "duplicates" "template.txt"</code></pre>
+<pre><code>cat "template.txt" | orcli export template "duplicates"</code></pre>
+<pre><code>orcli export template "duplicates" "https://example.com/template.txt"</code></pre>
+<pre><code>orcli export template "duplicates" "template.txt" --output "duplicates.tsv"</code></pre>
+<pre><code>orcli export template "duplicates" \
   <<< '{ "name" : {{jsonize(cells["name"].value)}}, "purchase" : {{jsonize(cells["purchase"].value)}} }' \
   --prefix '{ "events" : [' \
   --separator , \
   --mode records \
   --suffix ]}$'\\\n' \
   --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]' \
-  | jq</code>
-</div>
+  | jq</code></pre>
+<hr>
+<footer>
+Code: <a href="https://github.com/opencultureconsulting/orcli/blob/main/src/export_template_command.sh">https://github.com/opencultureconsulting/orcli/blob/main/src/export_template_command.sh</a>
+</footer>
 </body>
 </html>
 </html>

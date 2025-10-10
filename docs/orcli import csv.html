@@ -210,12 +210,11 @@ hint: add --ignoreLines 1 to overwrite existing header row<br>conflicts: --heade
  
 </form>
 <h2>Examples</h2>
-<div class="examples-block">
-<code>orcli import csv "file"</code>
-<code>orcli import csv "file1" "file2"</code>
-<code>head -n 100 "file" | orcli import csv</code>
-<code>orcli import csv "https://git.io/fj5hF"</code>
-<code>orcli import csv "file" \
+<pre><code>orcli import csv "file"</code></pre>
+<pre><code>orcli import csv "file1" "file2"</code></pre>
+<pre><code>head -n 100 "file" | orcli import csv</code></pre>
+<pre><code>orcli import csv "https://git.io/fj5hF"</code></pre>
+<pre><code>orcli import csv "file" \
   --separator ";" \
   --columnNames "foo,bar,baz" \
   --ignoreLines 1 \
@@ -223,8 +222,11 @@ hint: add --ignoreLines 1 to overwrite existing header row<br>conflicts: --heade
   --limit 100 \
   --trimStrings \
   --projectName "duplicates" \
-  --projectTags "test,urgent"</code>
-</div>
+  --projectTags "test,urgent"</code></pre>
+<hr>
+<footer>
+Code: <a href="https://github.com/opencultureconsulting/orcli/blob/main/src/import_csv_command.sh">https://github.com/opencultureconsulting/orcli/blob/main/src/import_csv_command.sh</a>
+</footer>
 </body>
 </html>
 </html>
