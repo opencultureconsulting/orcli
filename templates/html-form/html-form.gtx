@@ -7,229 +7,217 @@
 >   <script src="script.js"></script>
 > </head>
 > <body>
-> <div id="fixed-header">
->   <div id="header-title-row">
->     <h1 id="main-title">{{ full_name }} {{ version }}</h1>
->     <span id="main-subtitle">{{ help }}</span>
->   </div>
-> </div>
-# === Commands as Forms
-> <div id="container">
->   <nav id="sidebar">
->     <h2>Commands</h2>
->     <ul>
-commands.sort_by(&:name).each do |command|
-  >       <li>
-  >         <a href="#" class="command-link" data-command="{{ command.name }}">{{ command.name }}</a>
-  >         {{ ' - ' + command.help.split("\n").first if command.help }}
-  if command.deep_commands.any?
-    >         <ul>
-    command.deep_commands.sort_by(&:name).each do |subcommand|
-      >           <li>
-      >             <a href="#" class="command-link" data-command="{{ command.name }} {{ subcommand.name }}">{{ command.name }} {{ subcommand.name }}</a>
-      >           </li>
+
+# === Header
+
+> <h1>{{ full_name }} {{ version }}</h1>
+>
+> <p>{{ help }}</p>
+
+# === Commands
+
+if commands.any?
+  > <h2>Commands</h2>
+  > <nav>
+  >   <ul>
+  commands.sort_by(&:name).each do |command|
+    >     <li><a href="{{ command.full_name }}.html">{{ command.name }}</a>{{ ' - ' + command.help.split("\n").first if command.help }}</li>
+    if command.deep_commands.any?
+      >     <ul>
+      command.deep_commands.sort_by(&:name).each do |subcommand|
+        >       <li><a href="{{ subcommand.full_name }}.html">{{ subcommand.name }}</a>{{ ' - ' + subcommand.help.split("\n").first if subcommand.help }}</li>
+      end
+      >     </ul>
     end
-    >         </ul>
   end
-  >       </li>
+  >   </ul>
+  > </nav>
 end
->     </ul>
-if visible_environment_variables.any?
-  >     <h2>Settings</h2>
+
+# === Usage
+
+if args.any? || flags.any?
+  > <h2>Usage</h2>
   > <form action="#" method="get">
+
+  # === Arguments
+  
+  if args.any?
     >   <fieldset>
-    >     <legend>Environment Variables</legend>
-  visible_environment_variables.each do |env|
-    >   <label for="{{ env.name }}">{{ env.name.upcase }}</label>
-    >   <input type="text" id="{{ env.name }}" name="{{ env.name }}" placeholder="{{ env.default }}">
-    if env.help
-        >     <pre><code>{{ env.help }}</pre></code>
-    end
-  end
-  >   </fieldset>
-  > </form>
-end
->   </nav>
->   <main id="main">
-if examples
-  >     <section id="examples-section">
-  >       <h2>Examples</h2>
-  >       <ul>
-  examples.each do |example|
-    >         <li><pre><code>{{ example.gsub('\\\\\\\\', '\\').gsub('\\$', '$') }}</pre></code></li>
-  end
-  >       </ul>
-  >     </section>
-end
-commands.sort_by(&:name).each do |command|
-  >     <section class="command-section" id="section-{{ command.name }}">
-  >       <h3>{{ command.name }}</h3>
-  if command.help
-    >       <p>{{ command.help }}</p>
-  end
-  if command.examples && command.examples.any?
-    >       <details>
-    >         <summary>Examples</summary>
-    >         <ul>
-    command.examples.each do |example|
-      >           <li><pre><code>{{ example.gsub('\\\\\\\\', '\\').gsub('\\$', '$') }}</pre></code></li>
-    end
-    >         </ul>
-    >       </details>
-  end
-  >       <form class="command-form" data-command="{{ command.name }}" action="#" method="get">
-  if command.args.any?
-    >         <fieldset>
-    >           <legend>Arguments</legend>
-    command.args.each do |arg|
-      >             <label for="{{ arg.name }}">{{ arg.name.upcase }}</label>
+    >     <legend>Arguments</legend>
+    >     <table>
+    args.each do |arg|
+      >       <tr>
+      >         <td><label for="{{ arg.name }}">{{ arg.name.upcase }}</label></td>
+      >         <td>
       if arg.allowed
         if arg.repeatable
-          >             <select id="{{ arg.name }}" name="{{ arg.name }}" multiple repeatable{{ ' required' if arg.required }}>
+          >           <select id="{{ arg.name }}" name="{{ arg.name }}" multiple repeatable{{ ' required' if arg.required }}>
           arg.allowed.each do |val|
-            >               <option value="{{ val.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') }}"{{ ' selected' if arg.default == val }}>{{ val }}</option>
+            >             <option value="{{ val.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') }}"{{ ' selected' if arg.default == val }}>{{ val }}</option>
           end
-          >             </select>
+          >           </select>
         else
-          >             <select id="{{ arg.name }}" name="{{ arg.name }}"{{ ' required' if arg.required }}>
+          >           <select id="{{ arg.name }}" name="{{ arg.name }}"{{ ' required' if arg.required }}>
           arg.allowed.each do |val|
-            >               <option value="{{ val.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') }}"{{ ' selected' if arg.default == val }}>{{ val }}</option>
+            >             <option value="{{ val.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') }}"{{ ' selected' if arg.default == val }}>{{ val }}</option>
           end
-          >             </select>
+          >           </select>
         end
       else
-        >             <input type="text" id="{{ arg.name }}" name="{{ arg.name }}" placeholder="{{ arg.default.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') if arg.default }}"{{ ' required' if arg.required }}{{ ' repeatable' if arg.repeatable }}>
+        >           <input type="text" id="{{ arg.name }}" name="{{ arg.name }}" placeholder="{{ arg.default.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') if arg.default }}"{{ ' required' if arg.required }}{{ ' repeatable' if arg.repeatable }}>
       end
-      if arg.help
-        >             <pre><code>{{ arg.help }}</pre></code>
+      >         </td>
+      >         <td>
+      if arg.help || arg.repeatable || arg.required
+        >           <code>{{ arg.help if arg.help }}{{ '<br>(repeatable)' if arg.repeatable }}{{ '<br>(required)' if arg.required }}</code>
       end
+      >         </td>
+      >       </tr>
     end
-    >         </fieldset>
+    >     </table>
+    >   </fieldset>
   end
-  if command.flags.any?
-    >         <fieldset>
-    >           <legend>Options</legend>
-    command.flags.each do |flag|
-      >             <label for="{{ flag.name }}">{{ flag.usage_string }}</label>
+
+  # === Options
+
+  if flags.any?
+    >   <fieldset>
+    >     <legend>Options</legend>
+    >     <table>
+    flags.each do |flag|
+      >       <tr>
       if flag.allowed
         if flag.repeatable
-          >             <select id="{{ flag.name }}" name="{{ flag.name }}" multiple repeatable{{ ' required' if flag.required }}>
+          >         <td><label for="{{ flag.name }}">{{ flag.usage_string }}</label></td>
+          >         <td>
+          >           <select id="{{ flag.name }}" name="{{ flag.name }}" multiple repeatable{{ ' required' if flag.required }}>
           flag.allowed.each do |val|
-            >               <option value="{{ val.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') }}"{{ ' selected' if flag.default == val }}>{{ val }}</option>
+            >             <option value="{{ val.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') }}"{{ ' selected' if flag.default == val }}>{{ val }}</option>
           end
-          >             </select>
+          >           </select>
+          >         </td>
         else
-          >             <select id="{{ flag.name }}" name="{{ flag.name }}"{{ ' required' if flag.required }}>
+          >         <td><label for="{{ flag.name }}">{{ flag.usage_string }}</label></td>
+          >         <td>
+          >           <select id="{{ flag.name }}" name="{{ flag.name }}"{{ ' required' if flag.required }}>
           flag.allowed.each do |val|
-            >               <option value="{{ val.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') }}"{{ ' selected' if flag.default == val }}>{{ val }}</option>
+            >             <option value="{{ val.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') }}"{{ ' selected' if flag.default == val }}>{{ val }}</option>
           end
-          >             </select>
+          >           </select>
+          >         </td>
         end
+      elsif flag.arg
+        >         <td><label for="{{ flag.name }}">{{ flag.usage_string }}</label></td>
+        >         <td>
+        >           <input type="text" id="{{ flag.name }}" name="{{ flag.name }}" placeholder="{{ flag.default.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') if flag.default}}"{{ ' required' if flag.required }}{{ ' repeatable' if flag.repeatable }}>
+        >         </td>
       else
-        >             <input type="text" id="{{ flag.name }}" name="{{ flag.name }}" placeholder="{{ flag.default.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') if flag.default}}"{{ ' required' if flag.required }}{{ ' repeatable' if flag.repeatable }}>
+        >         <td><label for="{{ flag.name }}">{{ flag.usage_string }}</label></td>
+        >         <td>
+        >           <input type="checkbox" id="{{ flag.name }}" name="{{ flag.name }}">
+        >         </td>
       end
-      if flag.help || flag.conflicts
-        >             <pre><code>{{ flag.help if flag.help }}{{ '\n' + 'conflicts:' + flag.conflicts.join(', ') if flag.conflicts }}</pre></code>
+      >         <td>
+      if flag.help || flag.conflicts || flag.repeatable || flag.required
+        >           <code>{{ flag.help if flag.help }}{{ '<br>(repeatable)' if flag.repeatable }}{{ '<br>(required)' if flag.required }}{{ '<br>conflicts: ' + flag.conflicts.join(', ') if flag.conflicts }}</code>
       end
+      >         </td>
+      >       </tr>
     end
-    >         </fieldset>
+    >     </table>
+    >   </fieldset>
   end
-  >       </form>
-  >     </section>
+
+  # === Environment Variables
+
+  if visible_environment_variables.any?
+    >   <fieldset>
+    >     <legend>Environment Variables</legend>
+    >     <table>
+    visible_environment_variables.each do |env|
+      >       <tr>
+      >         <td><label for="{{ env.name }}">{{ env.name.upcase }}</label></td>
+      >         <td>
+      >           <input type="text" id="{{ env.name }}" name="{{ env.name }}" placeholder="{{ env.default }}">
+      >         </td>
+      >         <td>
+      if env.help
+        >           <code>{{ env.help }}</code>
+      end
+      >         </td>
+      >       </tr>
+    end
+    >     </table>
+    >   </fieldset>
+  end
+
+  # === Parent Environment Variables (recursive)
+
+  def show_parent_envvars(cmd, level = 1)
+    if cmd && cmd.respond_to?(:options) && cmd.options["environment_variables"] && cmd.options["environment_variables"].any?
+      %Q{
+        <fieldset>
+          <legend>Parent Environment Variables</legend>
+          <table>
+            #{cmd.options["environment_variables"].map do |env|
+              %Q{
+                <tr>
+                  <td><label for="parent-#{env["name"]}">#{env["name"].upcase}</label></td>
+                  <td><input type="text" id="parent-#{env["name"]}" name="parent_#{env["name"]}" placeholder="#{env["default"]}"></td>
+                  <td>#{env["help"] ? "<code>#{env["help"]}</code>" : ""}</td>
+                </tr>
+              }
+            end.join}
+          </table>
+        </fieldset>
+      }
+    else
+      ""
+    end +
+    (cmd.respond_to?(:parent_command) && cmd.parent_command ? show_parent_envvars(cmd.parent_command, level + 1) : "")
+  end
+
+  if parent_command
+    > {{ show_parent_envvars(parent_command) }}
+  end
+
+  > </form>
 end
-commands.sort_by(&:name).each do |command|
-  if command.deep_commands.any?
-    command.deep_commands.sort_by(&:name).each do |subcommand|
-      >     <section class="command-section" id="section-{{ command.name }}-{{ subcommand.name }}">
-      >       <h4>{{ command.name }} {{ subcommand.name }}</h4>
-      if subcommand.help
-        >         <p>{{ subcommand.help }}</p>
-      end
-      if subcommand.examples && subcommand.examples.any?
-        >         <details>
-        >           <summary>Examples</summary>
-        >           <ul>
-        subcommand.examples.each do |example|
-          >             <li><pre><code>{{ example.gsub('\\\\\\\\', '\\').gsub('\\$', '$').gsub('\\\\\\n','\n') }}</pre></code></li>
-        end
-        >           </ul>
-        >         </details>
-      end
-      >         <form class="command-form" data-command="{{ command.name }} {{ subcommand.name }}" action="#" method="get">
-      if subcommand.args.any?
-        >           <fieldset>
-        >             <legend>Arguments</legend>
-        subcommand.args.each do |arg|
-          >               <label for="{{ arg.name }}">{{ arg.name.upcase }}</label>
-          if arg.allowed
-            if arg.repeatable
-              >               <select id="{{ arg.name }}" name="{{ arg.name }}" multiple repeatable{{ ' required' if arg.required }}>
-              arg.allowed.each do |val|
-                >                 <option value="{{ val.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') }}"{{ ' selected' if arg.default == val }}>{{ val }}</option>
-              end
-              >               </select>
-            else
-              >               <select id="{{ arg.name }}" name="{{ arg.name }}"{{ ' required' if arg.required }}>
-              arg.allowed.each do |val|
-                >                 <option value="{{ val.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') }}"{{ ' selected' if arg.default == val }}>{{ val }}</option>
-              end
-              >               </select>
-            end
-          else
-            >               <input type="text" id="{{ arg.name }}" name="{{ arg.name }}" placeholder="{{ arg.default.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') if arg.default}}"{{ ' required' if arg.required }}{{ ' repeatable' if arg.repeatable }}>
-          end
-          if arg.help
-            >               <pre><code>{{ arg.help }}</pre></code>
-          end
-        end
-        >           </fieldset>
-      end
-      if subcommand.flags.any?
-        >           <fieldset>
-        >             <legend>Options</legend>
-        subcommand.flags.each do |flag|
-          >               <label for="{{ flag.name }}">{{ flag.usage_string }}</label>
-          if flag.allowed
-            if flag.repeatable
-              >               <select id="{{ flag.name }}" name="{{ flag.name }}" multiple repeatable{{ ' required' if flag.required }}>
-              flag.allowed.each do |val|
-                >                 <option value="{{ val.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') }}"{{ ' selected' if flag.default == val }}>{{ val }}</option>
-              end
-              >               </select>
-            else
-              >               <select id="{{ flag.name }}" name="{{ flag.name }}"{{ ' required' if flag.required }}>
-              flag.allowed.each do |val|
-                >                 <option value="{{ val.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') }}"{{ ' selected' if flag.default == val }}>{{ val }}</option>
-              end
-              >               </select>
-            end
-          else
-            >               <input type="text" id="{{ flag.name }}" name="{{ flag.name }}" placeholder="{{ flag.default.gsub('\\\\\\"','&#92;&quot;').gsub('\"','&quot;') if flag.default }}"{{ ' required' if flag.required }}{{ ' repeatable' if flag.repeatable }}>
-          end
-          if flag.help || flag.conflicts
-            >               <pre><code>{{ flag.help if flag.help }}{{ "\n" + "conflicts:" + flag.conflicts.join(', ') if flag.conflicts }}</pre></code>
-          end
-        end
-        >           </fieldset>
-      end
-      >         </form>
-      >     </section>
+
+# === Examples
+
+if examples
+  > <h2>Examples</h2>
+  > <div class="examples-block">
+  examples.each do |example|
+    > <code>{{ example.gsub('\\\\\\\\', '\\').gsub('\\$', '$') }}</code>
+  end
+  > </div>
+end
+
+# === Dependencies
+
+if dependencies.any?
+  > <h2>Dependencies</h2>
+  > <ul>
+  dependencies.each do |dependency|
+    dependency.commands.each do |command|
+    > <li>{{ dependency.commands.join ', ' }}: {{ dependency.help }}</li>
     end
   end
-  >     </section>
+  > </ul>
 end
->   </main>
-> </div>
-> <div id="fixed-footer">
->   <div id="global-cli-preview">
->     <span id="cli-preview-text">Select a command and fill out the form to preview the CLI command.</span>
->     <button id="copy-cli-preview" title="Copy to clipboard" type="button">Copy</button>
->   </div>
+
+# === Footer
+
 if footer
-  >   <footer id="main-footer">
-  >     <a href="{{ footer }}">{{ footer }}</a>
-  >   </footer>
+  > <hr>
+  > <footer>
+  >   Code: <a href="{{ footer }}">{{ footer }}</a>
+  > </footer>
 end
-> </div>
+
 > </body>
+> </html>
 > </html>

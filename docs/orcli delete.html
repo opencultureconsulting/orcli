@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>orcli delete </title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js"></script>
+</head>
+<body>
+<h1>orcli delete </h1>
+
+<p>delete OpenRefine project</p>
+<h2>Usage</h2>
+<form action="#" method="get">
+  <fieldset>
+    <legend>Arguments</legend>
+    <table>
+      <tr>
+        <td><label for="project">PROJECT</label></td>
+        <td>
+          <input type="text" id="project" name="project" placeholder="" required>
+        </td>
+        <td>
+          <code>project name or id<br>(required)</code>
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+  <fieldset>
+    <legend>Options</legend>
+    <table>
+      <tr>
+        <td><label for="--force">--force, -f</label></td>
+        <td>
+          <input type="checkbox" id="--force" name="--force">
+        </td>
+        <td>
+          <code>delete all projects with the same name</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--quiet">--quiet, -q</label></td>
+        <td>
+          <input type="checkbox" id="--quiet" name="--quiet">
+        </td>
+        <td>
+          <code>suppress log output, print errors only</code>
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+ 
+ <fieldset> 
+ <legend>Parent Environment Variables</legend> 
+ <table> 
+  
+ <tr> 
+ <td><label for="parent-OPENREFINE_URL">OPENREFINE_URL</label></td> 
+ <td><input type="text" id="parent-OPENREFINE_URL" name="parent_OPENREFINE_URL" placeholder="http://localhost:3333"></td> 
+ <td><code>URL to OpenRefine server</code></td> 
+ </tr> 
+  
+ </table> 
+ </fieldset> 
+ 
+</form>
+<h2>Examples</h2>
+<div class="examples-block">
+<code>orcli delete "duplicates"</code>
+<code>orcli delete "duplicates" --force</code>
+<code>orcli delete 1234567890123</code>
+<code>for p in $(orcli list); do orcli delete ${p:0:13}; done</code>
+</div>
+</body>
+</html>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>orcli import json </title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js"></script>
+</head>
+<body>
+<h1>orcli import json </h1>
+
+<p>import JSON</p>
+<h2>Usage</h2>
+<form action="#" method="get">
+  <fieldset>
+    <legend>Arguments</legend>
+    <table>
+      <tr>
+        <td><label for="file">FILE</label></td>
+        <td>
+          <input type="text" id="file" name="file" placeholder="-" repeatable>
+        </td>
+        <td>
+          <code>Path to one or more files or URLs. When FILE is -, read standard input.<br>(repeatable)</code>
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+  <fieldset>
+    <legend>Options</legend>
+    <table>
+      <tr>
+        <td><label for="--recordPath">--recordPath JSON</label></td>
+        <td>
+          <input type="text" id="--recordPath" name="--recordPath" placeholder="[ &quot;_&quot; , &quot;_&quot; ]">
+        </td>
+        <td>
+          <code>specify record path elements in JSON array</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--rename">--rename</label></td>
+        <td>
+          <input type="checkbox" id="--rename" name="--rename">
+        </td>
+        <td>
+          <code>rename columns after import to remove record path fragments</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--guessCellValueTypes">--guessCellValueTypes</label></td>
+        <td>
+          <input type="checkbox" id="--guessCellValueTypes" name="--guessCellValueTypes">
+        </td>
+        <td>
+          <code>attempt to parse cell text into numbers</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--includeFileSources">--includeFileSources</label></td>
+        <td>
+          <input type="checkbox" id="--includeFileSources" name="--includeFileSources">
+        </td>
+        <td>
+          <code>add column with file source</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--includeArchiveFileName">--includeArchiveFileName</label></td>
+        <td>
+          <input type="checkbox" id="--includeArchiveFileName" name="--includeArchiveFileName">
+        </td>
+        <td>
+          <code>add column with archive file name</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--limit">--limit LIMIT</label></td>
+        <td>
+          <input type="text" id="--limit" name="--limit" placeholder="-1">
+        </td>
+        <td>
+          <code>load at most x row(s) of data</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--storeEmptyStrings">--storeEmptyStrings</label></td>
+        <td>
+          <input type="checkbox" id="--storeEmptyStrings" name="--storeEmptyStrings">
+        </td>
+        <td>
+          <code>preserve empty strings</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--trimStrings">--trimStrings</label></td>
+        <td>
+          <input type="checkbox" id="--trimStrings" name="--trimStrings">
+        </td>
+        <td>
+          <code>trim leading & trailing whitespace from strings</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--projectName">--projectName PROJECTNAME</label></td>
+        <td>
+          <input type="text" id="--projectName" name="--projectName" placeholder="">
+        </td>
+        <td>
+          <code>set a name for the OpenRefine project</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--projectTags">--projectTags PROJECTTAGS</label></td>
+        <td>
+          <input type="text" id="--projectTags" name="--projectTags" placeholder="">
+        </td>
+        <td>
+          <code>set project tags (comma separated)</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--quiet">--quiet, -q</label></td>
+        <td>
+          <input type="checkbox" id="--quiet" name="--quiet">
+        </td>
+        <td>
+          <code>suppress log output, print errors only</code>
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+ 
+ <fieldset> 
+ <legend>Parent Environment Variables</legend> 
+ <table> 
+  
+ <tr> 
+ <td><label for="parent-OPENREFINE_URL">OPENREFINE_URL</label></td> 
+ <td><input type="text" id="parent-OPENREFINE_URL" name="parent_OPENREFINE_URL" placeholder="http://localhost:3333"></td> 
+ <td><code>URL to OpenRefine server</code></td> 
+ </tr> 
+  
+ </table> 
+ </fieldset> 
+ 
+</form>
+<h2>Examples</h2>
+<div class="examples-block">
+<code>orcli import json "file"</code>
+<code>orcli import json "file1" "file2"</code>
+<code>orcli import json "https://example.com/file.json"</code>
+<code>orcli import json "file" \
+  --recordPath '[ "_", "rows", "_" ]' \
+  --rename \
+  --storeEmptyStrings \
+  --trimStrings \
+  --projectName "duplicates" \
+  --projectTags "test,urgent"</code>
+</div>
+</body>
+</html>
+</html>

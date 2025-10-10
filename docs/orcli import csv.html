@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>orcli import csv </title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js"></script>
+</head>
+<body>
+<h1>orcli import csv </h1>
+
+<p>import character-separated values (CSV)</p>
+<h2>Usage</h2>
+<form action="#" method="get">
+  <fieldset>
+    <legend>Arguments</legend>
+    <table>
+      <tr>
+        <td><label for="file">FILE</label></td>
+        <td>
+          <input type="text" id="file" name="file" placeholder="-" repeatable>
+        </td>
+        <td>
+          <code>Path to one or more files or URLs. When FILE is -, read standard input.<br>(repeatable)</code>
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+  <fieldset>
+    <legend>Options</legend>
+    <table>
+      <tr>
+        <td><label for="--separator">--separator SEPARATOR</label></td>
+        <td>
+          <input type="text" id="--separator" name="--separator" placeholder=",">
+        </td>
+        <td>
+          <code>character(s) that separates columns</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--blankCellsAsStrings">--blankCellsAsStrings</label></td>
+        <td>
+          <input type="checkbox" id="--blankCellsAsStrings" name="--blankCellsAsStrings">
+        </td>
+        <td>
+          <code>store blank cells as empty strings instead of nulls</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--columnNames">--columnNames COLUMNNAMES</label></td>
+        <td>
+          <input type="text" id="--columnNames" name="--columnNames" placeholder="">
+        </td>
+        <td>
+          <code>set column names (comma separated)
+hint: add --ignoreLines 1 to overwrite existing header row<br>conflicts: --headerLines</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--encoding">--encoding ENCODING</label></td>
+        <td>
+          <input type="text" id="--encoding" name="--encoding" placeholder="">
+        </td>
+        <td>
+          <code>set character encoding</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--guessCellValueTypes">--guessCellValueTypes</label></td>
+        <td>
+          <input type="checkbox" id="--guessCellValueTypes" name="--guessCellValueTypes">
+        </td>
+        <td>
+          <code>attempt to parse cell text into numbers</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--headerLines">--headerLines HEADERLINES</label></td>
+        <td>
+          <input type="text" id="--headerLines" name="--headerLines" placeholder="1">
+        </td>
+        <td>
+          <code>parse x line(s) as column headers<br>conflicts: --columnNames</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--ignoreLines">--ignoreLines IGNORELINES</label></td>
+        <td>
+          <input type="text" id="--ignoreLines" name="--ignoreLines" placeholder="-1">
+        </td>
+        <td>
+          <code>ignore first x line(s) at beginning of file</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--ignoreQuoteCharacter">--ignoreQuoteCharacter</label></td>
+        <td>
+          <input type="checkbox" id="--ignoreQuoteCharacter" name="--ignoreQuoteCharacter">
+        </td>
+        <td>
+          <code>do not use any quote character to enclose cells containing column separators</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--includeFileSources">--includeFileSources</label></td>
+        <td>
+          <input type="checkbox" id="--includeFileSources" name="--includeFileSources">
+        </td>
+        <td>
+          <code>add column with file source</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--includeArchiveFileName">--includeArchiveFileName</label></td>
+        <td>
+          <input type="checkbox" id="--includeArchiveFileName" name="--includeArchiveFileName">
+        </td>
+        <td>
+          <code>add column with archive file name</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--limit">--limit LIMIT</label></td>
+        <td>
+          <input type="text" id="--limit" name="--limit" placeholder="-1">
+        </td>
+        <td>
+          <code>load at most x row(s) of data</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--quoteCharacter">--quoteCharacter QUOTECHARACTER</label></td>
+        <td>
+          <input type="text" id="--quoteCharacter" name="--quoteCharacter" placeholder="&#92;&quot;">
+        </td>
+        <td>
+          <code>quote character to enclose cells containing column separators</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--skipBlankRows">--skipBlankRows</label></td>
+        <td>
+          <input type="checkbox" id="--skipBlankRows" name="--skipBlankRows">
+        </td>
+        <td>
+          <code>do not store blank rows</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--skipDataLines">--skipDataLines SKIPDATALINES</label></td>
+        <td>
+          <input type="text" id="--skipDataLines" name="--skipDataLines" placeholder="0">
+        </td>
+        <td>
+          <code>discard initial x row(s) of data</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--trimStrings">--trimStrings</label></td>
+        <td>
+          <input type="checkbox" id="--trimStrings" name="--trimStrings">
+        </td>
+        <td>
+          <code>trim leading & trailing whitespace from strings</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--projectName">--projectName PROJECTNAME</label></td>
+        <td>
+          <input type="text" id="--projectName" name="--projectName" placeholder="">
+        </td>
+        <td>
+          <code>set a name for the OpenRefine project</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--projectTags">--projectTags PROJECTTAGS</label></td>
+        <td>
+          <input type="text" id="--projectTags" name="--projectTags" placeholder="">
+        </td>
+        <td>
+          <code>set project tags (comma separated)</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--quiet">--quiet, -q</label></td>
+        <td>
+          <input type="checkbox" id="--quiet" name="--quiet">
+        </td>
+        <td>
+          <code>suppress log output, print errors only</code>
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+ 
+ <fieldset> 
+ <legend>Parent Environment Variables</legend> 
+ <table> 
+  
+ <tr> 
+ <td><label for="parent-OPENREFINE_URL">OPENREFINE_URL</label></td> 
+ <td><input type="text" id="parent-OPENREFINE_URL" name="parent_OPENREFINE_URL" placeholder="http://localhost:3333"></td> 
+ <td><code>URL to OpenRefine server</code></td> 
+ </tr> 
+  
+ </table> 
+ </fieldset> 
+ 
+</form>
+<h2>Examples</h2>
+<div class="examples-block">
+<code>orcli import csv "file"</code>
+<code>orcli import csv "file1" "file2"</code>
+<code>head -n 100 "file" | orcli import csv</code>
+<code>orcli import csv "https://git.io/fj5hF"</code>
+<code>orcli import csv "file" \
+  --separator ";" \
+  --columnNames "foo,bar,baz" \
+  --ignoreLines 1 \
+  --encoding "ISO-8859-1" \
+  --limit 100 \
+  --trimStrings \
+  --projectName "duplicates" \
+  --projectTags "test,urgent"</code>
+</div>
+</body>
+</html>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>orcli export jsonl </title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js"></script>
+</head>
+<body>
+<h1>orcli export jsonl </h1>
+
+<p>export JSON Lines / newline-delimited JSON</p>
+<h2>Usage</h2>
+<form action="#" method="get">
+  <fieldset>
+    <legend>Arguments</legend>
+    <table>
+      <tr>
+        <td><label for="project">PROJECT</label></td>
+        <td>
+          <input type="text" id="project" name="project" placeholder="" required>
+        </td>
+        <td>
+          <code>project name or id<br>(required)</code>
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+  <fieldset>
+    <legend>Options</legend>
+    <table>
+      <tr>
+        <td><label for="--mode">--mode MODE</label></td>
+        <td>
+          <select id="--mode" name="--mode">
+            <option value="rows" selected>rows</option>
+            <option value="records">records</option>
+          </select>
+        </td>
+        <td>
+          <code>specify if project contains multi-row records</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--separator">--separator SEPARATOR</label></td>
+        <td>
+          <input type="text" id="--separator" name="--separator" placeholder="">
+        </td>
+        <td>
+          <code>character(s) that separates multiple values in one cell (row mode only)</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--facets">--facets FACETS</label></td>
+        <td>
+          <input type="text" id="--facets" name="--facets" placeholder="[]">
+        </td>
+        <td>
+          <code>filter result set by providing an OpenRefine facets config in json</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--output">--output FILE</label></td>
+        <td>
+          <input type="text" id="--output" name="--output" placeholder="">
+        </td>
+        <td>
+          <code>Write to file instead of stdout</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--encoding">--encoding ENCODING</label></td>
+        <td>
+          <input type="text" id="--encoding" name="--encoding" placeholder="UTF-8">
+        </td>
+        <td>
+          <code>set character encoding</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--quiet">--quiet, -q</label></td>
+        <td>
+          <input type="checkbox" id="--quiet" name="--quiet">
+        </td>
+        <td>
+          <code>suppress log output, print errors only</code>
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+ 
+ <fieldset> 
+ <legend>Parent Environment Variables</legend> 
+ <table> 
+  
+ <tr> 
+ <td><label for="parent-OPENREFINE_URL">OPENREFINE_URL</label></td> 
+ <td><input type="text" id="parent-OPENREFINE_URL" name="parent_OPENREFINE_URL" placeholder="http://localhost:3333"></td> 
+ <td><code>URL to OpenRefine server</code></td> 
+ </tr> 
+  
+ </table> 
+ </fieldset> 
+ 
+</form>
+<h2>Examples</h2>
+<div class="examples-block">
+<code>orcli export jsonl "duplicates"</code>
+<code>orcli export jsonl "duplicates" --output "duplicates.jsonl"</code>
+<code>orcli export jsonl "duplicates" --separator ' '</code>
+<code>orcli export jsonl "duplicates" --mode records</code>
+<code>orcli export jsonl "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]'</code>
+<code>orcli export jsonl "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</code>
+</div>
+</body>
+</html>
+</html>

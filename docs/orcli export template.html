@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>orcli export template </title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js"></script>
+</head>
+<body>
+<h1>orcli export template </h1>
+
+<p>export to any text format by providing your own GREL template</p>
+<h2>Usage</h2>
+<form action="#" method="get">
+  <fieldset>
+    <legend>Arguments</legend>
+    <table>
+      <tr>
+        <td><label for="project">PROJECT</label></td>
+        <td>
+          <input type="text" id="project" name="project" placeholder="" required>
+        </td>
+        <td>
+          <code>project name or id<br>(required)</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="file">FILE</label></td>
+        <td>
+          <input type="text" id="file" name="file" placeholder="-">
+        </td>
+        <td>
+          <code>Path to row/record template file or URL. When FILE is -, read standard input.</code>
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+  <fieldset>
+    <legend>Options</legend>
+    <table>
+      <tr>
+        <td><label for="--separator">--separator SEPARATOR</label></td>
+        <td>
+          <input type="text" id="--separator" name="--separator" placeholder="">
+        </td>
+        <td>
+          <code>insert character(s) between rows/records</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--prefix">--prefix PREFIX</label></td>
+        <td>
+          <input type="text" id="--prefix" name="--prefix" placeholder="">
+        </td>
+        <td>
+          <code>insert character(s) at the beginning of the file</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--suffix">--suffix SUFFIX</label></td>
+        <td>
+          <input type="text" id="--suffix" name="--suffix" placeholder="">
+        </td>
+        <td>
+          <code>insert character(s) at the end of the file</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--mode">--mode MODE</label></td>
+        <td>
+          <select id="--mode" name="--mode">
+            <option value="rows" selected>rows</option>
+            <option value="records">records</option>
+          </select>
+        </td>
+        <td>
+          <code>specify if project contains multi-row records</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--facets">--facets FACETS</label></td>
+        <td>
+          <input type="text" id="--facets" name="--facets" placeholder="[]">
+        </td>
+        <td>
+          <code>filter result set by providing an OpenRefine facets config in json</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--output">--output FILE</label></td>
+        <td>
+          <input type="text" id="--output" name="--output" placeholder="">
+        </td>
+        <td>
+          <code>Write to file instead of stdout</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--encoding">--encoding ENCODING</label></td>
+        <td>
+          <input type="text" id="--encoding" name="--encoding" placeholder="UTF-8">
+        </td>
+        <td>
+          <code>set character encoding</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--quiet">--quiet, -q</label></td>
+        <td>
+          <input type="checkbox" id="--quiet" name="--quiet">
+        </td>
+        <td>
+          <code>suppress log output, print errors only</code>
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+ 
+ <fieldset> 
+ <legend>Parent Environment Variables</legend> 
+ <table> 
+  
+ <tr> 
+ <td><label for="parent-OPENREFINE_URL">OPENREFINE_URL</label></td> 
+ <td><input type="text" id="parent-OPENREFINE_URL" name="parent_OPENREFINE_URL" placeholder="http://localhost:3333"></td> 
+ <td><code>URL to OpenRefine server</code></td> 
+ </tr> 
+  
+ </table> 
+ </fieldset> 
+ 
+</form>
+<h2>Examples</h2>
+<div class="examples-block">
+<code>orcli export template "duplicates" "template.txt"</code>
+<code>cat "template.txt" | orcli export template "duplicates"</code>
+<code>orcli export template "duplicates" "https://example.com/template.txt"</code>
+<code>orcli export template "duplicates" "template.txt" --output "duplicates.tsv"</code>
+<code>orcli export template "duplicates" \
+  <<< '{ "name" : {{jsonize(cells["name"].value)}}, "purchase" : {{jsonize(cells["purchase"].value)}} }' \
+  --prefix '{ "events" : [' \
+  --separator , \
+  --mode records \
+  --suffix ]}$'\\\n' \
+  --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]' \
+  | jq</code>
+</div>
+</body>
+</html>
+</html>

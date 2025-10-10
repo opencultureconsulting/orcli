@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>orcli run </title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js"></script>
+</head>
+<body>
+<h1>orcli run </h1>
+
+<p>run tmp OpenRefine workspace and execute shell script(s)</p>
+<h2>Usage</h2>
+<form action="#" method="get">
+  <fieldset>
+    <legend>Arguments</legend>
+    <table>
+      <tr>
+        <td><label for="file">FILE</label></td>
+        <td>
+          <input type="text" id="file" name="file" placeholder="-" repeatable>
+        </td>
+        <td>
+          <code>Path to one or more files or URLs. When FILE is -, read standard input.<br>(repeatable)</code>
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+  <fieldset>
+    <legend>Options</legend>
+    <table>
+      <tr>
+        <td><label for="--memory">--memory RAM</label></td>
+        <td>
+          <input type="text" id="--memory" name="--memory" placeholder="2048M">
+        </td>
+        <td>
+          <code>maximum RAM for OpenRefine java heap space</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--port">--port PORT</label></td>
+        <td>
+          <input type="text" id="--port" name="--port" placeholder="3333">
+        </td>
+        <td>
+          <code>PORT on which OpenRefine should listen</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--interactive">--interactive</label></td>
+        <td>
+          <input type="checkbox" id="--interactive" name="--interactive">
+        </td>
+        <td>
+          <code>do not exit on error and keep bash shell open</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--quiet">--quiet, -q</label></td>
+        <td>
+          <input type="checkbox" id="--quiet" name="--quiet">
+        </td>
+        <td>
+          <code>suppress log output, print errors only</code>
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+ 
+ <fieldset> 
+ <legend>Parent Environment Variables</legend> 
+ <table> 
+  
+ <tr> 
+ <td><label for="parent-OPENREFINE_URL">OPENREFINE_URL</label></td> 
+ <td><input type="text" id="parent-OPENREFINE_URL" name="parent_OPENREFINE_URL" placeholder="http://localhost:3333"></td> 
+ <td><code>URL to OpenRefine server</code></td> 
+ </tr> 
+  
+ </table> 
+ </fieldset> 
+ 
+</form>
+<h2>Examples</h2>
+<div class="examples-block">
+<code>orcli run --interactive</code>
+<code>orcli run << EOF
+  orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+  orcli transform "duplicates" "https://git.io/fj5ju"
+  orcli export tsv "duplicates"
+EOF</code>
+<code>orcli run --memory "2000M" --port "3334" << EOF
+  orcli import csv "https://git.io/fj5hF" --projectName "duplicates" &
+  orcli import csv "https://git.io/fj5hF" --projectName "copy" &
+  wait
+  echo "finished import"
+  orcli export csv "duplicates" --output duplicates.csv &
+  orcli export tsv "duplicates" --output duplicates.tsv &
+  wait
+  wc duplicates*
+EOF</code>
+<code>orcli run --interactive "file1.sh" "file2.sh" - << EOF
+  echo "finished in $SECONDS seconds"
+EOF</code>
+</div>
+</body>
+</html>
+</html>

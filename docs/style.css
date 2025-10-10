@@ -2,123 +2,20 @@ body { font-family: sans-serif; }
 form { margin-bottom: 2em; }
 fieldset { border: 1px solid #ccc; padding: 1em; margin-bottom: 1em; }
 legend { font-weight: bold; }
-label { display: block; margin-top: 0.5em; }
-details { margin-bottom: 1.0em; }
-input, select, details { margin-top: 1.0em; }
 p { white-space: pre }
-hr { margin: 2em 0; }
-
-#fixed-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: #fff;
-  z-index: 100;
-  border-bottom: 1px solid #ccc;
-  padding: 1em 2em 0.5em 2em;
+code { white-space: pre }
+table {
+  border-collapse: separate;
+  border-spacing: 0.5em 0.2em;
 }
-#fixed-footer {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #fff;
-  z-index: 100;
-  border-top: 1px solid #ccc;
-  padding: 0.5em 2em 0.5em 2em;
-  text-align: center;
+td, th {
+  vertical-align: top;
+  padding: 0.2em 0.2em;
 }
-#header-title-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 2em;
-}
-#main-title {
+input {
   margin: 0;
-  font-size: 2em;
+  padding: 0;
 }
-#main-subtitle {
-  font-size: 1.1em;
-  color: #666;
-  margin-left: auto;
-  white-space: pre-line;
-  max-width: 50vw;
-  text-align: right;
-}
-#global-cli-preview {
-  position: relative;
-  margin-top: 0.5em;
-  background: #222;
-  color: #eee;
-  padding: 0.7em 1em;
-  border-radius: 6px;
-  font-family: monospace;
-  font-size: 1.2em;
-  max-width: 100vw;
-  overflow-x: auto;
-  margin: 0;
-  text-align: center;
-  display: block;
-}
-#cli-preview-text {
-  display: inline-block;
-  white-space: pre-wrap;
-  word-break: break-all;
-  text-align: center;
-  width: 100%;
-}
-#copy-cli-preview {
-  position: absolute;
-  top: 0.5em;
-  right: 1em;
-  background: none;
-  color: #fff;
-  border: 1px solid #888;
-  border-radius: 4px;
-  padding: 0.2em 0.5em;
-  font-size: 0.8em;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  min-width: 80px;
-  z-index: 2;
-}
-#copy-cli-preview:hover {
-  background: #444;
-  color: #fff;
-}
-#copy-cli-preview:active {
-  background: #222;
-}
-#container {
-  display: flex;
-  margin-top: 70px;
-  margin-bottom: 70px;
-}
-#sidebar {
-  width: 400px;
-  min-width: 200px;
-  border-right: 1px solid #ccc;
-  padding-left: 2em;
-  padding-right: 2em;
-}
-#main {
-  flex: 1;
-  padding-left: 2em;
-}
-#examples-section {
-  display: block;
-}
-#main-footer {
-  margin: 0.5em 0 0 0;
-  text-align: center;
-  padding: 0.5em 0 0.5em 0;
-  background: none;
-  border: none;
-}
-#main-footer a {
-  color: #444;
-  text-decoration: none;
-  font-size: 1.1em;
+.examples-block {
+  margin-left: 2em;
 }
