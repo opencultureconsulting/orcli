@@ -7,33 +7,95 @@
   <script src="script.js"></script>
 </head>
 <body>
-<h1>orcli 0.4.2</h1>
-
-<p>OpenRefine command-line interface written in Bash</p>
-<h2>Examples</h2>
-<ul>
-<li><pre><code>orcli import csv "https://git.io/fj5hF" --projectName "duplicates"</pre></code></li>
-<li><pre><code>orcli list</pre></code></li>
-<li><pre><code>orcli info "duplicates"</pre></code></li>
-<li><pre><code>orcli transform "duplicates" "https://git.io/fj5ju"</pre></code></li>
-<li><pre><code>orcli search "duplicates" "^Ben"</pre></code></li>
-<li><pre><code>orcli sort columns "duplicates"</pre></code></li>
-<li><pre><code>orcli export tsv "duplicates"</pre></code></li>
-<li><pre><code>orcli export tsv "duplicates" --output "duplicates.tsv"</pre></code></li>
-<li><pre><code>orcli delete "duplicates"</pre></code></li>
-<li><pre><code>orcli run --interactive</pre></code></li>
-<li><pre><code>orcli run << EOF
-  orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
-  orcli transform "duplicates" "https://git.io/fj5ju"
-  orcli export tsv "duplicates"
-EOF</pre></code></li>
-</ul>
-<h2>Dependencies</h2>
-<ul>
-<li>curl: https://curl.se</li>
-<li>jq: https://github.com/stedolan/jq</li>
-</ul>
-<h2>Global Settings</h2>
+<div id="fixed-header">
+  <div id="header-title-row">
+    <h1 id="main-title">orcli 0.4.2</h1>
+    <span id="main-subtitle">OpenRefine command-line interface written in Bash</span>
+  </div>
+</div>
+<div id="container">
+  <nav id="sidebar">
+    <h2>Commands</h2>
+    <ul>
+      <li>
+        <a href="#" class="command-link" data-command="completions">completions</a>
+         - generate bash completions
+      </li>
+      <li>
+        <a href="#" class="command-link" data-command="delete">delete</a>
+         - delete OpenRefine project
+      </li>
+      <li>
+        <a href="#" class="command-link" data-command="export">export</a>
+         - commands to export data from OpenRefine projects to files
+        <ul>
+          <li>
+            <a href="#" class="command-link" data-command="export csv">export csv</a>
+          </li>
+          <li>
+            <a href="#" class="command-link" data-command="export jsonl">export jsonl</a>
+          </li>
+          <li>
+            <a href="#" class="command-link" data-command="export template">export template</a>
+          </li>
+          <li>
+            <a href="#" class="command-link" data-command="export tsv">export tsv</a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <a href="#" class="command-link" data-command="import">import</a>
+         - commands to create OpenRefine projects from files or URLs
+        <ul>
+          <li>
+            <a href="#" class="command-link" data-command="import csv">import csv</a>
+          </li>
+          <li>
+            <a href="#" class="command-link" data-command="import json">import json</a>
+          </li>
+          <li>
+            <a href="#" class="command-link" data-command="import jsonl">import jsonl</a>
+          </li>
+          <li>
+            <a href="#" class="command-link" data-command="import tsv">import tsv</a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <a href="#" class="command-link" data-command="info">info</a>
+         - show OpenRefine project's metadata
+      </li>
+      <li>
+        <a href="#" class="command-link" data-command="list">list</a>
+         - list projects on OpenRefine server
+      </li>
+      <li>
+        <a href="#" class="command-link" data-command="run">run</a>
+         - run tmp OpenRefine workspace and execute shell script(s)
+      </li>
+      <li>
+        <a href="#" class="command-link" data-command="search">search</a>
+         - apply regex to each column and print matches in flattened tsv format
+      </li>
+      <li>
+        <a href="#" class="command-link" data-command="sort">sort</a>
+         - commands to sort OpenRefine projects
+        <ul>
+          <li>
+            <a href="#" class="command-link" data-command="sort columns">sort columns</a>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <a href="#" class="command-link" data-command="test">test</a>
+         - run functional tests on tmp OpenRefine workspace
+      </li>
+      <li>
+        <a href="#" class="command-link" data-command="transform">transform</a>
+         - apply undo/redo JSON file(s) to an OpenRefine project
+      </li>
+    </ul>
+    <h2>Settings</h2>
 <form action="#" method="get">
   <fieldset>
     <legend>Environment Variables</legend>
@@ -42,612 +104,116 @@ EOF</pre></code></li>
     <pre><code>URL to OpenRefine server</pre></code>
   </fieldset>
 </form>
-<h2>Commands</h2>
-<nav>
-  <ul>
-    <li><a href="#completions">completions</a> - generate bash completions</li>
-    <li><a href="#delete">delete</a> - delete OpenRefine project</li>
-    <li><a href="#export">export</a> - commands to export data from OpenRefine projects to files</li>
-    <ul>
-      <li><a href="#export csv">csv</a> - export comma-separated values (CSV)</li>
-      <li><a href="#export jsonl">jsonl</a> - export JSON Lines / newline-delimited JSON</li>
-      <li><a href="#export template">template</a> - export to any text format by providing your own GREL template</li>
-      <li><a href="#export tsv">tsv</a> - export tab-separated values (TSV)</li>
-    </ul>
-    <li><a href="#import">import</a> - commands to create OpenRefine projects from files or URLs</li>
-    <ul>
-      <li><a href="#import csv">csv</a> - import character-separated values (CSV)</li>
-      <li><a href="#import json">json</a> - import JSON</li>
-      <li><a href="#import jsonl">jsonl</a> - import JSON Lines / newline-delimited JSON</li>
-      <li><a href="#import tsv">tsv</a> - import tab-separated values (TSV)</li>
-    </ul>
-    <li><a href="#info">info</a> - show OpenRefine project's metadata</li>
-    <li><a href="#list">list</a> - list projects on OpenRefine server</li>
-    <li><a href="#run">run</a> - run tmp OpenRefine workspace and execute shell script(s)</li>
-    <li><a href="#search">search</a> - apply regex to each column and print matches in flattened tsv format</li>
-    <li><a href="#sort">sort</a> - commands to sort OpenRefine projects</li>
-    <ul>
-      <li><a href="#sort columns">columns</a> - re-order columns alphabetically</li>
-    </ul>
-    <li><a href="#test">test</a> - run functional tests on tmp OpenRefine workspace</li>
-    <li><a href="#transform">transform</a> - apply undo/redo JSON file(s) to an OpenRefine project</li>
-  </ul>
-</nav>
-<hr>
-<h3 id="completions">completions</h3>
-<p>generate bash completions
-usage: source <(orcli completions)</p>
-<form action="#" method="get">
-</form>
-<hr>
-<h3 id="delete">delete</h3>
-<p>delete OpenRefine project</p>
-<details>
-  <summary>Examples</summary>
-  <ul>
-    <li><pre><code>orcli delete "duplicates"</pre></code></li>
-    <li><pre><code>orcli delete "duplicates" --force</pre></code></li>
-    <li><pre><code>orcli delete 1234567890123</pre></code></li>
-    <li><pre><code>for p in $(orcli list); do orcli delete ${p:0:13}; done</pre></code></li>
-  </ul>
-</details>
-<form action="#" method="get">
-  <fieldset>
-    <legend>Arguments</legend>
-    <label for="project">PROJECT</label>
-    <input type="text" id="project" name="project" placeholder="" required>
-    <pre><code>project name or id</pre></code>
-  </fieldset>
-  <fieldset>
-    <legend>Options</legend>
-    <label for="--force">--force, -f</label>
-    <input type="text" id="--force" name="--force" placeholder="">
-    <pre><code>delete all projects with the same name</pre></code>
-    <label for="--quiet">--quiet, -q</label>
-    <input type="text" id="--quiet" name="--quiet" placeholder="">
-    <pre><code>suppress log output, print errors only</pre></code>
-  </fieldset>
-</form>
-<hr>
-<h3 id="export">export</h3>
-<p>commands to export data from OpenRefine projects to files</p>
-<form action="#" method="get">
-</form>
-<h4 id="export jsonl">export jsonl</h4>
-<p>export JSON Lines / newline-delimited JSON</p>
-<details>
-  <summary>Examples</summary>
-  <ul>
-    <li><pre><code>orcli export jsonl "duplicates"</pre></code></li>
-    <li><pre><code>orcli export jsonl "duplicates" --output "duplicates.jsonl"</pre></code></li>
-    <li><pre><code>orcli export jsonl "duplicates" --separator ' '</pre></code></li>
-    <li><pre><code>orcli export jsonl "duplicates" --mode records</pre></code></li>
-    <li><pre><code>orcli export jsonl "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]'</pre></code></li>
-    <li><pre><code>orcli export jsonl "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</pre></code></li>
-  </ul>
-</details>
-<form action="#" method="get">
-  <fieldset>
-    <legend>Arguments</legend>
-    <label for="project">PROJECT</label>
-    <input type="text" id="project" name="project" placeholder="" required>
-    <pre><code>project name or id</pre></code>
-  </fieldset>
-  <fieldset>
-    <legend>Options</legend>
-    <label for="--mode">--mode MODE</label>
-    <select id="--mode" name="--mode">
-      <option value="rows" selected>rows</option>
-      <option value="records">records</option>
-    </select>
-    <pre><code>specify if project contains multi-row records</pre></code>
-    <label for="--separator">--separator SEPARATOR</label>
-    <input type="text" id="--separator" name="--separator" placeholder="">
-    <pre><code>character(s) that separates multiple values in one cell (row mode only)</pre></code>
-    <label for="--facets">--facets FACETS</label>
-    <input type="text" id="--facets" name="--facets" placeholder="[]">
-    <pre><code>filter result set by providing an OpenRefine facets config in json</pre></code>
-    <label for="--output">--output FILE</label>
-    <input type="text" id="--output" name="--output" placeholder="">
-    <pre><code>Write to file instead of stdout</pre></code>
-    <label for="--encoding">--encoding ENCODING</label>
-    <input type="text" id="--encoding" name="--encoding" placeholder="UTF-8">
-    <pre><code>set character encoding</pre></code>
-    <label for="--quiet">--quiet, -q</label>
-    <input type="text" id="--quiet" name="--quiet" placeholder="">
-    <pre><code>suppress log output, print errors only</pre></code>
-  </fieldset>
-</form>
-<h4 id="export csv">export csv</h4>
-<p>export comma-separated values (CSV)</p>
-<details>
-  <summary>Examples</summary>
-  <ul>
-    <li><pre><code>orcli export csv "duplicates"</pre></code></li>
-    <li><pre><code>orcli export csv "duplicates" --output "duplicates.tsv"</pre></code></li>
-    <li><pre><code>orcli export csv "duplicates" --separator ";"</pre></code></li>
-    <li><pre><code>orcli export csv "duplicates" --encoding "ISO-8859-1"</pre></code></li>
-    <li><pre><code>orcli export csv "duplicates" --select "name,email,purchase"</pre></code></li>
-    <li><pre><code>orcli export csv "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]'</pre></code></li>
-    <li><pre><code>orcli export csv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</pre></code></li>
-  </ul>
-</details>
-<form action="#" method="get">
-  <fieldset>
-    <legend>Arguments</legend>
-    <label for="project">PROJECT</label>
-    <input type="text" id="project" name="project" placeholder="" required>
-    <pre><code>project name or id</pre></code>
-  </fieldset>
-  <fieldset>
-    <legend>Options</legend>
-    <label for="--separator">--separator SEPARATOR</label>
-    <input type="text" id="--separator" name="--separator" placeholder=",">
-    <pre><code>character(s) that separates columns</pre></code>
-    <label for="--select">--select COLUMNS</label>
-    <input type="text" id="--select" name="--select" placeholder="">
-    <pre><code>filter result set to one or more columns (comma separated)
-example: --select "foo,bar,baz"</pre></code>
-    <label for="--mode">--mode MODE</label>
-    <select id="--mode" name="--mode">
-      <option value="rows" selected>rows</option>
-      <option value="records">records</option>
-    </select>
-    <pre><code>specify if project contains multi-row records</pre></code>
-    <label for="--facets">--facets FACETS</label>
-    <input type="text" id="--facets" name="--facets" placeholder="[]">
-    <pre><code>filter result set by providing an OpenRefine facets config in json</pre></code>
-    <label for="--output">--output FILE</label>
-    <input type="text" id="--output" name="--output" placeholder="">
-    <pre><code>Write to file instead of stdout</pre></code>
-    <label for="--encoding">--encoding ENCODING</label>
-    <input type="text" id="--encoding" name="--encoding" placeholder="UTF-8">
-    <pre><code>set character encoding</pre></code>
-    <label for="--quiet">--quiet, -q</label>
-    <input type="text" id="--quiet" name="--quiet" placeholder="">
-    <pre><code>suppress log output, print errors only</pre></code>
-  </fieldset>
-</form>
-<h4 id="export tsv">export tsv</h4>
-<p>export tab-separated values (TSV)</p>
-<details>
-  <summary>Examples</summary>
-  <ul>
-    <li><pre><code>orcli export tsv "duplicates"</pre></code></li>
-    <li><pre><code>orcli export tsv "duplicates" --output "duplicates.tsv"</pre></code></li>
-    <li><pre><code>orcli export tsv "duplicates" --encoding "ISO-8859-1"</pre></code></li>
-    <li><pre><code>orcli export tsv "duplicates" --select "name,email,purchase"</pre></code></li>
-    <li><pre><code>orcli export tsv "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]'</pre></code></li>
-    <li><pre><code>orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</pre></code></li>
-  </ul>
-</details>
-<form action="#" method="get">
-  <fieldset>
-    <legend>Arguments</legend>
-    <label for="project">PROJECT</label>
-    <input type="text" id="project" name="project" placeholder="" required>
-    <pre><code>project name or id</pre></code>
-  </fieldset>
-  <fieldset>
-    <legend>Options</legend>
-    <label for="--select">--select COLUMNS</label>
-    <input type="text" id="--select" name="--select" placeholder="">
-    <pre><code>filter result set to one or more columns (comma separated)
-example: --select "foo,bar,baz"</pre></code>
-    <label for="--mode">--mode MODE</label>
-    <select id="--mode" name="--mode">
-      <option value="rows" selected>rows</option>
-      <option value="records">records</option>
-    </select>
-    <pre><code>specify if project contains multi-row records</pre></code>
-    <label for="--facets">--facets FACETS</label>
-    <input type="text" id="--facets" name="--facets" placeholder="[]">
-    <pre><code>filter result set by providing an OpenRefine facets config in json</pre></code>
-    <label for="--output">--output FILE</label>
-    <input type="text" id="--output" name="--output" placeholder="">
-    <pre><code>Write to file instead of stdout</pre></code>
-    <label for="--encoding">--encoding ENCODING</label>
-    <input type="text" id="--encoding" name="--encoding" placeholder="UTF-8">
-    <pre><code>set character encoding</pre></code>
-    <label for="--quiet">--quiet, -q</label>
-    <input type="text" id="--quiet" name="--quiet" placeholder="">
-    <pre><code>suppress log output, print errors only</pre></code>
-  </fieldset>
-</form>
-<h4 id="export template">export template</h4>
-<p>export to any text format by providing your own GREL template</p>
-<details>
-  <summary>Examples</summary>
-  <ul>
-    <li><pre><code>orcli export template "duplicates" "template.txt"</pre></code></li>
-    <li><pre><code>cat "template.txt" | orcli export template "duplicates"</pre></code></li>
-    <li><pre><code>orcli export template "duplicates" "https://example.com/template.txt"</pre></code></li>
-    <li><pre><code>orcli export template "duplicates" "template.txt" --output "duplicates.tsv"</pre></code></li>
-    <li><pre><code>orcli export template "duplicates" \
-  <<< '{ "name" : {{jsonize(cells["name"].value)}}, "purchase" : {{jsonize(cells["purchase"].value)}} }' \
-  --prefix '{ "events" : [' \
-  --separator , \
-  --mode records \
-  --suffix ]}$'\n' \
-  --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]' \
-  | jq</pre></code></li>
-  </ul>
-</details>
-<form action="#" method="get">
-  <fieldset>
-    <legend>Arguments</legend>
-    <label for="project">PROJECT</label>
-    <input type="text" id="project" name="project" placeholder="" required>
-    <pre><code>project name or id</pre></code>
-    <label for="file">FILE</label>
-    <input type="text" id="file" name="file" placeholder="-">
-    <pre><code>Path to row/record template file or URL. When FILE is -, read standard input.</pre></code>
-  </fieldset>
-  <fieldset>
-    <legend>Options</legend>
-    <label for="--separator">--separator SEPARATOR</label>
-    <input type="text" id="--separator" name="--separator" placeholder="">
-    <pre><code>insert character(s) between rows/records</pre></code>
-    <label for="--prefix">--prefix PREFIX</label>
-    <input type="text" id="--prefix" name="--prefix" placeholder="">
-    <pre><code>insert character(s) at the beginning of the file</pre></code>
-    <label for="--suffix">--suffix SUFFIX</label>
-    <input type="text" id="--suffix" name="--suffix" placeholder="">
-    <pre><code>insert character(s) at the end of the file</pre></code>
-    <label for="--mode">--mode MODE</label>
-    <select id="--mode" name="--mode">
-      <option value="rows" selected>rows</option>
-      <option value="records">records</option>
-    </select>
-    <pre><code>specify if project contains multi-row records</pre></code>
-    <label for="--facets">--facets FACETS</label>
-    <input type="text" id="--facets" name="--facets" placeholder="[]">
-    <pre><code>filter result set by providing an OpenRefine facets config in json</pre></code>
-    <label for="--output">--output FILE</label>
-    <input type="text" id="--output" name="--output" placeholder="">
-    <pre><code>Write to file instead of stdout</pre></code>
-    <label for="--encoding">--encoding ENCODING</label>
-    <input type="text" id="--encoding" name="--encoding" placeholder="UTF-8">
-    <pre><code>set character encoding</pre></code>
-    <label for="--quiet">--quiet, -q</label>
-    <input type="text" id="--quiet" name="--quiet" placeholder="">
-    <pre><code>suppress log output, print errors only</pre></code>
-  </fieldset>
-</form>
-<hr>
-<h3 id="import">import</h3>
-<p>commands to create OpenRefine projects from files or URLs</p>
-<form action="#" method="get">
-</form>
-<h4 id="import csv">import csv</h4>
-<p>import character-separated values (CSV)</p>
-<details>
-  <summary>Examples</summary>
-  <ul>
-    <li><pre><code>orcli import csv "file"</pre></code></li>
-    <li><pre><code>orcli import csv "file1" "file2"</pre></code></li>
-    <li><pre><code>head -n 100 "file" | orcli import csv</pre></code></li>
-    <li><pre><code>orcli import csv "https://git.io/fj5hF"</pre></code></li>
-    <li><pre><code>orcli import csv "file" \
-  --separator ";" \
-  --columnNames "foo,bar,baz" \
-  --ignoreLines 1 \
-  --encoding "ISO-8859-1" \
-  --limit 100 \
-  --trimStrings \
-  --projectName "duplicates" \
-  --projectTags "test,urgent"</pre></code></li>
-  </ul>
-</details>
-<form action="#" method="get">
-  <fieldset>
-    <legend>Arguments</legend>
-    <label for="file">FILE</label>
-    <input type="text" id="file" name="file" placeholder="-" repeatable>
-    <pre><code>Path to one or more files or URLs. When FILE is -, read standard input.</pre></code>
-  </fieldset>
-  <fieldset>
-    <legend>Options</legend>
-    <label for="--separator">--separator SEPARATOR</label>
-    <input type="text" id="--separator" name="--separator" placeholder=",">
-    <pre><code>character(s) that separates columns</pre></code>
-    <label for="--blankCellsAsStrings">--blankCellsAsStrings</label>
-    <input type="text" id="--blankCellsAsStrings" name="--blankCellsAsStrings" placeholder="">
-    <pre><code>store blank cells as empty strings instead of nulls</pre></code>
-    <label for="--columnNames">--columnNames COLUMNNAMES</label>
-    <input type="text" id="--columnNames" name="--columnNames" placeholder="">
-    <pre><code>set column names (comma separated)
-hint: add --ignoreLines 1 to overwrite existing header row
-conflicts:--headerLines</pre></code>
-    <label for="--encoding">--encoding ENCODING</label>
-    <input type="text" id="--encoding" name="--encoding" placeholder="">
-    <pre><code>set character encoding</pre></code>
-    <label for="--guessCellValueTypes">--guessCellValueTypes</label>
-    <input type="text" id="--guessCellValueTypes" name="--guessCellValueTypes" placeholder="">
-    <pre><code>attempt to parse cell text into numbers</pre></code>
-    <label for="--headerLines">--headerLines HEADERLINES</label>
-    <input type="text" id="--headerLines" name="--headerLines" placeholder="1">
-    <pre><code>parse x line(s) as column headers
-conflicts:--columnNames</pre></code>
-    <label for="--ignoreLines">--ignoreLines IGNORELINES</label>
-    <input type="text" id="--ignoreLines" name="--ignoreLines" placeholder="-1">
-    <pre><code>ignore first x line(s) at beginning of file</pre></code>
-    <label for="--ignoreQuoteCharacter">--ignoreQuoteCharacter</label>
-    <input type="text" id="--ignoreQuoteCharacter" name="--ignoreQuoteCharacter" placeholder="">
-    <pre><code>do not use any quote character to enclose cells containing column separators</pre></code>
-    <label for="--includeFileSources">--includeFileSources</label>
-    <input type="text" id="--includeFileSources" name="--includeFileSources" placeholder="">
-    <pre><code>add column with file source</pre></code>
-    <label for="--includeArchiveFileName">--includeArchiveFileName</label>
-    <input type="text" id="--includeArchiveFileName" name="--includeArchiveFileName" placeholder="">
-    <pre><code>add column with archive file name</pre></code>
-    <label for="--limit">--limit LIMIT</label>
-    <input type="text" id="--limit" name="--limit" placeholder="-1">
-    <pre><code>load at most x row(s) of data</pre></code>
-    <label for="--quoteCharacter">--quoteCharacter QUOTECHARACTER</label>
-    <input type="text" id="--quoteCharacter" name="--quoteCharacter" placeholder="&#92;&quot;">
-    <pre><code>quote character to enclose cells containing column separators</pre></code>
-    <label for="--skipBlankRows">--skipBlankRows</label>
-    <input type="text" id="--skipBlankRows" name="--skipBlankRows" placeholder="">
-    <pre><code>do not store blank rows</pre></code>
-    <label for="--skipDataLines">--skipDataLines SKIPDATALINES</label>
-    <input type="text" id="--skipDataLines" name="--skipDataLines" placeholder="0">
-    <pre><code>discard initial x row(s) of data</pre></code>
-    <label for="--trimStrings">--trimStrings</label>
-    <input type="text" id="--trimStrings" name="--trimStrings" placeholder="">
-    <pre><code>trim leading & trailing whitespace from strings</pre></code>
-    <label for="--projectName">--projectName PROJECTNAME</label>
-    <input type="text" id="--projectName" name="--projectName" placeholder="">
-    <pre><code>set a name for the OpenRefine project</pre></code>
-    <label for="--projectTags">--projectTags PROJECTTAGS</label>
-    <input type="text" id="--projectTags" name="--projectTags" placeholder="">
-    <pre><code>set project tags (comma separated)</pre></code>
-    <label for="--quiet">--quiet, -q</label>
-    <input type="text" id="--quiet" name="--quiet" placeholder="">
-    <pre><code>suppress log output, print errors only</pre></code>
-  </fieldset>
-</form>
-<h4 id="import tsv">import tsv</h4>
-<p>import tab-separated values (TSV)</p>
-<details>
-  <summary>Examples</summary>
-  <ul>
-    <li><pre><code>orcli import tsv "file"</pre></code></li>
-    <li><pre><code>orcli import tsv "file1" "file2"</pre></code></li>
-    <li><pre><code>head -n 100 "file" | orcli import tsv</pre></code></li>
-    <li><pre><code>orcli import tsv "https://example.com/file.tsv"</pre></code></li>
-    <li><pre><code>orcli import tsv "file" \
-  --separator ";" \
-  --columnNames "foo,bar,baz" \
-  --ignoreLines 1 \
-  --encoding "ISO-8859-1" \
-  --limit 100 \
-  --trimStrings \
-  --projectName "duplicates" \
-  --projectTags "test,urgent"</pre></code></li>
-  </ul>
-</details>
-<form action="#" method="get">
-  <fieldset>
-    <legend>Arguments</legend>
-    <label for="file">FILE</label>
-    <input type="text" id="file" name="file" placeholder="-" repeatable>
-    <pre><code>Path to one or more files or URLs. When FILE is -, read standard input.</pre></code>
-  </fieldset>
-  <fieldset>
-    <legend>Options</legend>
-    <label for="--blankCellsAsStrings">--blankCellsAsStrings</label>
-    <input type="text" id="--blankCellsAsStrings" name="--blankCellsAsStrings" placeholder="">
-    <pre><code>store blank cells as empty strings instead of nulls</pre></code>
-    <label for="--columnNames">--columnNames COLUMNNAMES</label>
-    <input type="text" id="--columnNames" name="--columnNames" placeholder="">
-    <pre><code>set column names (comma separated)
-hint: add --ignoreLines 1 to overwrite existing header row
-conflicts:--headerLines</pre></code>
-    <label for="--encoding">--encoding ENCODING</label>
-    <input type="text" id="--encoding" name="--encoding" placeholder="">
-    <pre><code>set character encoding</pre></code>
-    <label for="--guessCellValueTypes">--guessCellValueTypes</label>
-    <input type="text" id="--guessCellValueTypes" name="--guessCellValueTypes" placeholder="">
-    <pre><code>attempt to parse cell text into numbers</pre></code>
-    <label for="--headerLines">--headerLines HEADERLINES</label>
-    <input type="text" id="--headerLines" name="--headerLines" placeholder="1">
-    <pre><code>parse x line(s) as column headers
-conflicts:--columnNames</pre></code>
-    <label for="--ignoreLines">--ignoreLines IGNORELINES</label>
-    <input type="text" id="--ignoreLines" name="--ignoreLines" placeholder="-1">
-    <pre><code>ignore first x line(s) at beginning of file</pre></code>
-    <label for="--ignoreQuoteCharacter">--ignoreQuoteCharacter</label>
-    <input type="text" id="--ignoreQuoteCharacter" name="--ignoreQuoteCharacter" placeholder="">
-    <pre><code>do not use any quote character to enclose cells containing column separators</pre></code>
-    <label for="--includeFileSources">--includeFileSources</label>
-    <input type="text" id="--includeFileSources" name="--includeFileSources" placeholder="">
-    <pre><code>add column with file source</pre></code>
-    <label for="--includeArchiveFileName">--includeArchiveFileName</label>
-    <input type="text" id="--includeArchiveFileName" name="--includeArchiveFileName" placeholder="">
-    <pre><code>add column with archive file name</pre></code>
-    <label for="--limit">--limit LIMIT</label>
-    <input type="text" id="--limit" name="--limit" placeholder="-1">
-    <pre><code>load at most x row(s) of data</pre></code>
-    <label for="--quoteCharacter">--quoteCharacter QUOTECHARACTER</label>
-    <input type="text" id="--quoteCharacter" name="--quoteCharacter" placeholder="&#92;&quot;">
-    <pre><code>quote character to enclose cells containing column separators</pre></code>
-    <label for="--skipBlankRows">--skipBlankRows</label>
-    <input type="text" id="--skipBlankRows" name="--skipBlankRows" placeholder="">
-    <pre><code>do not store blank rows</pre></code>
-    <label for="--skipDataLines">--skipDataLines SKIPDATALINES</label>
-    <input type="text" id="--skipDataLines" name="--skipDataLines" placeholder="0">
-    <pre><code>discard initial x row(s) of data</pre></code>
-    <label for="--trimStrings">--trimStrings</label>
-    <input type="text" id="--trimStrings" name="--trimStrings" placeholder="">
-    <pre><code>trim leading & trailing whitespace from strings</pre></code>
-    <label for="--projectName">--projectName PROJECTNAME</label>
-    <input type="text" id="--projectName" name="--projectName" placeholder="">
-    <pre><code>set a name for the OpenRefine project</pre></code>
-    <label for="--projectTags">--projectTags PROJECTTAGS</label>
-    <input type="text" id="--projectTags" name="--projectTags" placeholder="">
-    <pre><code>set project tags (comma separated)</pre></code>
-    <label for="--quiet">--quiet, -q</label>
-    <input type="text" id="--quiet" name="--quiet" placeholder="">
-    <pre><code>suppress log output, print errors only</pre></code>
-  </fieldset>
-</form>
-<h4 id="import json">import json</h4>
-<p>import JSON</p>
-<details>
-  <summary>Examples</summary>
-  <ul>
-    <li><pre><code>orcli import json "file"</pre></code></li>
-    <li><pre><code>orcli import json "file1" "file2"</pre></code></li>
-    <li><pre><code>orcli import json "https://example.com/file.json"</pre></code></li>
-    <li><pre><code>orcli import json "file" \
-  --recordPath '[ "_", "rows", "_" ]' \
-  --rename \
-  --storeEmptyStrings \
-  --trimStrings \
-  --projectName "duplicates" \
-  --projectTags "test,urgent"</pre></code></li>
-  </ul>
-</details>
-<form action="#" method="get">
-  <fieldset>
-    <legend>Arguments</legend>
-    <label for="file">FILE</label>
-    <input type="text" id="file" name="file" placeholder="-" repeatable>
-    <pre><code>Path to one or more files or URLs. When FILE is -, read standard input.</pre></code>
-  </fieldset>
-  <fieldset>
-    <legend>Options</legend>
-    <label for="--recordPath">--recordPath JSON</label>
-    <input type="text" id="--recordPath" name="--recordPath" placeholder="[ &quot;_&quot; , &quot;_&quot; ]">
-    <pre><code>specify record path elements in JSON array</pre></code>
-    <label for="--rename">--rename</label>
-    <input type="text" id="--rename" name="--rename" placeholder="">
-    <pre><code>rename columns after import to remove record path fragments</pre></code>
-    <label for="--guessCellValueTypes">--guessCellValueTypes</label>
-    <input type="text" id="--guessCellValueTypes" name="--guessCellValueTypes" placeholder="">
-    <pre><code>attempt to parse cell text into numbers</pre></code>
-    <label for="--includeFileSources">--includeFileSources</label>
-    <input type="text" id="--includeFileSources" name="--includeFileSources" placeholder="">
-    <pre><code>add column with file source</pre></code>
-    <label for="--includeArchiveFileName">--includeArchiveFileName</label>
-    <input type="text" id="--includeArchiveFileName" name="--includeArchiveFileName" placeholder="">
-    <pre><code>add column with archive file name</pre></code>
-    <label for="--limit">--limit LIMIT</label>
-    <input type="text" id="--limit" name="--limit" placeholder="-1">
-    <pre><code>load at most x row(s) of data</pre></code>
-    <label for="--storeEmptyStrings">--storeEmptyStrings</label>
-    <input type="text" id="--storeEmptyStrings" name="--storeEmptyStrings" placeholder="">
-    <pre><code>preserve empty strings</pre></code>
-    <label for="--trimStrings">--trimStrings</label>
-    <input type="text" id="--trimStrings" name="--trimStrings" placeholder="">
-    <pre><code>trim leading & trailing whitespace from strings</pre></code>
-    <label for="--projectName">--projectName PROJECTNAME</label>
-    <input type="text" id="--projectName" name="--projectName" placeholder="">
-    <pre><code>set a name for the OpenRefine project</pre></code>
-    <label for="--projectTags">--projectTags PROJECTTAGS</label>
-    <input type="text" id="--projectTags" name="--projectTags" placeholder="">
-    <pre><code>set project tags (comma separated)</pre></code>
-    <label for="--quiet">--quiet, -q</label>
-    <input type="text" id="--quiet" name="--quiet" placeholder="">
-    <pre><code>suppress log output, print errors only</pre></code>
-  </fieldset>
-</form>
-<h4 id="import jsonl">import jsonl</h4>
-<p>import JSON Lines / newline-delimited JSON</p>
-<details>
-  <summary>Examples</summary>
-  <ul>
-    <li><pre><code>orcli import jsonl "file"</pre></code></li>
-    <li><pre><code>orcli import jsonl "file1" "file2"</pre></code></li>
-    <li><pre><code>orcli import jsonl "https://example.com/file.json"</pre></code></li>
-    <li><pre><code>orcli import jsonl --rename <(orcli export jsonl "duplicates")</pre></code></li>
-    <li><pre><code>orcli import jsonl "file" \
-  --rename \
-  --storeEmptyStrings \
-  --trimStrings \
-  --projectName "duplicates" \
-  --projectTags "test,urgent"</pre></code></li>
-  </ul>
-</details>
-<form action="#" method="get">
-  <fieldset>
-    <legend>Arguments</legend>
-    <label for="file">FILE</label>
-    <input type="text" id="file" name="file" placeholder="-" repeatable>
-    <pre><code>Path to one or more files or URLs. When FILE is -, read standard input.</pre></code>
-  </fieldset>
-  <fieldset>
-    <legend>Options</legend>
-    <label for="--rename">--rename</label>
-    <input type="text" id="--rename" name="--rename" placeholder="">
-    <pre><code>rename columns after import to remove record path fragments</pre></code>
-    <label for="--guessCellValueTypes">--guessCellValueTypes</label>
-    <input type="text" id="--guessCellValueTypes" name="--guessCellValueTypes" placeholder="">
-    <pre><code>attempt to parse cell text into numbers</pre></code>
-    <label for="--includeFileSources">--includeFileSources</label>
-    <input type="text" id="--includeFileSources" name="--includeFileSources" placeholder="">
-    <pre><code>add column with file source</pre></code>
-    <label for="--includeArchiveFileName">--includeArchiveFileName</label>
-    <input type="text" id="--includeArchiveFileName" name="--includeArchiveFileName" placeholder="">
-    <pre><code>add column with archive file name</pre></code>
-    <label for="--limit">--limit LIMIT</label>
-    <input type="text" id="--limit" name="--limit" placeholder="-1">
-    <pre><code>load at most x row(s) of data</pre></code>
-    <label for="--storeEmptyStrings">--storeEmptyStrings</label>
-    <input type="text" id="--storeEmptyStrings" name="--storeEmptyStrings" placeholder="">
-    <pre><code>preserve empty strings</pre></code>
-    <label for="--trimStrings">--trimStrings</label>
-    <input type="text" id="--trimStrings" name="--trimStrings" placeholder="">
-    <pre><code>trim leading & trailing whitespace from strings</pre></code>
-    <label for="--projectName">--projectName PROJECTNAME</label>
-    <input type="text" id="--projectName" name="--projectName" placeholder="">
-    <pre><code>set a name for the OpenRefine project</pre></code>
-    <label for="--projectTags">--projectTags PROJECTTAGS</label>
-    <input type="text" id="--projectTags" name="--projectTags" placeholder="">
-    <pre><code>set project tags (comma separated)</pre></code>
-    <label for="--quiet">--quiet, -q</label>
-    <input type="text" id="--quiet" name="--quiet" placeholder="">
-    <pre><code>suppress log output, print errors only</pre></code>
-  </fieldset>
-</form>
-<hr>
-<h3 id="info">info</h3>
-<p>show OpenRefine project's metadata</p>
-<details>
-  <summary>Examples</summary>
-  <ul>
-    <li><pre><code>orcli info "duplicates"</pre></code></li>
-    <li><pre><code>orcli info 1234567890123</pre></code></li>
-    <li><pre><code>orcli info "duplicates" | jq -r .columns[]</pre></code></li>
-  </ul>
-</details>
-<form action="#" method="get">
-  <fieldset>
-    <legend>Arguments</legend>
-    <label for="project">PROJECT</label>
-    <input type="text" id="project" name="project" placeholder="" required>
-    <pre><code>project name or id</pre></code>
-  </fieldset>
-</form>
-<hr>
-<h3 id="list">list</h3>
-<p>list projects on OpenRefine server</p>
-<form action="#" method="get">
-</form>
-<hr>
-<h3 id="run">run</h3>
-<p>run tmp OpenRefine workspace and execute shell script(s)</p>
-<details>
-  <summary>Examples</summary>
-  <ul>
-    <li><pre><code>orcli run --interactive</pre></code></li>
-    <li><pre><code>orcli run << EOF
+  </nav>
+  <main id="main">
+    <section id="examples-section">
+      <h2>Examples</h2>
+      <ul>
+        <li><pre><code>orcli import csv "https://git.io/fj5hF" --projectName "duplicates"</pre></code></li>
+        <li><pre><code>orcli list</pre></code></li>
+        <li><pre><code>orcli info "duplicates"</pre></code></li>
+        <li><pre><code>orcli transform "duplicates" "https://git.io/fj5ju"</pre></code></li>
+        <li><pre><code>orcli search "duplicates" "^Ben"</pre></code></li>
+        <li><pre><code>orcli sort columns "duplicates"</pre></code></li>
+        <li><pre><code>orcli export tsv "duplicates"</pre></code></li>
+        <li><pre><code>orcli export tsv "duplicates" --output "duplicates.tsv"</pre></code></li>
+        <li><pre><code>orcli delete "duplicates"</pre></code></li>
+        <li><pre><code>orcli run --interactive</pre></code></li>
+        <li><pre><code>orcli run << EOF
   orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
   orcli transform "duplicates" "https://git.io/fj5ju"
   orcli export tsv "duplicates"
 EOF</pre></code></li>
-    <li><pre><code>orcli run --memory "2000M" --port "3334" << EOF
+      </ul>
+    </section>
+    <section class="command-section" id="section-completions">
+      <h3>completions</h3>
+      <p>generate bash completions
+usage: source <(orcli completions)</p>
+      <form class="command-form" data-command="completions" action="#" method="get">
+      </form>
+    </section>
+    <section class="command-section" id="section-delete">
+      <h3>delete</h3>
+      <p>delete OpenRefine project</p>
+      <details>
+        <summary>Examples</summary>
+        <ul>
+          <li><pre><code>orcli delete "duplicates"</pre></code></li>
+          <li><pre><code>orcli delete "duplicates" --force</pre></code></li>
+          <li><pre><code>orcli delete 1234567890123</pre></code></li>
+          <li><pre><code>for p in $(orcli list); do orcli delete ${p:0:13}; done</pre></code></li>
+        </ul>
+      </details>
+      <form class="command-form" data-command="delete" action="#" method="get">
+        <fieldset>
+          <legend>Arguments</legend>
+            <label for="project">PROJECT</label>
+            <input type="text" id="project" name="project" placeholder="" required>
+            <pre><code>project name or id</pre></code>
+        </fieldset>
+        <fieldset>
+          <legend>Options</legend>
+            <label for="--force">--force, -f</label>
+            <input type="text" id="--force" name="--force" placeholder="">
+            <pre><code>delete all projects with the same name</pre></code>
+            <label for="--quiet">--quiet, -q</label>
+            <input type="text" id="--quiet" name="--quiet" placeholder="">
+            <pre><code>suppress log output, print errors only</pre></code>
+        </fieldset>
+      </form>
+    </section>
+    <section class="command-section" id="section-export">
+      <h3>export</h3>
+      <p>commands to export data from OpenRefine projects to files</p>
+      <form class="command-form" data-command="export" action="#" method="get">
+      </form>
+    </section>
+    <section class="command-section" id="section-import">
+      <h3>import</h3>
+      <p>commands to create OpenRefine projects from files or URLs</p>
+      <form class="command-form" data-command="import" action="#" method="get">
+      </form>
+    </section>
+    <section class="command-section" id="section-info">
+      <h3>info</h3>
+      <p>show OpenRefine project's metadata</p>
+      <details>
+        <summary>Examples</summary>
+        <ul>
+          <li><pre><code>orcli info "duplicates"</pre></code></li>
+          <li><pre><code>orcli info 1234567890123</pre></code></li>
+          <li><pre><code>orcli info "duplicates" | jq -r .columns[]</pre></code></li>
+        </ul>
+      </details>
+      <form class="command-form" data-command="info" action="#" method="get">
+        <fieldset>
+          <legend>Arguments</legend>
+            <label for="project">PROJECT</label>
+            <input type="text" id="project" name="project" placeholder="" required>
+            <pre><code>project name or id</pre></code>
+        </fieldset>
+      </form>
+    </section>
+    <section class="command-section" id="section-list">
+      <h3>list</h3>
+      <p>list projects on OpenRefine server</p>
+      <form class="command-form" data-command="list" action="#" method="get">
+      </form>
+    </section>
+    <section class="command-section" id="section-run">
+      <h3>run</h3>
+      <p>run tmp OpenRefine workspace and execute shell script(s)</p>
+      <details>
+        <summary>Examples</summary>
+        <ul>
+          <li><pre><code>orcli run --interactive</pre></code></li>
+          <li><pre><code>orcli run << EOF
+  orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+  orcli transform "duplicates" "https://git.io/fj5ju"
+  orcli export tsv "duplicates"
+EOF</pre></code></li>
+          <li><pre><code>orcli run --memory "2000M" --port "3334" << EOF
   orcli import csv "https://git.io/fj5hF" --projectName "duplicates" &
   orcli import csv "https://git.io/fj5hF" --projectName "copy" &
   wait
@@ -657,132 +223,666 @@ EOF</pre></code></li>
   wait
   wc duplicates*
 EOF</pre></code></li>
-    <li><pre><code>orcli run --interactive "file1.sh" "file2.sh" - << EOF
+          <li><pre><code>orcli run --interactive "file1.sh" "file2.sh" - << EOF
   echo "finished in $SECONDS seconds"
 EOF</pre></code></li>
-  </ul>
-</details>
-<form action="#" method="get">
-  <fieldset>
-    <legend>Arguments</legend>
-    <label for="file">FILE</label>
-    <input type="text" id="file" name="file" placeholder="-" repeatable>
-    <pre><code>Path to one or more files or URLs. When FILE is -, read standard input.</pre></code>
-  </fieldset>
-  <fieldset>
-    <legend>Options</legend>
-    <label for="--memory">--memory RAM</label>
-    <input type="text" id="--memory" name="--memory" placeholder="2048M">
-    <pre><code>maximum RAM for OpenRefine java heap space</pre></code>
-    <label for="--port">--port PORT</label>
-    <input type="text" id="--port" name="--port" placeholder="3333">
-    <pre><code>PORT on which OpenRefine should listen</pre></code>
-    <label for="--interactive">--interactive</label>
-    <input type="text" id="--interactive" name="--interactive" placeholder="">
-    <pre><code>do not exit on error and keep bash shell open</pre></code>
-    <label for="--quiet">--quiet, -q</label>
-    <input type="text" id="--quiet" name="--quiet" placeholder="">
-    <pre><code>suppress log output, print errors only</pre></code>
-  </fieldset>
-</form>
-<hr>
-<h3 id="search">search</h3>
-<p>apply regex to each column and print matches in flattened tsv format
+        </ul>
+      </details>
+      <form class="command-form" data-command="run" action="#" method="get">
+        <fieldset>
+          <legend>Arguments</legend>
+            <label for="file">FILE</label>
+            <input type="text" id="file" name="file" placeholder="-" repeatable>
+            <pre><code>Path to one or more files or URLs. When FILE is -, read standard input.</pre></code>
+        </fieldset>
+        <fieldset>
+          <legend>Options</legend>
+            <label for="--memory">--memory RAM</label>
+            <input type="text" id="--memory" name="--memory" placeholder="2048M">
+            <pre><code>maximum RAM for OpenRefine java heap space</pre></code>
+            <label for="--port">--port PORT</label>
+            <input type="text" id="--port" name="--port" placeholder="3333">
+            <pre><code>PORT on which OpenRefine should listen</pre></code>
+            <label for="--interactive">--interactive</label>
+            <input type="text" id="--interactive" name="--interactive" placeholder="">
+            <pre><code>do not exit on error and keep bash shell open</pre></code>
+            <label for="--quiet">--quiet, -q</label>
+            <input type="text" id="--quiet" name="--quiet" placeholder="">
+            <pre><code>suppress log output, print errors only</pre></code>
+        </fieldset>
+      </form>
+    </section>
+    <section class="command-section" id="section-search">
+      <h3>search</h3>
+      <p>apply regex to each column and print matches in flattened tsv format
 output: index	column	value
 note that any exporter supports search by using --facets (see examples)</p>
-<details>
-  <summary>Examples</summary>
-  <ul>
-    <li><pre><code>orcli search "duplicates" "^Ben"</pre></code></li>
-    <li><pre><code>orcli search 1234567890123 "^Ben"</pre></code></li>
-    <li><pre><code>orcli search "duplicates" "^F" --index "email"</pre></code></li>
-    <li><pre><code>orcli search "duplicates" | column -t -s $'\t'</pre></code></li>
-    <li><pre><code>orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter(row.columnNames,cn,cells[cn].value.find(/^Ben/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</pre></code></li>
-    <li><pre><code>orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</pre></code></li>
-  </ul>
-</details>
-<form action="#" method="get">
-  <fieldset>
-    <legend>Arguments</legend>
-    <label for="project">PROJECT</label>
-    <input type="text" id="project" name="project" placeholder="" required>
-    <pre><code>project name or id</pre></code>
-    <label for="regex">REGEX</label>
-    <input type="text" id="regex" name="regex" placeholder="">
-    <pre><code>search term (regular expression, case-sensitive)</pre></code>
-  </fieldset>
-  <fieldset>
-    <legend>Options</legend>
-    <label for="--index">--index COLUMN</label>
-    <input type="text" id="--index" name="--index" placeholder="">
-    <pre><code>print column values instead of row.index in the first column of the output</pre></code>
-  </fieldset>
-</form>
-<hr>
-<h3 id="sort">sort</h3>
-<p>commands to sort OpenRefine projects</p>
-<form action="#" method="get">
-</form>
-<h4 id="sort columns">sort columns</h4>
-<p>re-order columns alphabetically</p>
-<details>
-  <summary>Examples</summary>
-  <ul>
-    <li><pre><code>orcli sort columns "duplicates"</pre></code></li>
-    <li><pre><code>orcli sort columns "duplicates" --first name</pre></code></li>
-  </ul>
-</details>
-<form action="#" method="get">
-  <fieldset>
-    <legend>Arguments</legend>
-    <label for="project">PROJECT</label>
-    <input type="text" id="project" name="project" placeholder="" required>
-    <pre><code>project name or id</pre></code>
-  </fieldset>
-  <fieldset>
-    <legend>Options</legend>
-    <label for="--first">--first COLUMN</label>
-    <input type="text" id="--first" name="--first" placeholder="" repeatable>
-    <pre><code>set key column(s)</pre></code>
-  </fieldset>
-</form>
-<hr>
-<h3 id="test">test</h3>
-<p>run functional tests on tmp OpenRefine workspace</p>
-<form action="#" method="get">
-</form>
-<hr>
-<h3 id="transform">transform</h3>
-<p>apply undo/redo JSON file(s) to an OpenRefine project</p>
-<details>
-  <summary>Examples</summary>
-  <ul>
-    <li><pre><code>orcli transform "duplicates" "history.json"</pre></code></li>
-    <li><pre><code>cat "history.json" | orcli transform "duplicates"</pre></code></li>
-    <li><pre><code>orcli transform "duplicates" "https://git.io/fj5ju"</pre></code></li>
-    <li><pre><code>orcli transform 1234567890123 "history.json"</pre></code></li>
-  </ul>
-</details>
-<form action="#" method="get">
-  <fieldset>
-    <legend>Arguments</legend>
-    <label for="project">PROJECT</label>
-    <input type="text" id="project" name="project" placeholder="" required>
-    <pre><code>project name or id</pre></code>
-    <label for="file">FILE</label>
-    <input type="text" id="file" name="file" placeholder="-" repeatable>
-    <pre><code>Path to one or more files or URLs. When FILE is -, read standard input.</pre></code>
-  </fieldset>
-  <fieldset>
-    <legend>Options</legend>
-    <label for="--quiet">--quiet, -q</label>
-    <input type="text" id="--quiet" name="--quiet" placeholder="">
-    <pre><code>suppress log output, print errors only</pre></code>
-  </fieldset>
-</form>
-<hr>
-<footer>
-  <a href="https://github.com/opencultureconsulting/orcli">https://github.com/opencultureconsulting/orcli</a>
-</footer>
+      <details>
+        <summary>Examples</summary>
+        <ul>
+          <li><pre><code>orcli search "duplicates" "^Ben"</pre></code></li>
+          <li><pre><code>orcli search 1234567890123 "^Ben"</pre></code></li>
+          <li><pre><code>orcli search "duplicates" "^F" --index "email"</pre></code></li>
+          <li><pre><code>orcli search "duplicates" | column -t -s $'\t'</pre></code></li>
+          <li><pre><code>orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter(row.columnNames,cn,cells[cn].value.find(/^Ben/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</pre></code></li>
+          <li><pre><code>orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</pre></code></li>
+        </ul>
+      </details>
+      <form class="command-form" data-command="search" action="#" method="get">
+        <fieldset>
+          <legend>Arguments</legend>
+            <label for="project">PROJECT</label>
+            <input type="text" id="project" name="project" placeholder="" required>
+            <pre><code>project name or id</pre></code>
+            <label for="regex">REGEX</label>
+            <input type="text" id="regex" name="regex" placeholder="">
+            <pre><code>search term (regular expression, case-sensitive)</pre></code>
+        </fieldset>
+        <fieldset>
+          <legend>Options</legend>
+            <label for="--index">--index COLUMN</label>
+            <input type="text" id="--index" name="--index" placeholder="">
+            <pre><code>print column values instead of row.index in the first column of the output</pre></code>
+        </fieldset>
+      </form>
+    </section>
+    <section class="command-section" id="section-sort">
+      <h3>sort</h3>
+      <p>commands to sort OpenRefine projects</p>
+      <form class="command-form" data-command="sort" action="#" method="get">
+      </form>
+    </section>
+    <section class="command-section" id="section-test">
+      <h3>test</h3>
+      <p>run functional tests on tmp OpenRefine workspace</p>
+      <form class="command-form" data-command="test" action="#" method="get">
+      </form>
+    </section>
+    <section class="command-section" id="section-transform">
+      <h3>transform</h3>
+      <p>apply undo/redo JSON file(s) to an OpenRefine project</p>
+      <details>
+        <summary>Examples</summary>
+        <ul>
+          <li><pre><code>orcli transform "duplicates" "history.json"</pre></code></li>
+          <li><pre><code>cat "history.json" | orcli transform "duplicates"</pre></code></li>
+          <li><pre><code>orcli transform "duplicates" "https://git.io/fj5ju"</pre></code></li>
+          <li><pre><code>orcli transform 1234567890123 "history.json"</pre></code></li>
+        </ul>
+      </details>
+      <form class="command-form" data-command="transform" action="#" method="get">
+        <fieldset>
+          <legend>Arguments</legend>
+            <label for="project">PROJECT</label>
+            <input type="text" id="project" name="project" placeholder="" required>
+            <pre><code>project name or id</pre></code>
+            <label for="file">FILE</label>
+            <input type="text" id="file" name="file" placeholder="-" repeatable>
+            <pre><code>Path to one or more files or URLs. When FILE is -, read standard input.</pre></code>
+        </fieldset>
+        <fieldset>
+          <legend>Options</legend>
+            <label for="--quiet">--quiet, -q</label>
+            <input type="text" id="--quiet" name="--quiet" placeholder="">
+            <pre><code>suppress log output, print errors only</pre></code>
+        </fieldset>
+      </form>
+    </section>
+    </section>
+    </section>
+    <section class="command-section" id="section-export-csv">
+      <h4>export csv</h4>
+        <p>export comma-separated values (CSV)</p>
+        <details>
+          <summary>Examples</summary>
+          <ul>
+            <li><pre><code>orcli export csv "duplicates"</pre></code></li>
+            <li><pre><code>orcli export csv "duplicates" --output "duplicates.tsv"</pre></code></li>
+            <li><pre><code>orcli export csv "duplicates" --separator ";"</pre></code></li>
+            <li><pre><code>orcli export csv "duplicates" --encoding "ISO-8859-1"</pre></code></li>
+            <li><pre><code>orcli export csv "duplicates" --select "name,email,purchase"</pre></code></li>
+            <li><pre><code>orcli export csv "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]'</pre></code></li>
+            <li><pre><code>orcli export csv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</pre></code></li>
+          </ul>
+        </details>
+        <form class="command-form" data-command="export csv" action="#" method="get">
+          <fieldset>
+            <legend>Arguments</legend>
+              <label for="project">PROJECT</label>
+              <input type="text" id="project" name="project" placeholder="" required>
+              <pre><code>project name or id</pre></code>
+          </fieldset>
+          <fieldset>
+            <legend>Options</legend>
+              <label for="--separator">--separator SEPARATOR</label>
+              <input type="text" id="--separator" name="--separator" placeholder=",">
+              <pre><code>character(s) that separates columns</pre></code>
+              <label for="--select">--select COLUMNS</label>
+              <input type="text" id="--select" name="--select" placeholder="">
+              <pre><code>filter result set to one or more columns (comma separated)
+example: --select "foo,bar,baz"</pre></code>
+              <label for="--mode">--mode MODE</label>
+              <select id="--mode" name="--mode">
+                <option value="rows" selected>rows</option>
+                <option value="records">records</option>
+              </select>
+              <pre><code>specify if project contains multi-row records</pre></code>
+              <label for="--facets">--facets FACETS</label>
+              <input type="text" id="--facets" name="--facets" placeholder="[]">
+              <pre><code>filter result set by providing an OpenRefine facets config in json</pre></code>
+              <label for="--output">--output FILE</label>
+              <input type="text" id="--output" name="--output" placeholder="">
+              <pre><code>Write to file instead of stdout</pre></code>
+              <label for="--encoding">--encoding ENCODING</label>
+              <input type="text" id="--encoding" name="--encoding" placeholder="UTF-8">
+              <pre><code>set character encoding</pre></code>
+              <label for="--quiet">--quiet, -q</label>
+              <input type="text" id="--quiet" name="--quiet" placeholder="">
+              <pre><code>suppress log output, print errors only</pre></code>
+          </fieldset>
+        </form>
+    </section>
+    <section class="command-section" id="section-export-jsonl">
+      <h4>export jsonl</h4>
+        <p>export JSON Lines / newline-delimited JSON</p>
+        <details>
+          <summary>Examples</summary>
+          <ul>
+            <li><pre><code>orcli export jsonl "duplicates"</pre></code></li>
+            <li><pre><code>orcli export jsonl "duplicates" --output "duplicates.jsonl"</pre></code></li>
+            <li><pre><code>orcli export jsonl "duplicates" --separator ' '</pre></code></li>
+            <li><pre><code>orcli export jsonl "duplicates" --mode records</pre></code></li>
+            <li><pre><code>orcli export jsonl "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]'</pre></code></li>
+            <li><pre><code>orcli export jsonl "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</pre></code></li>
+          </ul>
+        </details>
+        <form class="command-form" data-command="export jsonl" action="#" method="get">
+          <fieldset>
+            <legend>Arguments</legend>
+              <label for="project">PROJECT</label>
+              <input type="text" id="project" name="project" placeholder="" required>
+              <pre><code>project name or id</pre></code>
+          </fieldset>
+          <fieldset>
+            <legend>Options</legend>
+              <label for="--mode">--mode MODE</label>
+              <select id="--mode" name="--mode">
+                <option value="rows" selected>rows</option>
+                <option value="records">records</option>
+              </select>
+              <pre><code>specify if project contains multi-row records</pre></code>
+              <label for="--separator">--separator SEPARATOR</label>
+              <input type="text" id="--separator" name="--separator" placeholder="">
+              <pre><code>character(s) that separates multiple values in one cell (row mode only)</pre></code>
+              <label for="--facets">--facets FACETS</label>
+              <input type="text" id="--facets" name="--facets" placeholder="[]">
+              <pre><code>filter result set by providing an OpenRefine facets config in json</pre></code>
+              <label for="--output">--output FILE</label>
+              <input type="text" id="--output" name="--output" placeholder="">
+              <pre><code>Write to file instead of stdout</pre></code>
+              <label for="--encoding">--encoding ENCODING</label>
+              <input type="text" id="--encoding" name="--encoding" placeholder="UTF-8">
+              <pre><code>set character encoding</pre></code>
+              <label for="--quiet">--quiet, -q</label>
+              <input type="text" id="--quiet" name="--quiet" placeholder="">
+              <pre><code>suppress log output, print errors only</pre></code>
+          </fieldset>
+        </form>
+    </section>
+    <section class="command-section" id="section-export-template">
+      <h4>export template</h4>
+        <p>export to any text format by providing your own GREL template</p>
+        <details>
+          <summary>Examples</summary>
+          <ul>
+            <li><pre><code>orcli export template "duplicates" "template.txt"</pre></code></li>
+            <li><pre><code>cat "template.txt" | orcli export template "duplicates"</pre></code></li>
+            <li><pre><code>orcli export template "duplicates" "https://example.com/template.txt"</pre></code></li>
+            <li><pre><code>orcli export template "duplicates" "template.txt" --output "duplicates.tsv"</pre></code></li>
+            <li><pre><code>orcli export template "duplicates" \
+  <<< '{ "name" : {{jsonize(cells["name"].value)}}, "purchase" : {{jsonize(cells["purchase"].value)}} }' \
+  --prefix '{ "events" : [' \
+  --separator , \
+  --mode records \
+  --suffix ]}$'\n' \
+  --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]' \
+  | jq</pre></code></li>
+          </ul>
+        </details>
+        <form class="command-form" data-command="export template" action="#" method="get">
+          <fieldset>
+            <legend>Arguments</legend>
+              <label for="project">PROJECT</label>
+              <input type="text" id="project" name="project" placeholder="" required>
+              <pre><code>project name or id</pre></code>
+              <label for="file">FILE</label>
+              <input type="text" id="file" name="file" placeholder="-">
+              <pre><code>Path to row/record template file or URL. When FILE is -, read standard input.</pre></code>
+          </fieldset>
+          <fieldset>
+            <legend>Options</legend>
+              <label for="--separator">--separator SEPARATOR</label>
+              <input type="text" id="--separator" name="--separator" placeholder="">
+              <pre><code>insert character(s) between rows/records</pre></code>
+              <label for="--prefix">--prefix PREFIX</label>
+              <input type="text" id="--prefix" name="--prefix" placeholder="">
+              <pre><code>insert character(s) at the beginning of the file</pre></code>
+              <label for="--suffix">--suffix SUFFIX</label>
+              <input type="text" id="--suffix" name="--suffix" placeholder="">
+              <pre><code>insert character(s) at the end of the file</pre></code>
+              <label for="--mode">--mode MODE</label>
+              <select id="--mode" name="--mode">
+                <option value="rows" selected>rows</option>
+                <option value="records">records</option>
+              </select>
+              <pre><code>specify if project contains multi-row records</pre></code>
+              <label for="--facets">--facets FACETS</label>
+              <input type="text" id="--facets" name="--facets" placeholder="[]">
+              <pre><code>filter result set by providing an OpenRefine facets config in json</pre></code>
+              <label for="--output">--output FILE</label>
+              <input type="text" id="--output" name="--output" placeholder="">
+              <pre><code>Write to file instead of stdout</pre></code>
+              <label for="--encoding">--encoding ENCODING</label>
+              <input type="text" id="--encoding" name="--encoding" placeholder="UTF-8">
+              <pre><code>set character encoding</pre></code>
+              <label for="--quiet">--quiet, -q</label>
+              <input type="text" id="--quiet" name="--quiet" placeholder="">
+              <pre><code>suppress log output, print errors only</pre></code>
+          </fieldset>
+        </form>
+    </section>
+    <section class="command-section" id="section-export-tsv">
+      <h4>export tsv</h4>
+        <p>export tab-separated values (TSV)</p>
+        <details>
+          <summary>Examples</summary>
+          <ul>
+            <li><pre><code>orcli export tsv "duplicates"</pre></code></li>
+            <li><pre><code>orcli export tsv "duplicates" --output "duplicates.tsv"</pre></code></li>
+            <li><pre><code>orcli export tsv "duplicates" --encoding "ISO-8859-1"</pre></code></li>
+            <li><pre><code>orcli export tsv "duplicates" --select "name,email,purchase"</pre></code></li>
+            <li><pre><code>orcli export tsv "duplicates" --facets '[ { "type": "text", "columnName": "name", "mode": "regex", "caseSensitive": false, "invert": false, "query": "^Ben" } ]'</pre></code></li>
+            <li><pre><code>orcli export tsv "duplicates" --facets '[{ "type": "list", "expression": "grel:filter([\"gender\",\"purchase\"],cn,cells[cn].value.find(/^F/).length()>0).length()>0", "columnName": "", "selection": [{"v": {"v": true}}] }]'</pre></code></li>
+          </ul>
+        </details>
+        <form class="command-form" data-command="export tsv" action="#" method="get">
+          <fieldset>
+            <legend>Arguments</legend>
+              <label for="project">PROJECT</label>
+              <input type="text" id="project" name="project" placeholder="" required>
+              <pre><code>project name or id</pre></code>
+          </fieldset>
+          <fieldset>
+            <legend>Options</legend>
+              <label for="--select">--select COLUMNS</label>
+              <input type="text" id="--select" name="--select" placeholder="">
+              <pre><code>filter result set to one or more columns (comma separated)
+example: --select "foo,bar,baz"</pre></code>
+              <label for="--mode">--mode MODE</label>
+              <select id="--mode" name="--mode">
+                <option value="rows" selected>rows</option>
+                <option value="records">records</option>
+              </select>
+              <pre><code>specify if project contains multi-row records</pre></code>
+              <label for="--facets">--facets FACETS</label>
+              <input type="text" id="--facets" name="--facets" placeholder="[]">
+              <pre><code>filter result set by providing an OpenRefine facets config in json</pre></code>
+              <label for="--output">--output FILE</label>
+              <input type="text" id="--output" name="--output" placeholder="">
+              <pre><code>Write to file instead of stdout</pre></code>
+              <label for="--encoding">--encoding ENCODING</label>
+              <input type="text" id="--encoding" name="--encoding" placeholder="UTF-8">
+              <pre><code>set character encoding</pre></code>
+              <label for="--quiet">--quiet, -q</label>
+              <input type="text" id="--quiet" name="--quiet" placeholder="">
+              <pre><code>suppress log output, print errors only</pre></code>
+          </fieldset>
+        </form>
+    </section>
+    </section>
+    <section class="command-section" id="section-import-csv">
+      <h4>import csv</h4>
+        <p>import character-separated values (CSV)</p>
+        <details>
+          <summary>Examples</summary>
+          <ul>
+            <li><pre><code>orcli import csv "file"</pre></code></li>
+            <li><pre><code>orcli import csv "file1" "file2"</pre></code></li>
+            <li><pre><code>head -n 100 "file" | orcli import csv</pre></code></li>
+            <li><pre><code>orcli import csv "https://git.io/fj5hF"</pre></code></li>
+            <li><pre><code>orcli import csv "file" \
+  --separator ";" \
+  --columnNames "foo,bar,baz" \
+  --ignoreLines 1 \
+  --encoding "ISO-8859-1" \
+  --limit 100 \
+  --trimStrings \
+  --projectName "duplicates" \
+  --projectTags "test,urgent"</pre></code></li>
+          </ul>
+        </details>
+        <form class="command-form" data-command="import csv" action="#" method="get">
+          <fieldset>
+            <legend>Arguments</legend>
+              <label for="file">FILE</label>
+              <input type="text" id="file" name="file" placeholder="-" repeatable>
+              <pre><code>Path to one or more files or URLs. When FILE is -, read standard input.</pre></code>
+          </fieldset>
+          <fieldset>
+            <legend>Options</legend>
+              <label for="--separator">--separator SEPARATOR</label>
+              <input type="text" id="--separator" name="--separator" placeholder=",">
+              <pre><code>character(s) that separates columns</pre></code>
+              <label for="--blankCellsAsStrings">--blankCellsAsStrings</label>
+              <input type="text" id="--blankCellsAsStrings" name="--blankCellsAsStrings" placeholder="">
+              <pre><code>store blank cells as empty strings instead of nulls</pre></code>
+              <label for="--columnNames">--columnNames COLUMNNAMES</label>
+              <input type="text" id="--columnNames" name="--columnNames" placeholder="">
+              <pre><code>set column names (comma separated)
+hint: add --ignoreLines 1 to overwrite existing header row
+conflicts:--headerLines</pre></code>
+              <label for="--encoding">--encoding ENCODING</label>
+              <input type="text" id="--encoding" name="--encoding" placeholder="">
+              <pre><code>set character encoding</pre></code>
+              <label for="--guessCellValueTypes">--guessCellValueTypes</label>
+              <input type="text" id="--guessCellValueTypes" name="--guessCellValueTypes" placeholder="">
+              <pre><code>attempt to parse cell text into numbers</pre></code>
+              <label for="--headerLines">--headerLines HEADERLINES</label>
+              <input type="text" id="--headerLines" name="--headerLines" placeholder="1">
+              <pre><code>parse x line(s) as column headers
+conflicts:--columnNames</pre></code>
+              <label for="--ignoreLines">--ignoreLines IGNORELINES</label>
+              <input type="text" id="--ignoreLines" name="--ignoreLines" placeholder="-1">
+              <pre><code>ignore first x line(s) at beginning of file</pre></code>
+              <label for="--ignoreQuoteCharacter">--ignoreQuoteCharacter</label>
+              <input type="text" id="--ignoreQuoteCharacter" name="--ignoreQuoteCharacter" placeholder="">
+              <pre><code>do not use any quote character to enclose cells containing column separators</pre></code>
+              <label for="--includeFileSources">--includeFileSources</label>
+              <input type="text" id="--includeFileSources" name="--includeFileSources" placeholder="">
+              <pre><code>add column with file source</pre></code>
+              <label for="--includeArchiveFileName">--includeArchiveFileName</label>
+              <input type="text" id="--includeArchiveFileName" name="--includeArchiveFileName" placeholder="">
+              <pre><code>add column with archive file name</pre></code>
+              <label for="--limit">--limit LIMIT</label>
+              <input type="text" id="--limit" name="--limit" placeholder="-1">
+              <pre><code>load at most x row(s) of data</pre></code>
+              <label for="--quoteCharacter">--quoteCharacter QUOTECHARACTER</label>
+              <input type="text" id="--quoteCharacter" name="--quoteCharacter" placeholder="&#92;&quot;">
+              <pre><code>quote character to enclose cells containing column separators</pre></code>
+              <label for="--skipBlankRows">--skipBlankRows</label>
+              <input type="text" id="--skipBlankRows" name="--skipBlankRows" placeholder="">
+              <pre><code>do not store blank rows</pre></code>
+              <label for="--skipDataLines">--skipDataLines SKIPDATALINES</label>
+              <input type="text" id="--skipDataLines" name="--skipDataLines" placeholder="0">
+              <pre><code>discard initial x row(s) of data</pre></code>
+              <label for="--trimStrings">--trimStrings</label>
+              <input type="text" id="--trimStrings" name="--trimStrings" placeholder="">
+              <pre><code>trim leading & trailing whitespace from strings</pre></code>
+              <label for="--projectName">--projectName PROJECTNAME</label>
+              <input type="text" id="--projectName" name="--projectName" placeholder="">
+              <pre><code>set a name for the OpenRefine project</pre></code>
+              <label for="--projectTags">--projectTags PROJECTTAGS</label>
+              <input type="text" id="--projectTags" name="--projectTags" placeholder="">
+              <pre><code>set project tags (comma separated)</pre></code>
+              <label for="--quiet">--quiet, -q</label>
+              <input type="text" id="--quiet" name="--quiet" placeholder="">
+              <pre><code>suppress log output, print errors only</pre></code>
+          </fieldset>
+        </form>
+    </section>
+    <section class="command-section" id="section-import-json">
+      <h4>import json</h4>
+        <p>import JSON</p>
+        <details>
+          <summary>Examples</summary>
+          <ul>
+            <li><pre><code>orcli import json "file"</pre></code></li>
+            <li><pre><code>orcli import json "file1" "file2"</pre></code></li>
+            <li><pre><code>orcli import json "https://example.com/file.json"</pre></code></li>
+            <li><pre><code>orcli import json "file" \
+  --recordPath '[ "_", "rows", "_" ]' \
+  --rename \
+  --storeEmptyStrings \
+  --trimStrings \
+  --projectName "duplicates" \
+  --projectTags "test,urgent"</pre></code></li>
+          </ul>
+        </details>
+        <form class="command-form" data-command="import json" action="#" method="get">
+          <fieldset>
+            <legend>Arguments</legend>
+              <label for="file">FILE</label>
+              <input type="text" id="file" name="file" placeholder="-" repeatable>
+              <pre><code>Path to one or more files or URLs. When FILE is -, read standard input.</pre></code>
+          </fieldset>
+          <fieldset>
+            <legend>Options</legend>
+              <label for="--recordPath">--recordPath JSON</label>
+              <input type="text" id="--recordPath" name="--recordPath" placeholder="[ &quot;_&quot; , &quot;_&quot; ]">
+              <pre><code>specify record path elements in JSON array</pre></code>
+              <label for="--rename">--rename</label>
+              <input type="text" id="--rename" name="--rename" placeholder="">
+              <pre><code>rename columns after import to remove record path fragments</pre></code>
+              <label for="--guessCellValueTypes">--guessCellValueTypes</label>
+              <input type="text" id="--guessCellValueTypes" name="--guessCellValueTypes" placeholder="">
+              <pre><code>attempt to parse cell text into numbers</pre></code>
+              <label for="--includeFileSources">--includeFileSources</label>
+              <input type="text" id="--includeFileSources" name="--includeFileSources" placeholder="">
+              <pre><code>add column with file source</pre></code>
+              <label for="--includeArchiveFileName">--includeArchiveFileName</label>
+              <input type="text" id="--includeArchiveFileName" name="--includeArchiveFileName" placeholder="">
+              <pre><code>add column with archive file name</pre></code>
+              <label for="--limit">--limit LIMIT</label>
+              <input type="text" id="--limit" name="--limit" placeholder="-1">
+              <pre><code>load at most x row(s) of data</pre></code>
+              <label for="--storeEmptyStrings">--storeEmptyStrings</label>
+              <input type="text" id="--storeEmptyStrings" name="--storeEmptyStrings" placeholder="">
+              <pre><code>preserve empty strings</pre></code>
+              <label for="--trimStrings">--trimStrings</label>
+              <input type="text" id="--trimStrings" name="--trimStrings" placeholder="">
+              <pre><code>trim leading & trailing whitespace from strings</pre></code>
+              <label for="--projectName">--projectName PROJECTNAME</label>
+              <input type="text" id="--projectName" name="--projectName" placeholder="">
+              <pre><code>set a name for the OpenRefine project</pre></code>
+              <label for="--projectTags">--projectTags PROJECTTAGS</label>
+              <input type="text" id="--projectTags" name="--projectTags" placeholder="">
+              <pre><code>set project tags (comma separated)</pre></code>
+              <label for="--quiet">--quiet, -q</label>
+              <input type="text" id="--quiet" name="--quiet" placeholder="">
+              <pre><code>suppress log output, print errors only</pre></code>
+          </fieldset>
+        </form>
+    </section>
+    <section class="command-section" id="section-import-jsonl">
+      <h4>import jsonl</h4>
+        <p>import JSON Lines / newline-delimited JSON</p>
+        <details>
+          <summary>Examples</summary>
+          <ul>
+            <li><pre><code>orcli import jsonl "file"</pre></code></li>
+            <li><pre><code>orcli import jsonl "file1" "file2"</pre></code></li>
+            <li><pre><code>orcli import jsonl "https://example.com/file.json"</pre></code></li>
+            <li><pre><code>orcli import jsonl --rename <(orcli export jsonl "duplicates")</pre></code></li>
+            <li><pre><code>orcli import jsonl "file" \
+  --rename \
+  --storeEmptyStrings \
+  --trimStrings \
+  --projectName "duplicates" \
+  --projectTags "test,urgent"</pre></code></li>
+          </ul>
+        </details>
+        <form class="command-form" data-command="import jsonl" action="#" method="get">
+          <fieldset>
+            <legend>Arguments</legend>
+              <label for="file">FILE</label>
+              <input type="text" id="file" name="file" placeholder="-" repeatable>
+              <pre><code>Path to one or more files or URLs. When FILE is -, read standard input.</pre></code>
+          </fieldset>
+          <fieldset>
+            <legend>Options</legend>
+              <label for="--rename">--rename</label>
+              <input type="text" id="--rename" name="--rename" placeholder="">
+              <pre><code>rename columns after import to remove record path fragments</pre></code>
+              <label for="--guessCellValueTypes">--guessCellValueTypes</label>
+              <input type="text" id="--guessCellValueTypes" name="--guessCellValueTypes" placeholder="">
+              <pre><code>attempt to parse cell text into numbers</pre></code>
+              <label for="--includeFileSources">--includeFileSources</label>
+              <input type="text" id="--includeFileSources" name="--includeFileSources" placeholder="">
+              <pre><code>add column with file source</pre></code>
+              <label for="--includeArchiveFileName">--includeArchiveFileName</label>
+              <input type="text" id="--includeArchiveFileName" name="--includeArchiveFileName" placeholder="">
+              <pre><code>add column with archive file name</pre></code>
+              <label for="--limit">--limit LIMIT</label>
+              <input type="text" id="--limit" name="--limit" placeholder="-1">
+              <pre><code>load at most x row(s) of data</pre></code>
+              <label for="--storeEmptyStrings">--storeEmptyStrings</label>
+              <input type="text" id="--storeEmptyStrings" name="--storeEmptyStrings" placeholder="">
+              <pre><code>preserve empty strings</pre></code>
+              <label for="--trimStrings">--trimStrings</label>
+              <input type="text" id="--trimStrings" name="--trimStrings" placeholder="">
+              <pre><code>trim leading & trailing whitespace from strings</pre></code>
+              <label for="--projectName">--projectName PROJECTNAME</label>
+              <input type="text" id="--projectName" name="--projectName" placeholder="">
+              <pre><code>set a name for the OpenRefine project</pre></code>
+              <label for="--projectTags">--projectTags PROJECTTAGS</label>
+              <input type="text" id="--projectTags" name="--projectTags" placeholder="">
+              <pre><code>set project tags (comma separated)</pre></code>
+              <label for="--quiet">--quiet, -q</label>
+              <input type="text" id="--quiet" name="--quiet" placeholder="">
+              <pre><code>suppress log output, print errors only</pre></code>
+          </fieldset>
+        </form>
+    </section>
+    <section class="command-section" id="section-import-tsv">
+      <h4>import tsv</h4>
+        <p>import tab-separated values (TSV)</p>
+        <details>
+          <summary>Examples</summary>
+          <ul>
+            <li><pre><code>orcli import tsv "file"</pre></code></li>
+            <li><pre><code>orcli import tsv "file1" "file2"</pre></code></li>
+            <li><pre><code>head -n 100 "file" | orcli import tsv</pre></code></li>
+            <li><pre><code>orcli import tsv "https://example.com/file.tsv"</pre></code></li>
+            <li><pre><code>orcli import tsv "file" \
+  --separator ";" \
+  --columnNames "foo,bar,baz" \
+  --ignoreLines 1 \
+  --encoding "ISO-8859-1" \
+  --limit 100 \
+  --trimStrings \
+  --projectName "duplicates" \
+  --projectTags "test,urgent"</pre></code></li>
+          </ul>
+        </details>
+        <form class="command-form" data-command="import tsv" action="#" method="get">
+          <fieldset>
+            <legend>Arguments</legend>
+              <label for="file">FILE</label>
+              <input type="text" id="file" name="file" placeholder="-" repeatable>
+              <pre><code>Path to one or more files or URLs. When FILE is -, read standard input.</pre></code>
+          </fieldset>
+          <fieldset>
+            <legend>Options</legend>
+              <label for="--blankCellsAsStrings">--blankCellsAsStrings</label>
+              <input type="text" id="--blankCellsAsStrings" name="--blankCellsAsStrings" placeholder="">
+              <pre><code>store blank cells as empty strings instead of nulls</pre></code>
+              <label for="--columnNames">--columnNames COLUMNNAMES</label>
+              <input type="text" id="--columnNames" name="--columnNames" placeholder="">
+              <pre><code>set column names (comma separated)
+hint: add --ignoreLines 1 to overwrite existing header row
+conflicts:--headerLines</pre></code>
+              <label for="--encoding">--encoding ENCODING</label>
+              <input type="text" id="--encoding" name="--encoding" placeholder="">
+              <pre><code>set character encoding</pre></code>
+              <label for="--guessCellValueTypes">--guessCellValueTypes</label>
+              <input type="text" id="--guessCellValueTypes" name="--guessCellValueTypes" placeholder="">
+              <pre><code>attempt to parse cell text into numbers</pre></code>
+              <label for="--headerLines">--headerLines HEADERLINES</label>
+              <input type="text" id="--headerLines" name="--headerLines" placeholder="1">
+              <pre><code>parse x line(s) as column headers
+conflicts:--columnNames</pre></code>
+              <label for="--ignoreLines">--ignoreLines IGNORELINES</label>
+              <input type="text" id="--ignoreLines" name="--ignoreLines" placeholder="-1">
+              <pre><code>ignore first x line(s) at beginning of file</pre></code>
+              <label for="--ignoreQuoteCharacter">--ignoreQuoteCharacter</label>
+              <input type="text" id="--ignoreQuoteCharacter" name="--ignoreQuoteCharacter" placeholder="">
+              <pre><code>do not use any quote character to enclose cells containing column separators</pre></code>
+              <label for="--includeFileSources">--includeFileSources</label>
+              <input type="text" id="--includeFileSources" name="--includeFileSources" placeholder="">
+              <pre><code>add column with file source</pre></code>
+              <label for="--includeArchiveFileName">--includeArchiveFileName</label>
+              <input type="text" id="--includeArchiveFileName" name="--includeArchiveFileName" placeholder="">
+              <pre><code>add column with archive file name</pre></code>
+              <label for="--limit">--limit LIMIT</label>
+              <input type="text" id="--limit" name="--limit" placeholder="-1">
+              <pre><code>load at most x row(s) of data</pre></code>
+              <label for="--quoteCharacter">--quoteCharacter QUOTECHARACTER</label>
+              <input type="text" id="--quoteCharacter" name="--quoteCharacter" placeholder="&#92;&quot;">
+              <pre><code>quote character to enclose cells containing column separators</pre></code>
+              <label for="--skipBlankRows">--skipBlankRows</label>
+              <input type="text" id="--skipBlankRows" name="--skipBlankRows" placeholder="">
+              <pre><code>do not store blank rows</pre></code>
+              <label for="--skipDataLines">--skipDataLines SKIPDATALINES</label>
+              <input type="text" id="--skipDataLines" name="--skipDataLines" placeholder="0">
+              <pre><code>discard initial x row(s) of data</pre></code>
+              <label for="--trimStrings">--trimStrings</label>
+              <input type="text" id="--trimStrings" name="--trimStrings" placeholder="">
+              <pre><code>trim leading & trailing whitespace from strings</pre></code>
+              <label for="--projectName">--projectName PROJECTNAME</label>
+              <input type="text" id="--projectName" name="--projectName" placeholder="">
+              <pre><code>set a name for the OpenRefine project</pre></code>
+              <label for="--projectTags">--projectTags PROJECTTAGS</label>
+              <input type="text" id="--projectTags" name="--projectTags" placeholder="">
+              <pre><code>set project tags (comma separated)</pre></code>
+              <label for="--quiet">--quiet, -q</label>
+              <input type="text" id="--quiet" name="--quiet" placeholder="">
+              <pre><code>suppress log output, print errors only</pre></code>
+          </fieldset>
+        </form>
+    </section>
+    </section>
+    </section>
+    </section>
+    </section>
+    </section>
+    <section class="command-section" id="section-sort-columns">
+      <h4>sort columns</h4>
+        <p>re-order columns alphabetically</p>
+        <details>
+          <summary>Examples</summary>
+          <ul>
+            <li><pre><code>orcli sort columns "duplicates"</pre></code></li>
+            <li><pre><code>orcli sort columns "duplicates" --first name</pre></code></li>
+          </ul>
+        </details>
+        <form class="command-form" data-command="sort columns" action="#" method="get">
+          <fieldset>
+            <legend>Arguments</legend>
+              <label for="project">PROJECT</label>
+              <input type="text" id="project" name="project" placeholder="" required>
+              <pre><code>project name or id</pre></code>
+          </fieldset>
+          <fieldset>
+            <legend>Options</legend>
+              <label for="--first">--first COLUMN</label>
+              <input type="text" id="--first" name="--first" placeholder="" repeatable>
+              <pre><code>set key column(s)</pre></code>
+          </fieldset>
+        </form>
+    </section>
+    </section>
+    </section>
+    </section>
+  </main>
+</div>
+<div id="fixed-footer">
+  <div id="global-cli-preview">
+    <span id="cli-preview-text">Select a command and fill out the form to preview the CLI command.</span>
+    <button id="copy-cli-preview" title="Copy to clipboard" type="button">Copy</button>
+  </div>
+  <footer id="main-footer">
+    <a href="https://github.com/opencultureconsulting/orcli">https://github.com/opencultureconsulting/orcli</a>
+  </footer>
+</div>
 </body>
 </html>
