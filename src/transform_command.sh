@@ -37,7 +37,7 @@ for i in "${!files[@]}"; do
     if [[ "${files[$i]}" == '-' ]] || [[ "${files[$i]}" == '"-"' ]]; then
         # exit if stdin is selected but not present
         if ! read -u 0 -t 0; then
-            orcli_run_usage
+            orcli_transform_usage
             exit 1
         fi
     else
