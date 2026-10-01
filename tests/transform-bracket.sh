@@ -6,6 +6,9 @@ t="transform-bracket"
 tmpdir="$(mktemp -d)"
 trap '{ rm -rf "${tmpdir}"; }' 0 2 3 15
 
+# input
+cp data/duplicates.csv "${tmpdir}/${t}.csv"
+
 # assertion
 cat << "DATA" > "${tmpdir}/${t}.assert"
 email	name	test	state	gender	purchase
@@ -40,7 +43,7 @@ DATA
 
 # action
 cd "${tmpdir}" || exit 1
-orcli import csv "https://git.io/fj5hF" --projectName "${t}"
+orcli import csv "${t}.csv" --projectName "${t}"
 orcli transform "${t}" "${t}.history"
 orcli export tsv "${t}" --output "${t}.output"
 
