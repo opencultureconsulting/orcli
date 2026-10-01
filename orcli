@@ -171,7 +171,7 @@ orcli_import_usage() {
   printf "%s\n" "Commands:"
   printf "  %s   import character-separated values (CSV)\n" "csv  "
   printf "  %s   import tab-separated values (TSV)\n" "tsv  "
-  printf "  %s   import text files (TXT) with fixed-width columns\n" "txt  "
+  printf "  %s   import text files (TXT), line-based or with fixed-width columns\n" "txt  "
   printf "  %s   import JSON\n" "json "
   printf "  %s   import JSON Lines / newline-delimited JSON\n" "jsonl"
   echo
@@ -465,9 +465,9 @@ orcli_import_tsv_usage() {
 orcli_import_txt_usage() {
   if [[ -n $long_usage ]]; then
     printf "orcli import txt\n\n"
-    printf "  import text files (TXT) with fixed-width columns\n  hint: without --columnWidths each line becomes a row with a single column\n\n"
+    printf "  import text files (TXT), line-based or with fixed-width columns\n  line-based (default): each line (or --linesPerRow lines) becomes a row\n  fixed-width: split lines into columns by --columnWidths\n\n"
   else
-    printf "orcli import txt - import text files (TXT) with fixed-width columns\n\n"
+    printf "orcli import txt - import text files (TXT), line-based or with fixed-width columns\n\n"
   fi
 
   printf "%s\n" "Usage:"
@@ -488,13 +488,14 @@ orcli_import_txt_usage() {
 
     # :flag.usage
     printf "  %s\n" "--columnNames COLUMNNAMES"
-    printf "    set column names (comma separated)\n    hint: add --skipDataLines 1 to overwrite existing header row\n"
+    printf "    set column names (comma separated)\n    hint: add --ignoreLines 1 to overwrite existing header row\n"
     printf "    %s\n" "Conflicts: --headerLines"
     echo
 
     # :flag.usage
     printf "  %s\n" "--columnWidths COLUMNWIDTHS"
-    printf "    set column widths (number of characters, comma separated)\n    text exceeding the sum of all widths is put in an extra column\n"
+    printf "    split lines into columns of x characters (comma separated)\n    text exceeding the sum of all widths is put in an extra column\n"
+    printf "    %s\n" "Conflicts: --linesPerRow"
     echo
 
     # :flag.usage
@@ -509,8 +510,8 @@ orcli_import_txt_usage() {
 
     # :flag.usage
     printf "  %s\n" "--headerLines HEADERLINES"
-    printf "    parse x line(s) as column headers\n"
-    printf "    %s\n" "Default: 1"
+    printf "    parse x line(s) as column headers\n    default: 1 (fixed-width only, line-based import has no header lines)\n"
+    printf "    %s\n" "Needs: --columnWidths"
     printf "    %s\n" "Conflicts: --columnNames"
     echo
 
@@ -534,6 +535,13 @@ orcli_import_txt_usage() {
     printf "  %s\n" "--limit LIMIT"
     printf "    load at most x row(s) of data\n"
     printf "    %s\n" "Default: -1"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--linesPerRow LINESPERROW"
+    printf "    number of lines that make up one row (line-based only)\n"
+    printf "    %s\n" "Default: 1"
+    printf "    %s\n" "Conflicts: --columnWidths"
     echo
 
     # :flag.usage
@@ -587,8 +595,9 @@ orcli_import_txt_usage() {
     printf "  orcli import txt \"file1\" \"file2\"\n"
     printf "  head -n 100 \"file\" | orcli import txt\n"
     printf "  orcli import txt \"https://example.com/file.txt\"\n"
+    printf "  orcli import txt \"file\" --linesPerRow 3 --columnNames \"foo,bar,baz\"\n"
     printf "  orcli import txt \"file\" --columnWidths \"7,5\"\n"
-    printf "  orcli import txt \"file\" \\\\\n    --columnWidths \"7,5\" \\\\\n    --columnNames \"foo,bar,baz\" \\\\\n    --skipDataLines 1 \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --limit 100 \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\" \\\\\n    --projectTags \"test,urgent\"\n"
+    printf "  orcli import txt \"file\" \\\\\n    --columnWidths \"7,5\" \\\\\n    --columnNames \"foo,bar,baz\" \\\\\n    --ignoreLines 1 \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --limit 100 \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\" \\\\\n    --projectTags \"test,urgent\"\n"
     echo
 
   fi
@@ -1835,7 +1844,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'import txt\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--blankCellsAsStrings --columnNames --columnWidths --encoding --guessCellValueTypes --headerLines --help --ignoreLines --includeArchiveFileName --includeFileSources --limit --projectName --projectTags --quiet --skipBlankRows --skipDataLines --trimStrings -h -q")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--blankCellsAsStrings --columnNames --columnWidths --encoding --guessCellValueTypes --headerLines --help --ignoreLines --includeArchiveFileName --includeFileSources --limit --linesPerRow --projectName --projectTags --quiet --skipBlankRows --skipDataLines --trimStrings -h -q")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'export tsv\'*)'
@@ -2155,16 +2164,24 @@ orcli_import_txt_command() {
       fi
   fi
 
-  # validate column widths (numbers separated by comma, whitespace allowed)
-  columnWidths="${args[--columnWidths]//[[:space:]]/}"
-  if [[ -n ${columnWidths} ]] && ! [[ ${columnWidths} =~ ^[0-9]+(,[0-9]+)*$ ]]; then
-      error "invalid --columnWidths ${args[--columnWidths]} (numbers separated by comma expected)!"
-  fi
-
   # assemble specific post data (some options require json format)
-  data+=("format=text/line-based/fixed-width")
   options='{ '
-  options+="\"columnWidths\": [ ${columnWidths} ]"
+  if [[ ${args[--columnWidths]} ]]; then
+      # fixed-width: validate column widths (numbers separated by comma, whitespace allowed)
+      columnWidths="${args[--columnWidths]//[[:space:]]/}"
+      if ! [[ ${columnWidths} =~ ^[0-9]+(,[0-9]+)*$ ]]; then
+          error "invalid --columnWidths ${args[--columnWidths]} (numbers separated by comma expected)!"
+      fi
+      data+=("format=text/line-based/fixed-width")
+      options+="\"columnWidths\": [ ${columnWidths} ]"
+  else
+      # line-based: validate lines per row (positive number)
+      if ! [[ ${args[--linesPerRow]} =~ ^[1-9][0-9]*$ ]]; then
+          error "invalid --linesPerRow ${args[--linesPerRow]} (positive number expected)!"
+      fi
+      data+=("format=text/line-based")
+      options+="\"linesPerRow\": ${args[--linesPerRow]}"
+  fi
   if [[ ${args[--encoding]} ]]; then
       options+=', '
       options+="\"encoding\": \"${args[--encoding]}\""
@@ -2186,7 +2203,12 @@ orcli_import_txt_command() {
       options+=', '
       options+="\"headerLines\": ${args[--headerLines]}"
   fi
-  if [[ ${args[--ignoreLines]} ]]; then
+  # fixed-width importer applies ignoreLines after inserting the column names,
+  # so skip the ignored lines as data lines instead (same result as line-based)
+  skipDataLines="${args[--skipDataLines]}"
+  if [[ ${args[--columnWidths]} && ${args[--columnNames]} ]] && ((args[--ignoreLines] > 0)); then
+      skipDataLines=$((skipDataLines + args[--ignoreLines]))
+  elif [[ ${args[--ignoreLines]} ]]; then
       options+=', '
       options+="\"ignoreLines\": ${args[--ignoreLines]}"
   fi
@@ -2206,9 +2228,9 @@ orcli_import_txt_command() {
       options+=', '
       options+='"storeBlankRows": false'
   fi
-  if [[ ${args[--skipDataLines]} ]]; then
+  if [[ ${skipDataLines} ]]; then
       options+=', '
-      options+="\"skipDataLines\": ${args[--skipDataLines]}"
+      options+="\"skipDataLines\": ${skipDataLines}"
   fi
   if [[ ${args[--projectName]} ]]; then
       options+=', '
@@ -3988,6 +4010,11 @@ orcli_import_txt_parse_requirements() {
 
       # :flag.case
       --columnWidths)
+        # :flag.conflicts
+        if [[ -n "${args['--linesPerRow']:-}" ]]; then
+          printf "conflicting options: %s cannot be used with %s\n" "$key" "--linesPerRow" >&2
+          exit 1
+        fi
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -4086,6 +4113,25 @@ orcli_import_txt_parse_requirements() {
         ;;
 
       # :flag.case
+      --linesPerRow)
+        # :flag.conflicts
+        if [[ -n "${args['--columnWidths']:-}" ]]; then
+          printf "conflicting options: %s cannot be used with %s\n" "$key" "--columnWidths" >&2
+          exit 1
+        fi
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--linesPerRow']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--linesPerRow requires an argument: --linesPerRow LINESPERROW" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
       --skipBlankRows)
 
         # :flag.case_no_arg
@@ -4174,11 +4220,18 @@ orcli_import_txt_parse_requirements() {
     esac
   done
 
+  # :command.needy_flags_filter
+  # :flag.needs
+  if [[ -n ${args['--headerLines']+x} ]] && [[ -z "${args[--columnWidths]:-}" ]]; then
+    printf "%s\n" "--headerLines needs --columnWidths" >&2
+    exit 1
+  fi
+
   # :command.default_assignments
   [[ -n ${args['file']:-} ]] || args['file']="-"
-  [[ -n ${args['--headerLines']:-} ]] || args['--headerLines']="1"
   [[ -n ${args['--ignoreLines']:-} ]] || args['--ignoreLines']="-1"
   [[ -n ${args['--limit']:-} ]] || args['--limit']="-1"
+  [[ -n ${args['--linesPerRow']:-} ]] || args['--linesPerRow']="1"
   [[ -n ${args['--skipDataLines']:-} ]] || args['--skipDataLines']="0"
 
 }

@@ -101,7 +101,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'import txt\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--blankCellsAsStrings --columnNames --columnWidths --encoding --guessCellValueTypes --headerLines --help --ignoreLines --includeArchiveFileName --includeFileSources --limit --projectName --projectTags --quiet --skipBlankRows --skipDataLines --trimStrings -h -q")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--blankCellsAsStrings --columnNames --columnWidths --encoding --guessCellValueTypes --headerLines --help --ignoreLines --includeArchiveFileName --includeFileSources --limit --linesPerRow --projectName --projectTags --quiet --skipBlankRows --skipDataLines --trimStrings -h -q")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'export tsv\'*)'

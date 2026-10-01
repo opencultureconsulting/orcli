@@ -14,16 +14,24 @@ if [[ ${file} == '-' ]]; then
     fi
 fi
 
-# validate column widths (numbers separated by comma, whitespace allowed)
-columnWidths="${args[--columnWidths]//[[:space:]]/}"
-if [[ -n ${columnWidths} ]] && ! [[ ${columnWidths} =~ ^[0-9]+(,[0-9]+)*$ ]]; then
-    error "invalid --columnWidths ${args[--columnWidths]} (numbers separated by comma expected)!"
-fi
-
 # assemble specific post data (some options require json format)
-data+=("format=text/line-based/fixed-width")
 options='{ '
-options+="\"columnWidths\": [ ${columnWidths} ]"
+if [[ ${args[--columnWidths]} ]]; then
+    # fixed-width: validate column widths (numbers separated by comma, whitespace allowed)
+    columnWidths="${args[--columnWidths]//[[:space:]]/}"
+    if ! [[ ${columnWidths} =~ ^[0-9]+(,[0-9]+)*$ ]]; then
+        error "invalid --columnWidths ${args[--columnWidths]} (numbers separated by comma expected)!"
+    fi
+    data+=("format=text/line-based/fixed-width")
+    options+="\"columnWidths\": [ ${columnWidths} ]"
+else
+    # line-based: validate lines per row (positive number)
+    if ! [[ ${args[--linesPerRow]} =~ ^[1-9][0-9]*$ ]]; then
+        error "invalid --linesPerRow ${args[--linesPerRow]} (positive number expected)!"
+    fi
+    data+=("format=text/line-based")
+    options+="\"linesPerRow\": ${args[--linesPerRow]}"
+fi
 if [[ ${args[--encoding]} ]]; then
     options+=', '
     options+="\"encoding\": \"${args[--encoding]}\""
@@ -45,7 +53,12 @@ if [[ ${args[--headerLines]} ]]; then
     options+=', '
     options+="\"headerLines\": ${args[--headerLines]}"
 fi
-if [[ ${args[--ignoreLines]} ]]; then
+# fixed-width importer applies ignoreLines after inserting the column names,
+# so skip the ignored lines as data lines instead (same result as line-based)
+skipDataLines="${args[--skipDataLines]}"
+if [[ ${args[--columnWidths]} && ${args[--columnNames]} ]] && ((args[--ignoreLines] > 0)); then
+    skipDataLines=$((skipDataLines + args[--ignoreLines]))
+elif [[ ${args[--ignoreLines]} ]]; then
     options+=', '
     options+="\"ignoreLines\": ${args[--ignoreLines]}"
 fi
@@ -65,9 +78,9 @@ if [[ ${args[--skipBlankRows]} ]]; then
     options+=', '
     options+='"storeBlankRows": false'
 fi
-if [[ ${args[--skipDataLines]} ]]; then
+if [[ ${skipDataLines} ]]; then
     options+=', '
-    options+="\"skipDataLines\": ${args[--skipDataLines]}"
+    options+="\"skipDataLines\": ${skipDataLines}"
 fi
 if [[ ${args[--projectName]} ]]; then
     options+=', '

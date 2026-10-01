@@ -198,30 +198,38 @@ commands:
 
       - name: txt
         help: |-
-          import text files (TXT) with fixed-width columns
-          hint: without --columnWidths each line becomes a row with a single column
+          import text files (TXT), line-based or with fixed-width columns
+          line-based (default): each line (or --linesPerRow lines) becomes a row
+          fixed-width: split lines into columns by --columnWidths
         args:
           - *file
         flags:
           - *blankCellsAsStrings
-          - long: --columnNames
-            help: |-
-              set column names (comma separated)
-              hint: add --skipDataLines 1 to overwrite existing header row
-            arg: columnNames
-            conflicts: [--headerLines]
+          - *columnNames
           - long: --columnWidths
             help: |-
-              set column widths (number of characters, comma separated)
+              split lines into columns of x characters (comma separated)
               text exceeding the sum of all widths is put in an extra column
             arg: columnWidths
+            conflicts: [--linesPerRow]
           - *encoding_import
           - *guessCellValueTypes
-          - *headerLines
+          - long: --headerLines
+            help: |-
+              parse x line(s) as column headers
+              default: 1 (fixed-width only, line-based import has no header lines)
+            arg: headerLines
+            needs: [--columnWidths]
+            conflicts: [--columnNames]
           - *ignoreLines
           - *includeFileSources
           - *includeArchiveFileName
           - *limit
+          - long: --linesPerRow
+            help: number of lines that make up one row (line-based only)
+            arg: linesPerRow
+            default: "1"
+            conflicts: [--columnWidths]
           - *skipBlankRows
           - *skipDataLines
           - *trimStrings
@@ -233,12 +241,13 @@ commands:
           - orcli import txt "file1" "file2"
           - head -n 100 "file" | orcli import txt
           - orcli import txt "https://example.com/file.txt"
+          - orcli import txt "file" --linesPerRow 3 --columnNames "foo,bar,baz"
           - orcli import txt "file" --columnWidths "7,5"
           - |-
             orcli import txt "file" \\\\
               --columnWidths "7,5" \\\\
               --columnNames "foo,bar,baz" \\\\
-              --skipDataLines 1 \\\\
+              --ignoreLines 1 \\\\
               --encoding "ISO-8859-1" \\\\
               --limit 100 \\\\
               --trimStrings \\\\

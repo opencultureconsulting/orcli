@@ -9,8 +9,9 @@
 <body>
 <h1>orcli import txt </h1>
 
-<p>import text files (TXT) with fixed-width columns
-hint: without --columnWidths each line becomes a row with a single column</p>
+<p>import text files (TXT), line-based or with fixed-width columns
+line-based (default): each line (or --linesPerRow lines) becomes a row
+fixed-width: split lines into columns by --columnWidths</p>
 <h2>Usage</h2>
 <form action="#" method="get">
   <fieldset>
@@ -46,7 +47,7 @@ hint: without --columnWidths each line becomes a row with a single column</p>
         </td>
         <td>
           <code>set column names (comma separated)
-hint: add --skipDataLines 1 to overwrite existing header row<br>conflicts: --headerLines</code>
+hint: add --ignoreLines 1 to overwrite existing header row<br>conflicts: --headerLines</code>
         </td>
       </tr>
       <tr>
@@ -55,8 +56,8 @@ hint: add --skipDataLines 1 to overwrite existing header row<br>conflicts: --hea
           <input type="text" id="--columnWidths" name="--columnWidths" placeholder="">
         </td>
         <td>
-          <code>set column widths (number of characters, comma separated)
-text exceeding the sum of all widths is put in an extra column</code>
+          <code>split lines into columns of x characters (comma separated)
+text exceeding the sum of all widths is put in an extra column<br>conflicts: --linesPerRow</code>
         </td>
       </tr>
       <tr>
@@ -80,10 +81,11 @@ text exceeding the sum of all widths is put in an extra column</code>
       <tr>
         <td><label for="--headerLines">--headerLines HEADERLINES</label></td>
         <td>
-          <input type="text" id="--headerLines" name="--headerLines" placeholder="1">
+          <input type="text" id="--headerLines" name="--headerLines" placeholder="">
         </td>
         <td>
-          <code>parse x line(s) as column headers<br>conflicts: --columnNames</code>
+          <code>parse x line(s) as column headers
+default: 1 (fixed-width only, line-based import has no header lines)<br>conflicts: --columnNames</code>
         </td>
       </tr>
       <tr>
@@ -120,6 +122,15 @@ text exceeding the sum of all widths is put in an extra column</code>
         </td>
         <td>
           <code>load at most x row(s) of data</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--linesPerRow">--linesPerRow LINESPERROW</label></td>
+        <td>
+          <input type="text" id="--linesPerRow" name="--linesPerRow" placeholder="1">
+        </td>
+        <td>
+          <code>number of lines that make up one row (line-based only)<br>conflicts: --columnWidths</code>
         </td>
       </tr>
       <tr>
@@ -198,11 +209,12 @@ text exceeding the sum of all widths is put in an extra column</code>
 <pre><code>orcli import txt "file1" "file2"</code></pre>
 <pre><code>head -n 100 "file" | orcli import txt</code></pre>
 <pre><code>orcli import txt "https://example.com/file.txt"</code></pre>
+<pre><code>orcli import txt "file" --linesPerRow 3 --columnNames "foo,bar,baz"</code></pre>
 <pre><code>orcli import txt "file" --columnWidths "7,5"</code></pre>
 <pre><code>orcli import txt "file" \
   --columnWidths "7,5" \
   --columnNames "foo,bar,baz" \
-  --skipDataLines 1 \
+  --ignoreLines 1 \
   --encoding "ISO-8859-1" \
   --limit 100 \
   --trimStrings \
