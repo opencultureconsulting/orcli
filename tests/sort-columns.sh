@@ -6,6 +6,9 @@ t="sort-columns"
 tmpdir="$(mktemp -d)"
 trap '{ rm -rf "${tmpdir}"; }' 0 2 3 15
 
+# input
+cp data/duplicates.csv "${tmpdir}/${t}.csv"
+
 # assertion
 cat << "DATA" > "${tmpdir}/${t}.assert"
 name	state	email	gender	purchase
@@ -23,7 +26,7 @@ DATA
 
 # action
 cd "${tmpdir}" || exit 1
-orcli import csv "https://git.io/fj5hF" --projectName "duplicates"
+orcli import csv "${t}.csv" --projectName "duplicates"
 orcli sort columns "duplicates" --first name --first state
 orcli export tsv "duplicates" --output "${t}.output"
 

@@ -14,7 +14,7 @@ cp data/duplicates-history.json "${tmpdir}/${t}.history"
 
 # action
 cd "${tmpdir}" || exit 1
-orcli import csv "https://git.io/fj5hF" --projectName "${t}"
+orcli import csv "https://raw.githubusercontent.com/opencultureconsulting/orcli/main/tests/data/duplicates.csv" --projectName "${t}"
 orcli transform "${t}" "${t}.history"
 orcli export tsv "${t}" --output "${t}.output"
 
