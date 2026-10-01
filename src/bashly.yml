@@ -121,7 +121,7 @@ commands:
             long: --quoteCharacter
             help: quote character to enclose cells containing column separators
             arg: quoteCharacter
-            default: '\\\"'
+            default: '\"'
           - &skipBlankRows
             long: --skipBlankRows
             help: do not store blank rows

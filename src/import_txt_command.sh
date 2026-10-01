@@ -34,16 +34,15 @@ else
 fi
 if [[ ${args[--encoding]} ]]; then
     options+=', '
-    options+="\"encoding\": \"${args[--encoding]}\""
+    options+="\"encoding\": $(json_string "${args[--encoding]}")"
 fi
 if [[ ${args[--blankCellsAsStrings]} ]]; then
     options+=', '
     options+='"storeBlankCellsAsNulls": false'
 fi
 if [[ ${args[--columnNames]} ]]; then
-    IFS=',' read -ra columnNames <<< "${args[--columnNames]}"
     options+=', '
-    options+="\"columnNames\": [ $(printf ',"'%s'"' "${columnNames[@]}" | cut -c2-) ]"
+    options+="\"columnNames\": $(json_array "${args[--columnNames]}")"
 fi
 if [[ ${args[--guessCellValueTypes]} ]]; then
     options+=', '
@@ -84,12 +83,11 @@ if [[ ${skipDataLines} ]]; then
 fi
 if [[ ${args[--projectName]} ]]; then
     options+=', '
-    options+="\"projectName\": \"${args[--projectName]}\""
+    options+="\"projectName\": $(json_string "${args[--projectName]}")"
 fi
 if [[ ${args[--projectTags]} ]]; then
-    IFS=',' read -ra projectTags <<< "${args[--projectTags]}"
     options+=', '
-    options+="\"projectTags\": [ $(printf ',"'%s'"' "${projectTags[@]}" | cut -c2-) ]"
+    options+="\"projectTags\": $(json_array "${args[--projectTags]}")"
 fi
 if [[ ${args[--trimStrings]} ]]; then
     options+=', '

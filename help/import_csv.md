@@ -50,7 +50,7 @@ Options:
 
   --quoteCharacter QUOTECHARACTER
     quote character to enclose cells containing column separators
-    Default: \"
+    Default: "
 
   --skipBlankRows
     do not store blank rows

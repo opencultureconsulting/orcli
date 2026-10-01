@@ -18,13 +18,16 @@ fi
 data+=("format=text/json")
 options='{ '
 options+="\"recordPath\": ${args[--recordPath]}"
+# tree importers default to true if options are missing, so always send them
+options+=', '
 if [[ ${args[--guessCellValueTypes]} ]]; then
-    options+=', '
     options+='"guessCellValueTypes": true'
+else
+    options+='"guessCellValueTypes": false'
 fi
 if [[ ${args[--includeFileSources]} ]]; then
     options+=', '
-    options+='includeFileSources: true'
+    options+='"includeFileSources": true'
 fi
 if [[ ${args[--includeArchiveFileName]} ]]; then
     options+=', '
@@ -40,16 +43,17 @@ if [[ ${args[--storeEmptyStrings]} ]]; then
 fi
 if [[ ${args[--projectName]} ]]; then
     options+=', '
-    options+="\"projectName\": \"${args[--projectName]}\""
+    options+="\"projectName\": $(json_string "${args[--projectName]}")"
 fi
 if [[ ${args[--projectTags]} ]]; then
-    IFS=',' read -ra projectTags <<< "${args[--projectTags]}"
     options+=', '
-    options+="\"projectTags\": [ $(printf ',"'%s'"' "${projectTags[@]}" | cut -c2-) ]"
+    options+="\"projectTags\": $(json_array "${args[--projectTags]}")"
 fi
+options+=', '
 if [[ ${args[--trimStrings]} ]]; then
-    options+=', '
     options+='"trimStrings": true'
+else
+    options+='"trimStrings": false'
 fi
 options+=' }'
 data+=("options=${options}")

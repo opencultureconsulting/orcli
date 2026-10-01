@@ -57,54 +57,42 @@ for i in "${!files[@]}"; do
         error "parsing ${files[$i]} failed!"
     fi
     for line in "${jsonlines[@]}"; do
-        # parse one line/operation into array
-        filter='[to_entries[]|"["+(.key|@sh)+"]="+(.value|tostring|@sh)]|"("+join(" ")+")"'
-        declare -A array=$(jq --join-output "${filter}" <<< "$line")
-        if [[ ! ${array[op]} ]]; then
+        if ! op="$(jq -er '.op' <<<"$line")"; then
             error "parsing ${files[$i]} failed!"
         fi
-        # map operation names to command endpoints
-        # https://github.com/OpenRefine/OpenRefine/blob/master/main/webapp/modules/core/MOD-INF/controller.js
-        com="${array[op]#core/}"
-        if [[ $com == "multivalued-cell-join" ]]; then com="join-multi-value-cells"; fi
-        if [[ $com == "multivalued-cell-split" ]]; then com="split-multi-value-cells"; fi
-        if [[ $com == "column-addition" ]]; then com="add-column"; fi
-        if [[ $com == "column-addition-by-fetching-urls" ]]; then com="add-column-by-fetching-urls"; fi
-        if [[ $com == "column-removal" ]]; then com="remove-column"; fi
-        if [[ $com == "column-rename" ]]; then com="rename-column"; fi
-        if [[ $com == "column-move" ]]; then com="move-column"; fi
-        if [[ $com == "column-split" ]]; then com="split-column"; fi
-        if [[ $com == "column-reorder" ]]; then com="reorder-columns"; fi
-        if [[ $com == "recon" ]]; then com="reconcile"; fi
-        if [[ $com == "extend-reconciled-data" ]]; then com="extend-data"; fi
-        if [[ $com == "row-star" ]]; then com="annotate-rows"; fi
-        if [[ $com == "row-flag" ]]; then com="annotate-rows"; fi
-        if [[ $com == "row-removal" ]]; then com="remove-rows"; fi
-        if [[ $com == "row-reorder" ]]; then com="reorder-rows"; fi
-        unset "array[op]"
-        # rename engineConfig to engine
-        array[engine]="${array[engineConfig]}"
-        unset "array[engineConfig]"
-        # drop description
-        unset "array[description]"
-        # remove line breaks in expression
-        array[expression]="${array[expression]//$'\n'/}"
-        # prepare curl options
-        mapfile -t curloptions < <(for K in "${!array[@]}"; do
-            echo "--data-urlencode"
-            echo "$K=${array[$K]}"
-        done)
-        # get csrf token and post data to it's individual endpoint
-        if response="$(curl -fs --data "project=${projectid}" "${curloptions[@]}" "${OPENREFINE_URL}/command/core/${com}$(get_csrf)")"; then
-            response_code="$(jq -r '.code' <<<"$response")"
-            if [[ $response_code == "ok" ]]; then
-                log "transformed ${args[project]} with ${com}" "Response: $(jq -r '.historyEntry.description' <<<"$response")"
-            else
-                error "transforming ${args[project]} with ${com} from ${files[$i]} failed!" "Response: $(jq -r '.message' <<<"$response")"
-            fi
-        else
-            error "transforming ${args[project]} with ${com} from ${files[$i]} failed!"
+        # keep compatibility with hand-written operations that were accepted by the
+        # operation-specific endpoints before (op without core/ prefix, default onError)
+        line="$(jq -c '
+            if (.op | contains("/") | not) then .op = "core/" + .op else . end
+            | if (.op | IN("core/text-transform", "core/column-addition", "core/column-addition-by-fetching-urls"))
+                and (has("onError") | not) then .onError = "keep-original" else . end
+        ' <<<"$line")"
+        op="${op#core/}"
+        # post each operation separately to apply-operations for logging per operation
+        if ! response="$(curl -fs --data "project=${projectid}" --data-urlencode "operations=[${line}]" "${OPENREFINE_URL}/command/core/apply-operations$(get_csrf)")"; then
+            error "transforming ${args[project]} with ${op} from ${files[$i]} failed!"
         fi
-        unset array
+        response_code="$(jq -r '.code' <<<"$response")"
+        if [[ $response_code == "pending" ]]; then
+            # long-running operations (e.g. fetching URLs, reconciling) are processed asynchronously
+            log "transforming ${args[project]} with ${op} (waiting for long-running process)..."
+            while true; do
+                if ! processes="$(curl -fs --get --data "project=${projectid}" "${OPENREFINE_URL}/command/core/get-processes")"; then
+                    error "transforming ${args[project]} with ${op} from ${files[$i]} failed!"
+                fi
+                if [[ $(jq '.processes | length' <<<"$processes") == 0 ]]; then
+                    break
+                fi
+                sleep 1
+            done
+            if [[ $(jq '.exceptions | length' <<<"$processes") != 0 ]]; then
+                error "transforming ${args[project]} with ${op} from ${files[$i]} failed!" "Response: $(jq -r '[.exceptions[].message] | join("; ")' <<<"$processes")"
+            fi
+            log "transformed ${args[project]} with ${op}" "Response: $(curl -fs --get --data "project=${projectid}" "${OPENREFINE_URL}/command/core/get-history" | jq -r '.past[-1].description')"
+        elif [[ $response_code == "ok" ]]; then
+            log "transformed ${args[project]} with ${op}" "Response: $(jq -r '.historyEntries[].description' <<<"$response")"
+        else
+            error "transforming ${args[project]} with ${op} from ${files[$i]} failed!" "Response: $(jq -r '.message' <<<"$response")"
+        fi
     done
 done

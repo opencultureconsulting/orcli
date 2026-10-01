@@ -268,7 +268,7 @@ orcli_import_csv_usage() {
     # :flag.usage
     printf "  %s\n" "--quoteCharacter QUOTECHARACTER"
     printf "    quote character to enclose cells containing column separators\n"
-    printf "    %s\n" "Default: \\\""
+    printf "    %s\n" "Default: \""
     echo
 
     # :flag.usage
@@ -401,7 +401,7 @@ orcli_import_tsv_usage() {
     # :flag.usage
     printf "  %s\n" "--quoteCharacter QUOTECHARACTER"
     printf "    quote character to enclose cells containing column separators\n"
-    printf "    %s\n" "Default: \\\""
+    printf "    %s\n" "Default: \""
     echo
 
     # :flag.usage
@@ -1626,6 +1626,18 @@ echo '================================================================'
 EOF
 }
 
+# src/lib/json.sh
+# encode values as json to build options safely (quotes, backslashes etc.)
+# shellcheck shell=bash
+function json_string() {
+  jq -n --arg s "$1" '$s'
+}
+
+# convert a comma separated list into a json array of strings
+function json_array() {
+  jq -cn --arg s "$1" '$s | split(",")'
+}
+
 # src/lib/logging.sh
 # print messages to STDERR
 # shellcheck shell=bash
@@ -1658,6 +1670,11 @@ function post_export() {
         curloptions+=("--data-urlencode")
         curloptions+=("$d")
     done
+    # character encoding is read from its own parameter (not from options)
+    if [[ ${args[--encoding]} ]]; then
+        curloptions+=("--data-urlencode")
+        curloptions+=("encoding=${args[--encoding]}")
+    fi
     # support filtering result sets with facets
     if [[ ${args[--mode]} == "records" ]]; then
         mode="record-based"
@@ -1720,8 +1737,7 @@ function post_import() {
     if [[ ${#projectid} != 13 ]]; then
         error "importing ${args[file]} failed!"
     fi
-    projectname=$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-project-metadata" | tr "," "\n" | grep name | cut -d ":" -f 2)
-    projectname="${projectname:1:${#projectname}-2}"
+    projectname=$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-project-metadata" | jq -r '.name')
     rows=$(curl -fs --get --data project="$projectid" --data limit=0 --data start=0 "${OPENREFINE_URL}/command/core/get-rows" | tr "," "\n" | grep '"total"' | cut -d ":" -f 2)
     if [[ "$rows" = "0" ]]; then
         error "import of ${args[file]} contains 0 rows!"
@@ -1971,19 +1987,18 @@ orcli_import_csv_command() {
   # assemble specific post data (some options require json format)
   data+=("format=text/line-based/*sv")
   options='{ '
-  options+="\"separator\": \"${args[--separator]}\""
+  options+="\"separator\": $(json_string "${args[--separator]}")"
   if [[ ${args[--encoding]} ]]; then
       options+=', '
-      options+="\"encoding\": \"${args[--encoding]}\""
+      options+="\"encoding\": $(json_string "${args[--encoding]}")"
   fi
   if [[ ${args[--blankCellsAsStrings]} ]]; then
       options+=', '
       options+='"storeBlankCellsAsNulls": false'
   fi
   if [[ ${args[--columnNames]} ]]; then
-      IFS=',' read -ra columnNames <<< "${args[--columnNames]}"
       options+=', '
-      options+="\"columnNames\": [ $(printf ',"'%s'"' "${columnNames[@]}" | cut -c2-) ]"
+      options+="\"columnNames\": $(json_array "${args[--columnNames]}")"
   fi
   if [[ ${args[--guessCellValueTypes]} ]]; then
       options+=', '
@@ -1993,7 +2008,12 @@ orcli_import_csv_command() {
       options+=', '
       options+="\"headerLines\": ${args[--headerLines]}"
   fi
-  if [[ ${args[--ignoreLines]} ]]; then
+  # importer applies ignoreLines after inserting the column names,
+  # so skip the ignored lines as data lines instead
+  skipDataLines="${args[--skipDataLines]}"
+  if [[ ${args[--columnNames]} ]] && ((args[--ignoreLines] > 0)); then
+      skipDataLines=$((skipDataLines + args[--ignoreLines]))
+  elif [[ ${args[--ignoreLines]} ]]; then
       options+=', '
       options+="\"ignoreLines\": ${args[--ignoreLines]}"
   fi
@@ -2003,7 +2023,7 @@ orcli_import_csv_command() {
   fi
   if [[ ${args[--includeFileSources]} ]]; then
       options+=', '
-      options+='includeFileSources: true'
+      options+='"includeFileSources": true'
   fi
   if [[ ${args[--includeArchiveFileName]} ]]; then
       options+=', '
@@ -2015,24 +2035,23 @@ orcli_import_csv_command() {
   fi
   if [[ ${args[--quoteCharacter]} ]]; then
       options+=', '
-      options+="\"quoteCharacter\": \"${args[--quoteCharacter]}\""
+      options+="\"quoteCharacter\": $(json_string "${args[--quoteCharacter]}")"
   fi
   if [[ ${args[--skipBlankRows]} ]]; then
       options+=', '
       options+='"storeBlankRows": false'
   fi
-  if [[ ${args[--skipDataLines]} ]]; then
+  if [[ ${skipDataLines} ]]; then
       options+=', '
-      options+="\"skipDataLines\": ${args[--skipDataLines]}"
+      options+="\"skipDataLines\": ${skipDataLines}"
   fi
   if [[ ${args[--projectName]} ]]; then
       options+=', '
-      options+="\"projectName\": \"${args[--projectName]}\""
+      options+="\"projectName\": $(json_string "${args[--projectName]}")"
   fi
   if [[ ${args[--projectTags]} ]]; then
-      IFS=',' read -ra projectTags <<< "${args[--projectTags]}"
       options+=', '
-      options+="\"projectTags\": [ $(printf ',"'%s'"' "${projectTags[@]}" | cut -c2-) ]"
+      options+="\"projectTags\": $(json_array "${args[--projectTags]}")"
   fi
   if [[ ${args[--trimStrings]} ]]; then
       options+=', '
@@ -2072,16 +2091,15 @@ orcli_import_tsv_command() {
   options+="\"separator\": \"\\t\""
   if [[ ${args[--encoding]} ]]; then
       options+=', '
-      options+="\"encoding\": \"${args[--encoding]}\""
+      options+="\"encoding\": $(json_string "${args[--encoding]}")"
   fi
   if [[ ${args[--blankCellsAsStrings]} ]]; then
       options+=', '
       options+='"storeBlankCellsAsNulls": false'
   fi
   if [[ ${args[--columnNames]} ]]; then
-      IFS=',' read -ra columnNames <<< "${args[--columnNames]}"
       options+=', '
-      options+="\"columnNames\": [ $(printf ',"'%s'"' "${columnNames[@]}" | cut -c2-) ]"
+      options+="\"columnNames\": $(json_array "${args[--columnNames]}")"
   fi
   if [[ ${args[--guessCellValueTypes]} ]]; then
       options+=', '
@@ -2091,7 +2109,12 @@ orcli_import_tsv_command() {
       options+=', '
       options+="\"headerLines\": ${args[--headerLines]}"
   fi
-  if [[ ${args[--ignoreLines]} ]]; then
+  # importer applies ignoreLines after inserting the column names,
+  # so skip the ignored lines as data lines instead
+  skipDataLines="${args[--skipDataLines]}"
+  if [[ ${args[--columnNames]} ]] && ((args[--ignoreLines] > 0)); then
+      skipDataLines=$((skipDataLines + args[--ignoreLines]))
+  elif [[ ${args[--ignoreLines]} ]]; then
       options+=', '
       options+="\"ignoreLines\": ${args[--ignoreLines]}"
   fi
@@ -2101,7 +2124,7 @@ orcli_import_tsv_command() {
   fi
   if [[ ${args[--includeFileSources]} ]]; then
       options+=', '
-      options+='includeFileSources: true'
+      options+='"includeFileSources": true'
   fi
   if [[ ${args[--includeArchiveFileName]} ]]; then
       options+=', '
@@ -2113,24 +2136,23 @@ orcli_import_tsv_command() {
   fi
   if [[ ${args[--quoteCharacter]} ]]; then
       options+=', '
-      options+="\"quoteCharacter\": \"${args[--quoteCharacter]}\""
+      options+="\"quoteCharacter\": $(json_string "${args[--quoteCharacter]}")"
   fi
   if [[ ${args[--skipBlankRows]} ]]; then
       options+=', '
       options+='"storeBlankRows": false'
   fi
-  if [[ ${args[--skipDataLines]} ]]; then
+  if [[ ${skipDataLines} ]]; then
       options+=', '
-      options+="\"skipDataLines\": ${args[--skipDataLines]}"
+      options+="\"skipDataLines\": ${skipDataLines}"
   fi
   if [[ ${args[--projectName]} ]]; then
       options+=', '
-      options+="\"projectName\": \"${args[--projectName]}\""
+      options+="\"projectName\": $(json_string "${args[--projectName]}")"
   fi
   if [[ ${args[--projectTags]} ]]; then
-      IFS=',' read -ra projectTags <<< "${args[--projectTags]}"
       options+=', '
-      options+="\"projectTags\": [ $(printf ',"'%s'"' "${projectTags[@]}" | cut -c2-) ]"
+      options+="\"projectTags\": $(json_array "${args[--projectTags]}")"
   fi
   if [[ ${args[--trimStrings]} ]]; then
       options+=', '
@@ -2184,16 +2206,15 @@ orcli_import_txt_command() {
   fi
   if [[ ${args[--encoding]} ]]; then
       options+=', '
-      options+="\"encoding\": \"${args[--encoding]}\""
+      options+="\"encoding\": $(json_string "${args[--encoding]}")"
   fi
   if [[ ${args[--blankCellsAsStrings]} ]]; then
       options+=', '
       options+='"storeBlankCellsAsNulls": false'
   fi
   if [[ ${args[--columnNames]} ]]; then
-      IFS=',' read -ra columnNames <<< "${args[--columnNames]}"
       options+=', '
-      options+="\"columnNames\": [ $(printf ',"'%s'"' "${columnNames[@]}" | cut -c2-) ]"
+      options+="\"columnNames\": $(json_array "${args[--columnNames]}")"
   fi
   if [[ ${args[--guessCellValueTypes]} ]]; then
       options+=', '
@@ -2234,12 +2255,11 @@ orcli_import_txt_command() {
   fi
   if [[ ${args[--projectName]} ]]; then
       options+=', '
-      options+="\"projectName\": \"${args[--projectName]}\""
+      options+="\"projectName\": $(json_string "${args[--projectName]}")"
   fi
   if [[ ${args[--projectTags]} ]]; then
-      IFS=',' read -ra projectTags <<< "${args[--projectTags]}"
       options+=', '
-      options+="\"projectTags\": [ $(printf ',"'%s'"' "${projectTags[@]}" | cut -c2-) ]"
+      options+="\"projectTags\": $(json_array "${args[--projectTags]}")"
   fi
   if [[ ${args[--trimStrings]} ]]; then
       options+=', '
@@ -2277,13 +2297,16 @@ orcli_import_json_command() {
   data+=("format=text/json")
   options='{ '
   options+="\"recordPath\": ${args[--recordPath]}"
+  # tree importers default to true if options are missing, so always send them
+  options+=', '
   if [[ ${args[--guessCellValueTypes]} ]]; then
-      options+=', '
       options+='"guessCellValueTypes": true'
+  else
+      options+='"guessCellValueTypes": false'
   fi
   if [[ ${args[--includeFileSources]} ]]; then
       options+=', '
-      options+='includeFileSources: true'
+      options+='"includeFileSources": true'
   fi
   if [[ ${args[--includeArchiveFileName]} ]]; then
       options+=', '
@@ -2299,16 +2322,17 @@ orcli_import_json_command() {
   fi
   if [[ ${args[--projectName]} ]]; then
       options+=', '
-      options+="\"projectName\": \"${args[--projectName]}\""
+      options+="\"projectName\": $(json_string "${args[--projectName]}")"
   fi
   if [[ ${args[--projectTags]} ]]; then
-      IFS=',' read -ra projectTags <<< "${args[--projectTags]}"
       options+=', '
-      options+="\"projectTags\": [ $(printf ',"'%s'"' "${projectTags[@]}" | cut -c2-) ]"
+      options+="\"projectTags\": $(json_array "${args[--projectTags]}")"
   fi
+  options+=', '
   if [[ ${args[--trimStrings]} ]]; then
-      options+=', '
       options+='"trimStrings": true'
+  else
+      options+='"trimStrings": false'
   fi
   options+=' }'
   data+=("options=${options}")
@@ -2342,13 +2366,16 @@ orcli_import_jsonl_command() {
   data+=("format=text/json")
   options='{ '
   options+="\"recordPath\": [\"_\"]"
+  # tree importers default to true if options are missing, so always send them
+  options+=', '
   if [[ ${args[--guessCellValueTypes]} ]]; then
-      options+=', '
       options+='"guessCellValueTypes": true'
+  else
+      options+='"guessCellValueTypes": false'
   fi
   if [[ ${args[--includeFileSources]} ]]; then
       options+=', '
-      options+='includeFileSources: true'
+      options+='"includeFileSources": true'
   fi
   if [[ ${args[--includeArchiveFileName]} ]]; then
       options+=', '
@@ -2364,16 +2391,17 @@ orcli_import_jsonl_command() {
   fi
   if [[ ${args[--projectName]} ]]; then
       options+=', '
-      options+="\"projectName\": \"${args[--projectName]}\""
+      options+="\"projectName\": $(json_string "${args[--projectName]}")"
   fi
   if [[ ${args[--projectTags]} ]]; then
-      IFS=',' read -ra projectTags <<< "${args[--projectTags]}"
       options+=', '
-      options+="\"projectTags\": [ $(printf ',"'%s'"' "${projectTags[@]}" | cut -c2-) ]"
+      options+="\"projectTags\": $(json_array "${args[--projectTags]}")"
   fi
+  options+=', '
   if [[ ${args[--trimStrings]} ]]; then
-      options+=', '
       options+='"trimStrings": true'
+  else
+      options+='"trimStrings": false'
   fi
   options+=' }'
   data+=("options=${options}")
@@ -2632,55 +2660,43 @@ orcli_transform_command() {
           error "parsing ${files[$i]} failed!"
       fi
       for line in "${jsonlines[@]}"; do
-          # parse one line/operation into array
-          filter='[to_entries[]|"["+(.key|@sh)+"]="+(.value|tostring|@sh)]|"("+join(" ")+")"'
-          declare -A array=$(jq --join-output "${filter}" <<< "$line")
-          if [[ ! ${array[op]} ]]; then
+          if ! op="$(jq -er '.op' <<<"$line")"; then
               error "parsing ${files[$i]} failed!"
           fi
-          # map operation names to command endpoints
-          # https://github.com/OpenRefine/OpenRefine/blob/master/main/webapp/modules/core/MOD-INF/controller.js
-          com="${array[op]#core/}"
-          if [[ $com == "multivalued-cell-join" ]]; then com="join-multi-value-cells"; fi
-          if [[ $com == "multivalued-cell-split" ]]; then com="split-multi-value-cells"; fi
-          if [[ $com == "column-addition" ]]; then com="add-column"; fi
-          if [[ $com == "column-addition-by-fetching-urls" ]]; then com="add-column-by-fetching-urls"; fi
-          if [[ $com == "column-removal" ]]; then com="remove-column"; fi
-          if [[ $com == "column-rename" ]]; then com="rename-column"; fi
-          if [[ $com == "column-move" ]]; then com="move-column"; fi
-          if [[ $com == "column-split" ]]; then com="split-column"; fi
-          if [[ $com == "column-reorder" ]]; then com="reorder-columns"; fi
-          if [[ $com == "recon" ]]; then com="reconcile"; fi
-          if [[ $com == "extend-reconciled-data" ]]; then com="extend-data"; fi
-          if [[ $com == "row-star" ]]; then com="annotate-rows"; fi
-          if [[ $com == "row-flag" ]]; then com="annotate-rows"; fi
-          if [[ $com == "row-removal" ]]; then com="remove-rows"; fi
-          if [[ $com == "row-reorder" ]]; then com="reorder-rows"; fi
-          unset "array[op]"
-          # rename engineConfig to engine
-          array[engine]="${array[engineConfig]}"
-          unset "array[engineConfig]"
-          # drop description
-          unset "array[description]"
-          # remove line breaks in expression
-          array[expression]="${array[expression]//$'\n'/}"
-          # prepare curl options
-          mapfile -t curloptions < <(for K in "${!array[@]}"; do
-              echo "--data-urlencode"
-              echo "$K=${array[$K]}"
-          done)
-          # get csrf token and post data to it's individual endpoint
-          if response="$(curl -fs --data "project=${projectid}" "${curloptions[@]}" "${OPENREFINE_URL}/command/core/${com}$(get_csrf)")"; then
-              response_code="$(jq -r '.code' <<<"$response")"
-              if [[ $response_code == "ok" ]]; then
-                  log "transformed ${args[project]} with ${com}" "Response: $(jq -r '.historyEntry.description' <<<"$response")"
-              else
-                  error "transforming ${args[project]} with ${com} from ${files[$i]} failed!" "Response: $(jq -r '.message' <<<"$response")"
-              fi
-          else
-              error "transforming ${args[project]} with ${com} from ${files[$i]} failed!"
+          # keep compatibility with hand-written operations that were accepted by the
+          # operation-specific endpoints before (op without core/ prefix, default onError)
+          line="$(jq -c '
+              if (.op | contains("/") | not) then .op = "core/" + .op else . end
+              | if (.op | IN("core/text-transform", "core/column-addition", "core/column-addition-by-fetching-urls"))
+                  and (has("onError") | not) then .onError = "keep-original" else . end
+          ' <<<"$line")"
+          op="${op#core/}"
+          # post each operation separately to apply-operations for logging per operation
+          if ! response="$(curl -fs --data "project=${projectid}" --data-urlencode "operations=[${line}]" "${OPENREFINE_URL}/command/core/apply-operations$(get_csrf)")"; then
+              error "transforming ${args[project]} with ${op} from ${files[$i]} failed!"
           fi
-          unset array
+          response_code="$(jq -r '.code' <<<"$response")"
+          if [[ $response_code == "pending" ]]; then
+              # long-running operations (e.g. fetching URLs, reconciling) are processed asynchronously
+              log "transforming ${args[project]} with ${op} (waiting for long-running process)..."
+              while true; do
+                  if ! processes="$(curl -fs --get --data "project=${projectid}" "${OPENREFINE_URL}/command/core/get-processes")"; then
+                      error "transforming ${args[project]} with ${op} from ${files[$i]} failed!"
+                  fi
+                  if [[ $(jq '.processes | length' <<<"$processes") == 0 ]]; then
+                      break
+                  fi
+                  sleep 1
+              done
+              if [[ $(jq '.exceptions | length' <<<"$processes") != 0 ]]; then
+                  error "transforming ${args[project]} with ${op} from ${files[$i]} failed!" "Response: $(jq -r '[.exceptions[].message] | join("; ")' <<<"$processes")"
+              fi
+              log "transformed ${args[project]} with ${op}" "Response: $(curl -fs --get --data "project=${projectid}" "${OPENREFINE_URL}/command/core/get-history" | jq -r '.past[-1].description')"
+          elif [[ $response_code == "ok" ]]; then
+              log "transformed ${args[project]} with ${op}" "Response: $(jq -r '.historyEntries[].description' <<<"$response")"
+          else
+              error "transforming ${args[project]} with ${op} from ${files[$i]} failed!" "Response: $(jq -r '.message' <<<"$response")"
+          fi
       done
   done
 
@@ -2774,26 +2790,11 @@ orcli_export_csv_command() {
   # assemble specific post data (some options require json format)
   data+=("project=${projectid}")
   data+=("format=csv")
-  options='{ '
-  options+="\"separator\": \"${separator}\""
-  if [[ ${args[--encoding]} ]]; then
-      options+=', '
-      options+="\"encoding\": \"${args[--encoding]}\""
-  fi
+  # interpret backslash escapes like the importers do (e.g. \t for tab)
+  separator="$(printf '%bx' "${separator}")"
+  options="{ \"separator\": $(json_string "${separator%x}")"
   if [[ ${args[--select]} ]]; then
-      options+=', '
-      options+='"columns": ['
-      IFS=',' read -ra columns <<< "${args[--select]}"
-      options+='{"name":"'
-      options+="${columns[0]}"
-      options+='"}'
-      for cn in "${columns[@]:1}"; do
-          options+=', '
-          options+='{"name":"'
-          options+="${cn}"
-          options+='"}'
-      done
-      options+="]"
+      options+=", \"columns\": $(jq -cn --arg s "${args[--select]}" '$s | split(",") | map({name: .})')"
   fi
   options+=' }'
   data+=("options=${options}")
@@ -2809,31 +2810,13 @@ orcli_export_tsv_command() {
   # src/export_tsv_command.sh
   # shellcheck shell=bash
   projectid="$(get_id "${args[project]}")"
-  separator='\t'
 
   # assemble specific post data (some options require json format)
   data+=("project=${projectid}")
   data+=("format=tsv")
-  options='{ '
-  options+="\"separator\": \"${separator}\""
-  if [[ ${args[--encoding]} ]]; then
-      options+=', '
-      options+="\"encoding\": \"${args[--encoding]}\""
-  fi
+  options='{ "separator": "\t"'
   if [[ ${args[--select]} ]]; then
-      options+=', '
-      options+='"columns": ['
-      IFS=',' read -ra columns <<< "${args[--select]}"
-      options+='{"name":"'
-      options+="${columns[0]}"
-      options+='"}'
-      for cn in "${columns[@]:1}"; do
-          options+=', '
-          options+='{"name":"'
-          options+="${cn}"
-          options+='"}'
-      done
-      options+="]"
+      options+=", \"columns\": $(jq -cn --arg s "${args[--select]}" '$s | split(",") | map({name: .})')"
   fi
   options+=' }'
   data+=("options=${options}")
@@ -3687,7 +3670,7 @@ orcli_import_csv_parse_requirements() {
   [[ -n ${args['--headerLines']:-} ]] || args['--headerLines']="1"
   [[ -n ${args['--ignoreLines']:-} ]] || args['--ignoreLines']="-1"
   [[ -n ${args['--limit']:-} ]] || args['--limit']="-1"
-  [[ -n ${args['--quoteCharacter']:-} ]] || args['--quoteCharacter']="\\\""
+  [[ -n ${args['--quoteCharacter']:-} ]] || args['--quoteCharacter']="\""
   [[ -n ${args['--skipDataLines']:-} ]] || args['--skipDataLines']="0"
 
 }
@@ -3948,7 +3931,7 @@ orcli_import_tsv_parse_requirements() {
   [[ -n ${args['--headerLines']:-} ]] || args['--headerLines']="1"
   [[ -n ${args['--ignoreLines']:-} ]] || args['--ignoreLines']="-1"
   [[ -n ${args['--limit']:-} ]] || args['--limit']="-1"
-  [[ -n ${args['--quoteCharacter']:-} ]] || args['--quoteCharacter']="\\\""
+  [[ -n ${args['--quoteCharacter']:-} ]] || args['--quoteCharacter']="\""
   [[ -n ${args['--skipDataLines']:-} ]] || args['--skipDataLines']="0"
 
 }
