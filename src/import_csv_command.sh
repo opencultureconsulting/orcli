@@ -17,19 +17,18 @@ fi
 # assemble specific post data (some options require json format)
 data+=("format=text/line-based/*sv")
 options='{ '
-options+="\"separator\": \"${args[--separator]}\""
+options+="\"separator\": $(json_string "${args[--separator]}")"
 if [[ ${args[--encoding]} ]]; then
     options+=', '
-    options+="\"encoding\": \"${args[--encoding]}\""
+    options+="\"encoding\": $(json_string "${args[--encoding]}")"
 fi
 if [[ ${args[--blankCellsAsStrings]} ]]; then
     options+=', '
     options+='"storeBlankCellsAsNulls": false'
 fi
 if [[ ${args[--columnNames]} ]]; then
-    IFS=',' read -ra columnNames <<< "${args[--columnNames]}"
     options+=', '
-    options+="\"columnNames\": [ $(printf ',"'%s'"' "${columnNames[@]}" | cut -c2-) ]"
+    options+="\"columnNames\": $(json_array "${args[--columnNames]}")"
 fi
 if [[ ${args[--guessCellValueTypes]} ]]; then
     options+=', '
@@ -39,7 +38,12 @@ if [[ ${args[--headerLines]} ]]; then
     options+=', '
     options+="\"headerLines\": ${args[--headerLines]}"
 fi
-if [[ ${args[--ignoreLines]} ]]; then
+# importer applies ignoreLines after inserting the column names,
+# so skip the ignored lines as data lines instead
+skipDataLines="${args[--skipDataLines]}"
+if [[ ${args[--columnNames]} ]] && ((args[--ignoreLines] > 0)); then
+    skipDataLines=$((skipDataLines + args[--ignoreLines]))
+elif [[ ${args[--ignoreLines]} ]]; then
     options+=', '
     options+="\"ignoreLines\": ${args[--ignoreLines]}"
 fi
@@ -49,7 +53,7 @@ if [[ ${args[--ignoreQuoteCharacter]} ]]; then
 fi
 if [[ ${args[--includeFileSources]} ]]; then
     options+=', '
-    options+='includeFileSources: true'
+    options+='"includeFileSources": true'
 fi
 if [[ ${args[--includeArchiveFileName]} ]]; then
     options+=', '
@@ -61,24 +65,23 @@ if [[ ${args[--limit]} ]]; then
 fi
 if [[ ${args[--quoteCharacter]} ]]; then
     options+=', '
-    options+="\"quoteCharacter\": \"${args[--quoteCharacter]}\""
+    options+="\"quoteCharacter\": $(json_string "${args[--quoteCharacter]}")"
 fi
 if [[ ${args[--skipBlankRows]} ]]; then
     options+=', '
     options+='"storeBlankRows": false'
 fi
-if [[ ${args[--skipDataLines]} ]]; then
+if [[ ${skipDataLines} ]]; then
     options+=', '
-    options+="\"skipDataLines\": ${args[--skipDataLines]}"
+    options+="\"skipDataLines\": ${skipDataLines}"
 fi
 if [[ ${args[--projectName]} ]]; then
     options+=', '
-    options+="\"projectName\": \"${args[--projectName]}\""
+    options+="\"projectName\": $(json_string "${args[--projectName]}")"
 fi
 if [[ ${args[--projectTags]} ]]; then
-    IFS=',' read -ra projectTags <<< "${args[--projectTags]}"
     options+=', '
-    options+="\"projectTags\": [ $(printf ',"'%s'"' "${projectTags[@]}" | cut -c2-) ]"
+    options+="\"projectTags\": $(json_array "${args[--projectTags]}")"
 fi
 if [[ ${args[--trimStrings]} ]]; then
     options+=', '

@@ -1,6 +1,6 @@
 name: orcli
 help: OpenRefine command-line interface written in Bash
-version: 0.5.0
+version: 0.6.0
 footer: https://github.com/opencultureconsulting/orcli
 
 dependencies:
@@ -121,7 +121,7 @@ commands:
             long: --quoteCharacter
             help: quote character to enclose cells containing column separators
             arg: quoteCharacter
-            default: '\\\"'
+            default: '\"'
           - &skipBlankRows
             long: --skipBlankRows
             help: do not store blank rows

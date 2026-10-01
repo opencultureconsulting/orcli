@@ -6,6 +6,11 @@ function post_export() {
         curloptions+=("--data-urlencode")
         curloptions+=("$d")
     done
+    # character encoding is read from its own parameter (not from options)
+    if [[ ${args[--encoding]} ]]; then
+        curloptions+=("--data-urlencode")
+        curloptions+=("encoding=${args[--encoding]}")
+    fi
     # support filtering result sets with facets
     if [[ ${args[--mode]} == "records" ]]; then
         mode="record-based"

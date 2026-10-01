@@ -5,26 +5,11 @@ separator="${args[--separator]:-,}"
 # assemble specific post data (some options require json format)
 data+=("project=${projectid}")
 data+=("format=csv")
-options='{ '
-options+="\"separator\": \"${separator}\""
-if [[ ${args[--encoding]} ]]; then
-    options+=', '
-    options+="\"encoding\": \"${args[--encoding]}\""
-fi
+# interpret backslash escapes like the importers do (e.g. \t for tab)
+separator="$(printf '%bx' "${separator}")"
+options="{ \"separator\": $(json_string "${separator%x}")"
 if [[ ${args[--select]} ]]; then
-    options+=', '
-    options+='"columns": ['
-    IFS=',' read -ra columns <<< "${args[--select]}"
-    options+='{"name":"'
-    options+="${columns[0]}"
-    options+='"}'
-    for cn in "${columns[@]:1}"; do
-        options+=', '
-        options+='{"name":"'
-        options+="${cn}"
-        options+='"}'
-    done
-    options+="]"
+    options+=", \"columns\": $(jq -cn --arg s "${args[--select]}" '$s | split(",") | map({name: .})')"
 fi
 options+=' }'
 data+=("options=${options}")

@@ -33,12 +33,17 @@ _ - a	_ - b	_ - c
 1	2	3
 0	0	0
 $	/	'
+{ "_ - a": 1, "_ - b": 2, "_ - c": 3 }
+{ "_ - a": 0, "_ - b": " 0", "_ - c": "0 " }
+{ "_ - a": "$", "_ - b": "/", "_ - c": "'" }
 DATA
 
 # action
 cd "${tmpdir}" || exit 1
 orcli import json "${t}.json" --projectName "${t}" --trimStrings
+orcli import json "${t}.json" --projectName "${t}-default"
 orcli export tsv "${t}" > "${t}.output"
+orcli export jsonl "${t}-default" >> "${t}.output"
 
 # test
 diff -u "${t}.assert" "${t}.output"

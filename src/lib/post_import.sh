@@ -34,8 +34,7 @@ function post_import() {
     if [[ ${#projectid} != 13 ]]; then
         error "importing ${args[file]} failed!"
     fi
-    projectname=$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-project-metadata" | tr "," "\n" | grep name | cut -d ":" -f 2)
-    projectname="${projectname:1:${#projectname}-2}"
+    projectname=$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-project-metadata" | jq -r '.name')
     rows=$(curl -fs --get --data project="$projectid" --data limit=0 --data start=0 "${OPENREFINE_URL}/command/core/get-rows" | tr "," "\n" | grep '"total"' | cut -d ":" -f 2)
     if [[ "$rows" = "0" ]]; then
         error "import of ${args[file]} contains 0 rows!"
