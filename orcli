@@ -171,6 +171,7 @@ orcli_import_usage() {
   printf "%s\n" "Commands:"
   printf "  %s   import character-separated values (CSV)\n" "csv  "
   printf "  %s   import tab-separated values (TSV)\n" "tsv  "
+  printf "  %s   import text files (TXT) with fixed-width columns\n" "txt  "
   printf "  %s   import JSON\n" "json "
   printf "  %s   import JSON Lines / newline-delimited JSON\n" "jsonl"
   echo
@@ -455,6 +456,139 @@ orcli_import_tsv_usage() {
     printf "  head -n 100 \"file\" | orcli import tsv\n"
     printf "  orcli import tsv \"https://example.com/file.tsv\"\n"
     printf "  orcli import tsv \"file\" \\\\\n    --separator \";\" \\\\\n    --columnNames \"foo,bar,baz\" \\\\\n    --ignoreLines 1 \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --limit 100 \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\" \\\\\n    --projectTags \"test,urgent\"\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+orcli_import_txt_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "orcli import txt\n\n"
+    printf "  import text files (TXT) with fixed-width columns\n  hint: without --columnWidths each line becomes a row with a single column\n\n"
+  else
+    printf "orcli import txt - import text files (TXT) with fixed-width columns\n\n"
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  orcli import txt [FILE...] [OPTIONS]\n"
+  printf "  orcli import txt --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    # :command.usage_options
+    printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--blankCellsAsStrings"
+    printf "    store blank cells as empty strings instead of nulls\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--columnNames COLUMNNAMES"
+    printf "    set column names (comma separated)\n    hint: add --skipDataLines 1 to overwrite existing header row\n"
+    printf "    %s\n" "Conflicts: --headerLines"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--columnWidths COLUMNWIDTHS"
+    printf "    set column widths (number of characters, comma separated)\n    text exceeding the sum of all widths is put in an extra column\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--encoding ENCODING"
+    printf "    set character encoding\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--guessCellValueTypes"
+    printf "    attempt to parse cell text into numbers\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--headerLines HEADERLINES"
+    printf "    parse x line(s) as column headers\n"
+    printf "    %s\n" "Default: 1"
+    printf "    %s\n" "Conflicts: --columnNames"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--ignoreLines IGNORELINES"
+    printf "    ignore first x line(s) at beginning of file\n"
+    printf "    %s\n" "Default: -1"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--includeFileSources"
+    printf "    add column with file source\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--includeArchiveFileName"
+    printf "    add column with archive file name\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--limit LIMIT"
+    printf "    load at most x row(s) of data\n"
+    printf "    %s\n" "Default: -1"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--skipBlankRows"
+    printf "    do not store blank rows\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--skipDataLines SKIPDATALINES"
+    printf "    discard initial x row(s) of data\n"
+    printf "    %s\n" "Default: 0"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--trimStrings"
+    printf "    trim leading & trailing whitespace from strings\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--projectName PROJECTNAME"
+    printf "    set a name for the OpenRefine project\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--projectTags PROJECTTAGS"
+    printf "    set project tags (comma separated)\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--quiet, -q"
+    printf "    suppress log output, print errors only\n"
+    echo
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_args
+    printf "%s\n" "Arguments:"
+
+    # :argument.usage
+    printf "  %s\n" "FILE..."
+    printf "    Path to one or more files or URLs. When FILE is -, read standard input.\n"
+    printf "    %s\n" "Default: -"
+    echo
+
+    # :command.usage_examples
+    printf "%s\n" "Examples:"
+    printf "  orcli import txt \"file\"\n"
+    printf "  orcli import txt \"file1\" \"file2\"\n"
+    printf "  head -n 100 \"file\" | orcli import txt\n"
+    printf "  orcli import txt \"https://example.com/file.txt\"\n"
+    printf "  orcli import txt \"file\" --columnWidths \"7,5\"\n"
+    printf "  orcli import txt \"file\" \\\\\n    --columnWidths \"7,5\" \\\\\n    --columnNames \"foo,bar,baz\" \\\\\n    --skipDataLines 1 \\\\\n    --encoding \"ISO-8859-1\" \\\\\n    --limit 100 \\\\\n    --trimStrings \\\\\n    --projectName \"duplicates\" \\\\\n    --projectTags \"test,urgent\"\n"
     echo
 
   fi
@@ -1660,11 +1794,11 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "rows records")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'export tsv\'*\'--mode\')'
+  echo $'    \'export csv\'*\'--mode\')'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "rows records")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'export csv\'*\'--mode\')'
+  echo $'    \'export tsv\'*\'--mode\')'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "rows records")" -- "$cur")'
   echo $'      ;;'
   echo $''
@@ -1672,32 +1806,24 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--encoding --facets --help --mode --output --prefix --quiet --separator --suffix -h -q")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'export jsonl\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--encoding --facets --help --mode --output --quiet --separator -h -q")" -- "$cur")'
+  echo $'    \'import jsonl\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--guessCellValueTypes --help --includeArchiveFileName --includeFileSources --limit --projectName --projectTags --quiet --rename --storeEmptyStrings --trimStrings -h -q")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'sort columns\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--first --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'import jsonl\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--guessCellValueTypes --help --includeArchiveFileName --includeFileSources --limit --projectName --projectTags --quiet --rename --storeEmptyStrings --trimStrings -h -q")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'completions\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--help -h")" -- "$cur")'
+  echo $'    \'export jsonl\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--encoding --facets --help --mode --output --quiet --separator -h -q")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'import json\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--guessCellValueTypes --help --includeArchiveFileName --includeFileSources --limit --projectName --projectTags --quiet --recordPath --rename --storeEmptyStrings --trimStrings -h -q")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'export tsv\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--encoding --facets --help --mode --output --quiet --select -h -q")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'export csv\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--encoding --facets --help --mode --output --quiet --select --separator -h -q")" -- "$cur")'
+  echo $'    \'completions\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'import csv\'*)'
@@ -1708,24 +1834,36 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--blankCellsAsStrings --columnNames --encoding --guessCellValueTypes --headerLines --help --ignoreLines --ignoreQuoteCharacter --includeArchiveFileName --includeFileSources --limit --projectName --projectTags --quiet --quoteCharacter --skipBlankRows --skipDataLines --trimStrings -h -q")" -- "$cur")'
   echo $'      ;;'
   echo $''
+  echo $'    \'import txt\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--blankCellsAsStrings --columnNames --columnWidths --encoding --guessCellValueTypes --headerLines --help --ignoreLines --includeArchiveFileName --includeFileSources --limit --projectName --projectTags --quiet --skipBlankRows --skipDataLines --trimStrings -h -q")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'export tsv\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--encoding --facets --help --mode --output --quiet --select -h -q")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'export csv\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--encoding --facets --help --mode --output --quiet --select --separator -h -q")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
   echo $'    \'transform\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--help --quiet -h -q")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'import\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--help -h csv json jsonl tsv txt")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'search\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--help --index -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'delete\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--force --help --quiet -f -h -q")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'import\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--help -h csv json jsonl tsv")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
   echo $'    \'export\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--help -h csv jsonl template tsv")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'search\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--help --index -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'test\'*)'
@@ -1967,6 +2105,102 @@ orcli_import_tsv_command() {
   if [[ ${args[--quoteCharacter]} ]]; then
       options+=', '
       options+="\"quoteCharacter\": \"${args[--quoteCharacter]}\""
+  fi
+  if [[ ${args[--skipBlankRows]} ]]; then
+      options+=', '
+      options+='"storeBlankRows": false'
+  fi
+  if [[ ${args[--skipDataLines]} ]]; then
+      options+=', '
+      options+="\"skipDataLines\": ${args[--skipDataLines]}"
+  fi
+  if [[ ${args[--projectName]} ]]; then
+      options+=', '
+      options+="\"projectName\": \"${args[--projectName]}\""
+  fi
+  if [[ ${args[--projectTags]} ]]; then
+      IFS=',' read -ra projectTags <<< "${args[--projectTags]}"
+      options+=', '
+      options+="\"projectTags\": [ $(printf ',"'%s'"' "${projectTags[@]}" | cut -c2-) ]"
+  fi
+  if [[ ${args[--trimStrings]} ]]; then
+      options+=', '
+      options+='"trimStrings": true'
+  fi
+  options+=' }'
+  data+=("options=${options}")
+
+  # call post_import function to post data and validate results
+  post_import "${data[@]}"
+
+}
+
+# :command.function
+orcli_import_txt_command() {
+
+  # src/import_txt_command.sh
+  # shellcheck shell=bash disable=SC2154
+
+  # call init_import function to eval args and to set basic post data
+  init_import
+
+  # exit if stdin is selected but not present
+  if [[ ${file} == '-' ]]; then
+      if ! read -u 0 -t 0; then
+          sleep 1
+          if ! read -u 0 -t 0; then
+              orcli_import_txt_usage
+              exit 1
+          fi
+      fi
+  fi
+
+  # validate column widths (numbers separated by comma, whitespace allowed)
+  columnWidths="${args[--columnWidths]//[[:space:]]/}"
+  if [[ -n ${columnWidths} ]] && ! [[ ${columnWidths} =~ ^[0-9]+(,[0-9]+)*$ ]]; then
+      error "invalid --columnWidths ${args[--columnWidths]} (numbers separated by comma expected)!"
+  fi
+
+  # assemble specific post data (some options require json format)
+  data+=("format=text/line-based/fixed-width")
+  options='{ '
+  options+="\"columnWidths\": [ ${columnWidths} ]"
+  if [[ ${args[--encoding]} ]]; then
+      options+=', '
+      options+="\"encoding\": \"${args[--encoding]}\""
+  fi
+  if [[ ${args[--blankCellsAsStrings]} ]]; then
+      options+=', '
+      options+='"storeBlankCellsAsNulls": false'
+  fi
+  if [[ ${args[--columnNames]} ]]; then
+      IFS=',' read -ra columnNames <<< "${args[--columnNames]}"
+      options+=', '
+      options+="\"columnNames\": [ $(printf ',"'%s'"' "${columnNames[@]}" | cut -c2-) ]"
+  fi
+  if [[ ${args[--guessCellValueTypes]} ]]; then
+      options+=', '
+      options+='"guessCellValueTypes": true'
+  fi
+  if [[ ${args[--headerLines]} ]]; then
+      options+=', '
+      options+="\"headerLines\": ${args[--headerLines]}"
+  fi
+  if [[ ${args[--ignoreLines]} ]]; then
+      options+=', '
+      options+="\"ignoreLines\": ${args[--ignoreLines]}"
+  fi
+  if [[ ${args[--includeFileSources]} ]]; then
+      options+=', '
+      options+='"includeFileSources": true'
+  fi
+  if [[ ${args[--includeArchiveFileName]} ]]; then
+      options+=', '
+      options+='"includeArchiveFileName": true'
+  fi
+  if [[ ${args[--limit]} ]]; then
+      options+=', '
+      options+="\"limit\": ${args[--limit]}"
   fi
   if [[ ${args[--skipBlankRows]} ]]; then
       options+=', '
@@ -3103,6 +3337,13 @@ orcli_import_parse_requirements() {
       shift $#
       ;;
 
+    txt)
+      action="txt"
+      shift
+      orcli_import_txt_parse_requirements "$@"
+      shift $#
+      ;;
+
     json)
       action="json"
       shift
@@ -3686,6 +3927,258 @@ orcli_import_tsv_parse_requirements() {
   [[ -n ${args['--ignoreLines']:-} ]] || args['--ignoreLines']="-1"
   [[ -n ${args['--limit']:-} ]] || args['--limit']="-1"
   [[ -n ${args['--quoteCharacter']:-} ]] || args['--quoteCharacter']="\\\""
+  [[ -n ${args['--skipDataLines']:-} ]] || args['--skipDataLines']="0"
+
+}
+
+# :command.parse_requirements
+orcli_import_txt_parse_requirements() {
+  local key
+
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        orcli_import_txt_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="import txt"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      # :flag.case
+      --blankCellsAsStrings)
+
+        # :flag.case_no_arg
+        args['--blankCellsAsStrings']=1
+        shift
+        ;;
+
+      # :flag.case
+      --columnNames)
+        # :flag.conflicts
+        if [[ -n "${args['--headerLines']:-}" ]]; then
+          printf "conflicting options: %s cannot be used with %s\n" "$key" "--headerLines" >&2
+          exit 1
+        fi
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--columnNames']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--columnNames requires an argument: --columnNames COLUMNNAMES" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --columnWidths)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--columnWidths']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--columnWidths requires an argument: --columnWidths COLUMNWIDTHS" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --encoding)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--encoding']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--encoding requires an argument: --encoding ENCODING" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --guessCellValueTypes)
+
+        # :flag.case_no_arg
+        args['--guessCellValueTypes']=1
+        shift
+        ;;
+
+      # :flag.case
+      --headerLines)
+        # :flag.conflicts
+        if [[ -n "${args['--columnNames']:-}" ]]; then
+          printf "conflicting options: %s cannot be used with %s\n" "$key" "--columnNames" >&2
+          exit 1
+        fi
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--headerLines']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--headerLines requires an argument: --headerLines HEADERLINES" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --ignoreLines)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--ignoreLines']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--ignoreLines requires an argument: --ignoreLines IGNORELINES" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --includeFileSources)
+
+        # :flag.case_no_arg
+        args['--includeFileSources']=1
+        shift
+        ;;
+
+      # :flag.case
+      --includeArchiveFileName)
+
+        # :flag.case_no_arg
+        args['--includeArchiveFileName']=1
+        shift
+        ;;
+
+      # :flag.case
+      --limit)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--limit']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--limit requires an argument: --limit LIMIT" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --skipBlankRows)
+
+        # :flag.case_no_arg
+        args['--skipBlankRows']=1
+        shift
+        ;;
+
+      # :flag.case
+      --skipDataLines)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--skipDataLines']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--skipDataLines requires an argument: --skipDataLines SKIPDATALINES" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --trimStrings)
+
+        # :flag.case_no_arg
+        args['--trimStrings']=1
+        shift
+        ;;
+
+      # :flag.case
+      --projectName)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--projectName']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--projectName requires an argument: --projectName PROJECTNAME" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --projectTags)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--projectTags']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--projectTags requires an argument: --projectTags PROJECTTAGS" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --quiet | -q)
+
+        # :flag.case_no_arg
+        args['--quiet']=1
+        shift
+        ;;
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_repeatable
+        # :argument.case_repeatable
+        escaped="$(printf '%q' "$1")"
+        if [[ -z ${args['file']+x} ]]; then
+          args['file']="$escaped"
+        else
+          args['file']="${args['file']} $escaped"
+
+        fi
+        shift
+
+        ;;
+
+    esac
+  done
+
+  # :command.default_assignments
+  [[ -n ${args['file']:-} ]] || args['file']="-"
+  [[ -n ${args['--headerLines']:-} ]] || args['--headerLines']="1"
+  [[ -n ${args['--ignoreLines']:-} ]] || args['--ignoreLines']="-1"
+  [[ -n ${args['--limit']:-} ]] || args['--limit']="-1"
   [[ -n ${args['--skipDataLines']:-} ]] || args['--skipDataLines']="0"
 
 }
@@ -5332,6 +5825,7 @@ run() {
     "import") orcli_import_command ;;
     "import csv") orcli_import_csv_command ;;
     "import tsv") orcli_import_tsv_command ;;
+    "import txt") orcli_import_txt_command ;;
     "import json") orcli_import_json_command ;;
     "import jsonl") orcli_import_jsonl_command ;;
     "list") orcli_list_command ;;

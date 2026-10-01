@@ -196,6 +196,55 @@ commands:
               --projectName "duplicates" \\\\
               --projectTags "test,urgent"
 
+      - name: txt
+        help: |-
+          import text files (TXT) with fixed-width columns
+          hint: without --columnWidths each line becomes a row with a single column
+        args:
+          - *file
+        flags:
+          - *blankCellsAsStrings
+          - long: --columnNames
+            help: |-
+              set column names (comma separated)
+              hint: add --skipDataLines 1 to overwrite existing header row
+            arg: columnNames
+            conflicts: [--headerLines]
+          - long: --columnWidths
+            help: |-
+              set column widths (number of characters, comma separated)
+              text exceeding the sum of all widths is put in an extra column
+            arg: columnWidths
+          - *encoding_import
+          - *guessCellValueTypes
+          - *headerLines
+          - *ignoreLines
+          - *includeFileSources
+          - *includeArchiveFileName
+          - *limit
+          - *skipBlankRows
+          - *skipDataLines
+          - *trimStrings
+          - *projectName
+          - *projectTags
+          - *quiet
+        examples:
+          - orcli import txt "file"
+          - orcli import txt "file1" "file2"
+          - head -n 100 "file" | orcli import txt
+          - orcli import txt "https://example.com/file.txt"
+          - orcli import txt "file" --columnWidths "7,5"
+          - |-
+            orcli import txt "file" \\\\
+              --columnWidths "7,5" \\\\
+              --columnNames "foo,bar,baz" \\\\
+              --skipDataLines 1 \\\\
+              --encoding "ISO-8859-1" \\\\
+              --limit 100 \\\\
+              --trimStrings \\\\
+              --projectName "duplicates" \\\\
+              --projectTags "test,urgent"
+
       - name: json
         help: import JSON
         args:

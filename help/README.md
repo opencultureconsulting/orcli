@@ -1,4 +1,4 @@
-# orcli 0.4.2
+# orcli 0.4.3
 
 ## command help screens
 
@@ -12,6 +12,7 @@
 - [import json](import_json.md)
 - [import jsonl](import_jsonl.md)
 - [import tsv](import_tsv.md)
+- [import txt](import_txt.md)
 - [info](info.md)
 - [list](list.md)
 - [run](run.md)
