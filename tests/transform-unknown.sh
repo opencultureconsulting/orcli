@@ -1,6 +1,6 @@
 #!/bin/bash
 
-t="transform-error"
+t="transform-unknown"
 
 # create tmp directory
 tmpdir="$(mktemp -d)"
@@ -11,19 +11,18 @@ cp data/example.csv "${tmpdir}/${t}.csv"
 cat << "DATA" > "${tmpdir}/${t}.history"
 [
   {
-    "op": "core/column-split",
-    "engineConfig": { "facets": [], "mode": "row-based" },
+    "op": "core/unknown-operation",
     "columnName": "a",
-    "description": "Split column a"
+    "description": "Unknown operation"
   }
 ]
 DATA
 
-# assertion (OpenRefine validates operations since 3.9 and reports clearer errors since 3.10)
+# assertion (OpenRefine rejects unknown operations since 3.9 and reports clearer errors since 3.10)
 case "$(curl -fs "${OPENREFINE_URL}/command/core/get-version" | jq -r '.version')" in
   3.7.* | 3.8.*) response="operation was not applied (unknown operation or invalid parameters?)" ;;
-  3.9.*) response="java.lang.IllegalArgumentException: Missing field lengths" ;;
-  *) response="Operation #1: Missing field lengths" ;;
+  3.9.*) response="java.lang.IllegalArgumentException: Unknown operation type: core/unknown-operation" ;;
+  *) response="Operation #1: Unknown operation core/unknown-operation" ;;
 esac
 echo "  Response: ${response}" > "${tmpdir}/${t}.assert"
 

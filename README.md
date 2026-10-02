@@ -6,7 +6,7 @@ Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org
 
 ## Features
 
-* works with latest OpenRefine version (currently 3.10)
+* works with OpenRefine 3.7, 3.8, 3.9 and 3.10 (tested with 3.7.9, 3.8.7, 3.9.5 and 3.10.1)
 * run batch processes (import, transform, export)
   * orcli takes care of starting and stopping OpenRefine with temporary workspaces
   * allows execution of arbitrary bash scripts
@@ -145,6 +145,13 @@ orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-
   ./orcli test
   ```
 
+  To run the tests with all supported OpenRefine releases (downloaded to `~/.cache/orcli`):
+
+  ```sh
+  ./test-versions.sh                 # 3.7.9 3.8.7 3.9.5 3.10.1
+  ./test-versions.sh 3.10.1 3.11.0   # or any other releases
+  ```
+
 5. Generate docs
 
   ```sh
@@ -153,7 +160,7 @@ orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-
 
 ### Check new OpenRefine releases
 
-[openrefine-api.sh](openrefine-api.sh) lists the commands (with request parameters), operations (with JSON properties), importers and exporters (with options and default values) of an OpenRefine release as found in its source code (requires git and perl). Compare the release orcli currently supports with a new release to find out whether orcli needs to be adapted:
+[openrefine-api.sh](openrefine-api.sh) lists the commands (with request parameters), operations (with JSON properties), importers and exporters (with options and default values) of an OpenRefine release as found in its source code (requires git and perl). Compare the latest release orcli supports with a new release to find out whether orcli needs to be adapted (and run `./test-versions.sh` with the new release):
 
   ```sh
   ./openrefine-api.sh 3.10.1 > openrefine-3.10.1.md   # report for one release
