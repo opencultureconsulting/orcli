@@ -29,6 +29,10 @@ bashly render templates/html-form docs     # writes docs/*.html (published HTML 
 
 Releases bump `version:` in `src/bashly.yml`, then regenerate `orcli` and `docs/`.
 
+## Checking OpenRefine releases
+
+`./openrefine-api.sh VERSION` (git + perl) sparse-clones the OpenRefine source at that tag (or takes a local checkout path) and prints a Markdown report of all commands (request parameters), operations (`@JsonCreator` properties), importers (options with "UI default" from `createParserUIInitializationData()` and "parse default" from `JSONUtilities.getXxx(options, …, default)`) and exporters (options with defaults). `./openrefine-api.sh OLD NEW` prints the diff of both reports — use it on every new OpenRefine release to see whether orcli needs changes. orcli always sends an `options` JSON on import, so the *parse* defaults are the relevant ones. The script is regex-based (a heuristic); it handles the source layout of 3.7–3.10 (`main/src` and, since 3.9, `modules/*/src/main/java`; exporters registered in `ExporterRegistry` until 3.8 and in `controller.js` since 3.9).
+
 ## Architecture notes
 
 - **Imports** (`import_*_command.sh`): call `init_import` (downloads http(s) URLs and `/dev/fd` pipes into a tmp dir; zips multiple files into `Untitled.zip` so OpenRefine treats them as one archive), build format-specific `options` JSON, then `post_import` posts to `create-project-from-upload` and validates the resulting project id / row count. Only CSV, TSV, TXT, JSON, JSONL are implemented. `import txt` uses OpenRefine's line-based importer (`--linesPerRow`; it ignores `headerLines`, so there is no header row) or, if `--columnWidths` is given, the fixed-width importer. The fixed-width importer applies `ignoreLines` after inserting `--columnNames`, so `import_txt_command.sh` converts `--ignoreLines` into `skipDataLines` in that case to behave like the other importers.

@@ -150,3 +150,12 @@ orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-
   ```sh
   bashly render templates/html-form docs
   ```
+
+### Check new OpenRefine releases
+
+[openrefine-api.sh](openrefine-api.sh) lists the commands (with request parameters), operations (with JSON properties), importers and exporters (with options and default values) of an OpenRefine release as found in its source code (requires git and perl). Compare the release orcli currently supports with a new release to find out whether orcli needs to be adapted:
+
+  ```sh
+  ./openrefine-api.sh 3.10.1 > openrefine-3.10.1.md   # report for one release
+  ./openrefine-api.sh 3.9.5 3.10.1                    # diff between two releases
+  ```
