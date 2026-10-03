@@ -43,12 +43,16 @@ fi
 template+=', cn, forNonBlank('
 if [[ ${args[--separator]} || ${args[--mode]} == "records" ]]; then
     template+='cells[cn.chomp("⊌")].value, v, if(cn.endsWith("⊌"), "\"" + cn.chomp("⊌") + "\": " +'
+    # serialize arrays element by element, because jsonize() formats arrays differently
+    # before OpenRefine 3.6 (["a","b"] instead of [ "a", "b" ])
+    template+='"[ " + forEach('
     if [[ ${args[--separator]} ]]; then
-    template+="v.split(\"${args[--separator]}\").jsonize()"
+    template+="v.split(\"${args[--separator]}\")"
     fi
     if [[ ${args[--mode]} == "records" ]]; then
-    template+='row.record.cells[cn.chomp("⊌")].value.jsonize()'
+    template+='row.record.cells[cn.chomp("⊌")].value'
     fi
+    template+=', e, e.jsonize()).join(", ") + " ]"'
     template+=', "\"" + cn + "\": " + v.jsonize())'
 else
     template+='cells[cn].value, v, "\"" + cn + "\": " + v.jsonize()'

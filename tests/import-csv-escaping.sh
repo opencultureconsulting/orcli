@@ -24,9 +24,9 @@ cat << "DATA" > "${tmpdir}/${t}.assert"
   ]
 }
 DATA
-# TSV header (OpenRefine 3.7 uses a different CSV library that quotes instead of escaping)
+# TSV header (OpenRefine before 3.8 uses a different CSV library that quotes instead of escaping)
 case "$(curl -fs "${OPENREFINE_URL}/command/core/get-version" | jq -r '.version')" in
-  3.7.*) printf '%s\n' '"x"""	y\	z' >> "${tmpdir}/${t}.assert" ;;
+  3.[3-6] | 3.[3-7].*) printf '%s\n' '"x"""	y\	z' >> "${tmpdir}/${t}.assert" ;;
   *) printf '%s\n' 'x"	y\\	z' >> "${tmpdir}/${t}.assert" ;;
 esac
 printf '1\t2\t3\n' >> "${tmpdir}/${t}.assert"

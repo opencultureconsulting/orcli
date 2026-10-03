@@ -6,7 +6,7 @@ Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org
 
 ## Features
 
-* works with OpenRefine 3.7, 3.8, 3.9 and 3.10 (tested with 3.7.9, 3.8.7, 3.9.5 and 3.10.1)
+* works with OpenRefine 3.5 to 3.10 (tested with 3.5.2, 3.6.2, 3.7.9, 3.8.7, 3.9.5 and 3.10.1)
 * run batch processes (import, transform, export)
   * orcli takes care of starting and stopping OpenRefine with temporary workspaces
   * allows execution of arbitrary bash scripts
@@ -148,7 +148,7 @@ orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-
   To run the tests with all supported OpenRefine releases (downloaded to `~/.cache/orcli`):
 
   ```sh
-  ./test-versions.sh                 # 3.7.9 3.8.7 3.9.5 3.10.1
+  ./test-versions.sh                 # 3.5.2 3.6.2 3.7.9 3.8.7 3.9.5 3.10.1
   ./test-versions.sh 3.10.1 3.11.0   # or any other releases
   ```
 

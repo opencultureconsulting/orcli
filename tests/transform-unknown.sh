@@ -20,7 +20,7 @@ DATA
 
 # assertion (OpenRefine rejects unknown operations since 3.9 and reports clearer errors since 3.10)
 case "$(curl -fs "${OPENREFINE_URL}/command/core/get-version" | jq -r '.version')" in
-  3.7.* | 3.8.*) response="operation was not applied (unknown operation or invalid parameters?)" ;;
+  3.[3-6] | 3.[3-8].*) response="operation was not applied (unknown operation or invalid parameters?)" ;;
   3.9.*) response="java.lang.IllegalArgumentException: Unknown operation type: core/unknown-operation" ;;
   *) response="Operation #1: Unknown operation core/unknown-operation" ;;
 esac
