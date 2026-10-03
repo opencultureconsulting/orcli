@@ -12,7 +12,7 @@ set -uo pipefail
 
 versions=("$@")
 if [[ ${#versions[@]} -eq 0 ]]; then
-  versions=(3.5.2 3.6.2 3.7.9 3.8.7 3.9.5 3.10.1)
+  versions=(3.3 3.4.1 3.5.2 3.6.2 3.7.9 3.8.7 3.9.5 3.10.1)
 fi
 cache="${ORCLI_CACHE:-${XDG_CACHE_HOME:-${HOME}/.cache}/orcli}"
 repo="$(cd "$(dirname "$0")" && pwd)"

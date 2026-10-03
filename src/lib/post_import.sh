@@ -25,8 +25,8 @@ function post_import() {
         fi
         curloptions+=("--form-string" "project-name=${name}")
     fi
-    # declare the encoding of the uploaded file in the request, because OpenRefine 3.7
-    # prefers its guessed encoding over the encoding option (fixed in OpenRefine 3.8)
+    # declare the encoding of the uploaded file in the request, because OpenRefine before 3.8
+    # prefers its guessed encoding over the encoding option
     if [[ ${args[--encoding]} ]]; then
         curloptions+=("--header" "Content-Type: multipart/form-data; charset=${args[--encoding]}")
     fi

@@ -6,7 +6,7 @@ Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org
 
 ## Features
 
-* works with OpenRefine 3.5 to 3.10 (see [Supported versions](#supported-versions))
+* works with OpenRefine 3.3 to 3.10 (see [Supported versions](#supported-versions))
 * run batch processes (import, transform, export)
   * orcli takes care of starting and stopping OpenRefine with temporary workspaces
   * allows execution of arbitrary bash scripts
@@ -24,7 +24,7 @@ Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org
 * GNU/Linux with Bash 4+
 * [jq](https://stedolan.github.io/jq)
 * [curl](https://curl.se)
-* [OpenRefine](https://openrefine.org) 😉 (3.5 or later)
+* [OpenRefine](https://openrefine.org) 😉 (3.3 or later)
 
 ## Supported versions
 
@@ -38,8 +38,8 @@ orcli is developed for the latest OpenRefine release and tested with the latest 
 | 3.7 | 3.7.9 | as 3.8; `export csv`/`tsv`: special characters are quoted instead of escaped (e.g. `"x"""` instead of `x"`); `import --encoding` is ignored for multiple files |
 | 3.6 | 3.6.2 | as 3.7 |
 | 3.5 | 3.5.2 | as 3.7; `export jsonl`: arrays without spaces (`["a","b"]` instead of `[ "a", "b" ]`) |
-
-OpenRefine 3.4 and older are not supported: `--includeArchiveFileName` (before 3.5) and `--trimStrings` (before 3.4) have no effect there.
+| 3.4 | 3.4.1 | as 3.5; `import --includeArchiveFileName` has no effect |
+| 3.3 | 3.3 | as 3.4; `import --trimStrings` has no effect |
 
 ## Install
 

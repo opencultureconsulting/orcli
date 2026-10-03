@@ -37,6 +37,10 @@ $	/	'
 { "_ - a": 0, "_ - b": " 0", "_ - c": "0 " }
 { "_ - a": "$", "_ - b": "/", "_ - c": "'" }
 DATA
+# OpenRefine supports trimStrings since 3.4
+case "$(curl -fs "${OPENREFINE_URL}/command/core/get-version" | jq -r '.version')" in
+  3.3 | 3.3.*) printf '%s\n' '_ - a	_ - b	_ - c' '1	2	3' '0	 0	0 ' "$	/	'" '{ "_ - a": 1, "_ - b": 2, "_ - c": 3 }' '{ "_ - a": 0, "_ - b": " 0", "_ - c": "0 " }' "{ \"_ - a\": \"\$\", \"_ - b\": \"/\", \"_ - c\": \"'\" }" > "${tmpdir}/${t}.assert" ;;
+esac
 
 # action
 cd "${tmpdir}" || exit 1
