@@ -48,6 +48,15 @@ for i in "${!files[@]}"; do
     fi
 done
 
+# number of history entries (to check whether an operation was applied, because
+# OpenRefine before 3.9 silently ignores unknown and invalid operations)
+function history_length() {
+    if ! curl -fs --get --data "project=${projectid}" "${OPENREFINE_URL}/command/core/get-history" | jq '.past | length'; then
+        error "getting history of ${args[project]} failed!"
+    fi
+}
+history_count="$(history_length)"
+
 # support multiple files
 for i in "${!files[@]}"; do
     # read each operation into one line
@@ -88,9 +97,19 @@ for i in "${!files[@]}"; do
             if [[ $(jq '.exceptions | length' <<<"$processes") != 0 ]]; then
                 error "transforming ${args[project]} with ${op} from ${files[$i]} failed!" "Response: $(jq -r '[.exceptions[].message] | join("; ")' <<<"$processes")"
             fi
-            log "transformed ${args[project]} with ${op}" "Response: $(curl -fs --get --data "project=${projectid}" "${OPENREFINE_URL}/command/core/get-history" | jq -r '.past[-1].description')"
-        elif [[ $response_code == "ok" ]]; then
+        fi
+        if [[ $response_code == "ok" ]] && jq -e 'has("historyEntries")' <<<"$response" >/dev/null; then
+            # OpenRefine 3.10+ responds with the new history entries
+            history_count=$((history_count + $(jq '.historyEntries | length' <<<"$response")))
             log "transformed ${args[project]} with ${op}" "Response: $(jq -r '.historyEntries[].description' <<<"$response")"
+        elif [[ $response_code == "pending" ]] || [[ $response_code == "ok" ]]; then
+            # long-running operations and OpenRefine before 3.10 respond without history entries
+            new_history_count="$(history_length)"
+            if [[ ${new_history_count} == "${history_count}" ]]; then
+                error "transforming ${args[project]} with ${op} from ${files[$i]} failed!" "Response: operation was not applied (unknown operation or invalid parameters?)"
+            fi
+            history_count="${new_history_count}"
+            log "transformed ${args[project]} with ${op}" "Response: $(curl -fs --get --data "project=${projectid}" "${OPENREFINE_URL}/command/core/get-history" | jq -r '.past[-1].description')"
         else
             error "transforming ${args[project]} with ${op} from ${files[$i]} failed!" "Response: $(jq -r '.message' <<<"$response")"
         fi

@@ -30,5 +30,7 @@ cd "${tmpdir}" || exit 1
 orcli import csv "${t}.csv" --projectName "${t}"
 orcli export jsonl "${t}" --output "${t}.output" --mode records
 
-# test
-diff -u "${t}.assert" "${t}.output"
+# test (as compact JSON, because OpenRefine before 3.6 formats arrays without spaces)
+jq -c . "${t}.assert" > "${t}.assert.json"
+jq -c . "${t}.output" > "${t}.output.json"
+diff -u "${t}.assert.json" "${t}.output.json"

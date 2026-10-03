@@ -13,20 +13,36 @@ a,b,c
 1,2,3
 x,y,z
 DATA
-# operations without specific endpoint (column-move-left, row-duplicate-removal),
-# a multi-line expression and a long-running process with HTTP headers
+# operations available in all supported OpenRefine versions (column-move, row-removal with
+# a facet), a multi-line expression and a long-running process with HTTP headers
 cat << DATA > "${tmpdir}/${t}.history"
 [
   {
-    "op": "core/column-move-left",
+    "op": "core/column-move",
     "columnName": "b",
-    "description": "Move column b to the left"
+    "index": 0,
+    "description": "Move column b to position 0"
   },
   {
-    "op": "core/row-duplicate-removal",
-    "engineConfig": { "facets": [], "mode": "row-based" },
-    "criteria": [ "a", "b", "c" ],
-    "description": "Remove duplicates"
+    "op": "core/row-removal",
+    "engineConfig": {
+      "facets": [
+        {
+          "type": "list",
+          "name": "duplicates",
+          "columnName": "",
+          "expression": "grel:row.index",
+          "omitBlank": false,
+          "omitError": false,
+          "selection": [ { "v": { "v": 1, "l": "1" } } ],
+          "selectBlank": false,
+          "selectError": false,
+          "invert": false
+        }
+      ],
+      "mode": "row-based"
+    },
+    "description": "Remove rows"
   },
   {
     "op": "core/text-transform",

@@ -6,7 +6,7 @@ Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org
 
 ## Features
 
-* works with latest OpenRefine version (currently 3.10)
+* works with OpenRefine 3.3 to 3.10 (see [Supported versions](#supported-versions))
 * run batch processes (import, transform, export)
   * orcli takes care of starting and stopping OpenRefine with temporary workspaces
   * allows execution of arbitrary bash scripts
@@ -24,7 +24,7 @@ Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org
 * GNU/Linux with Bash 4+
 * [jq](https://stedolan.github.io/jq)
 * [curl](https://curl.se)
-* [OpenRefine](https://openrefine.org) 😉
+* [OpenRefine](https://openrefine.org) 😉 (3.3 or later)
 
 ## Install
 
@@ -121,6 +121,19 @@ Optional:
 
 * If OpenRefine does not have enough memory to process the data, it becomes slow and may even crash. Check the message after the run command finishes to see how much memory was used and adjust the memory allocated to OpenRefine accordingly with the `--memory` flag (default: 2048M).
 
+## Supported versions
+
+| OpenRefine | tested with | differences |
+|---|---|---|
+| 3.10 | 3.10.1 | – |
+| 3.9 | 3.9.5 | `transform`: less clear error messages (e.g. `java.lang.IllegalArgumentException: Missing field lengths` instead of `Operation #1: Missing field lengths`) |
+| 3.8 | 3.8.7 | `transform`: OpenRefine skips unknown or invalid operations without an error, so orcli only reports `operation was not applied` (details in OpenRefine's log) |
+| 3.7 | 3.7.9 | as 3.8; `export csv`/`tsv`: special characters are quoted instead of escaped (e.g. `"x"""` instead of `x"`); `import --encoding` is ignored for multiple files |
+| 3.6 | 3.6.2 | as 3.7 |
+| 3.5 | 3.5.2 | as 3.7; `export jsonl`: arrays without spaces (`["a","b"]` instead of `[ "a", "b" ]`) |
+| 3.4 | 3.4.1 | as 3.5; `import --includeArchiveFileName` has no effect |
+| 3.3 | 3.3 | as 3.4; `import --trimStrings` has no effect |
+
 ## Development
 
 orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-file script from files in the `src` directory.
@@ -145,8 +158,24 @@ orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-
   ./orcli test
   ```
 
+  To run the tests with all supported OpenRefine releases (downloaded to `~/.cache/orcli`):
+
+  ```sh
+  ./test-versions.sh                 # 3.5.2 3.6.2 3.7.9 3.8.7 3.9.5 3.10.1
+  ./test-versions.sh 3.10.1 3.11.0   # or any other releases
+  ```
+
 5. Generate docs
 
   ```sh
   bashly render templates/html-form docs
+  ```
+
+### Check new OpenRefine releases
+
+[openrefine-api.sh](openrefine-api.sh) lists the commands (with request parameters), operations (with JSON properties), importers and exporters (with options and default values) of an OpenRefine release as found in its source code (requires git and perl). Compare the latest release orcli supports with a new release to find out whether orcli needs to be adapted (and run `./test-versions.sh` with the new release):
+
+  ```sh
+  ./openrefine-api.sh 3.10.1 > openrefine-3.10.1.md   # report for one release
+  ./openrefine-api.sh 3.9.5 3.10.1                    # diff between two releases
   ```

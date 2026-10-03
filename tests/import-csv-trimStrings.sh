@@ -21,6 +21,10 @@ a	b	c
 0	0	0
 $	/	'
 DATA
+# OpenRefine supports trimStrings since 3.4
+case "$(curl -fs "${OPENREFINE_URL}/command/core/get-version" | jq -r '.version')" in
+  3.3 | 3.3.*) printf '%s\n' 'a	b	c' '1 	 2 	 3' '0	0	0' "$	/	'" > "${tmpdir}/${t}.assert" ;;
+esac
 
 # action
 cd "${tmpdir}" || exit 1

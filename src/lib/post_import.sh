@@ -25,6 +25,11 @@ function post_import() {
         fi
         curloptions+=("--form-string" "project-name=${name}")
     fi
+    # declare the encoding of the uploaded file in the request, because OpenRefine before 3.8
+    # prefers its guessed encoding over the encoding option
+    if [[ ${args[--encoding]} ]]; then
+        curloptions+=("--header" "Content-Type: multipart/form-data; charset=${args[--encoding]}")
+    fi
     # post
     if ! redirect_url="$(curl -fs --write-out "%{redirect_url}\n" "${curloptions[@]}" "${OPENREFINE_URL}/command/core/create-project-from-upload$(get_csrf)")"; then
         error "importing ${args[file]} failed!"
