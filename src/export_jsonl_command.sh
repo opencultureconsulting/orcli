@@ -24,7 +24,7 @@ if [[ ${args[--separator]} || ${args[--mode]} == "records" ]]; then
         skip=
         for j in "${columns_mv[@]}"; do
             if [[ "$i" == "$j" ]]; then
-                grel_string "$j⊌" # add special character that is used in template below
+                grel_string "${j}⊌" # add special character that is used in template below
                 skip=1; break
             fi
         done

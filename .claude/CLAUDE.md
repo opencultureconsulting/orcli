@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-`orcli` is a Bash CLI that controls [OpenRefine](https://openrefine.org) through its HTTP API (`curl` + `jq`, Bash 4.2+). It supports OpenRefine 3.3 to 3.10 (tested with 3.3, 3.4.1, 3.5.2, 3.6.2, 3.7.9, 3.8.7, 3.9.5 and 3.10.1; differences between versions are documented in the README section "Supported versions" — keep it up to date); development targets the latest release, so check older releases with `./test-versions.sh` (see Tests). It is meant to be dropped into the OpenRefine program directory, next to OpenRefine's `refine` startup script.
+`orcli` is a Bash CLI that controls [OpenRefine](https://openrefine.org) through its HTTP API (`curl` + `jq`, Bash 4.2+) on Linux and macOS (avoid GNU-only tool options such as `sed -i`, `readlink -f`/`-e`, `ps --no-headers` or `grep -P` in `src/` and `tests/`, and use braces for variables followed by non-ASCII characters, e.g. `"${j}⊌"`, because Bash on macOS reads UTF-8 bytes as part of the variable name; CI also runs the tests on macOS). It supports OpenRefine 3.3 to 3.10 (tested with 3.3, 3.4.1, 3.5.2, 3.6.2, 3.7.9, 3.8.7, 3.9.5 and 3.10.1; differences between versions are documented in the README section "Supported versions" — keep it up to date); development targets the latest release, so check older releases with `./test-versions.sh` (see Tests). It is meant to be dropped into the OpenRefine program directory, next to OpenRefine's `refine` startup script.
 
 ## Build system: bashly
 

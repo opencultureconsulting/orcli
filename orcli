@@ -1792,7 +1792,7 @@ function error() {
   if [[ -f "$OPENREFINE_TMPDIR/openrefine.log" ]]; then
     echo >&2 "last 50 lines of OpenRefine's server log:"
     echo >&2 "-----------------------------------------"
-    tail >&2 -50 "$OPENREFINE_TMPDIR/openrefine.log"
+    tail >&2 -n 50 "$OPENREFINE_TMPDIR/openrefine.log"
     echo >&2 "-----------------------------------------"
   fi
   exit 1
@@ -1867,7 +1867,7 @@ function post_export() {
         error "exporting ${args[project]} failed!"
     else
         if [[ ${args[--output]} ]]; then
-            log "exported ${args[project]}" "file: ${args[--output]}" "lines: $(wc -l <"${args[--output]}")"
+            log "exported ${args[project]}" "file: ${args[--output]}" "lines: $(($(wc -l <"${args[--output]}")))"
         fi
     fi
 }
@@ -1887,10 +1887,10 @@ function post_import() {
     if [[ ${file} == "-" ]]; then
         curloptions+=("--form" "project-file=@-")
     else
-        if ! path=$(readlink -e "${file}"); then
+        if ! [[ -r ${file} ]]; then
             error "cannot open ${file} (no such file)!"
         fi
-        curloptions+=("--form" "project-file=@${path}")
+        curloptions+=("--form" "project-file=@${file}")
     fi
     if [[ ${args[--projectName]} ]]; then
         curloptions+=("--form-string" "project-name=${args[--projectName]}")
@@ -1898,7 +1898,8 @@ function post_import() {
         if [[ ${file} == "-" ]]; then
             name="Untitled"
         else
-            name="$(basename "${path}" | tr '.' ' ')"
+            name="${file##*/}"
+            name="${name//./ }"
         fi
         curloptions+=("--form-string" "project-name=${name}")
     fi
@@ -2126,9 +2127,19 @@ send_completions() {
 # start OpenRefine with tmp workspace in the background and wait until it is running
 # shellcheck shell=bash disable=SC2154
 function start_openrefine() {
-    local i
-    # locate orcli and OpenRefine
-    scriptpath=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+    local i link
+    # locate orcli and OpenRefine (resolve symlinks like readlink -f, which
+    # macOS lacks before 12.3)
+    scriptpath="${BASH_SOURCE[0]}"
+    while [[ -L ${scriptpath} ]]; do
+        link="$(readlink "${scriptpath}")"
+        if [[ ${link} == /* ]]; then
+            scriptpath="${link}"
+        else
+            scriptpath="$(dirname "${scriptpath}")/${link}"
+        fi
+    done
+    scriptpath="$(cd "$(dirname "${scriptpath}")" && pwd -P)"
     if ! [[ -x "${scriptpath}/refine" ]]; then
         error "OpenRefine's startup script (refine) not found!" "Did you put orcli in your OpenRefine app dir?"
     fi
@@ -2144,8 +2155,9 @@ function start_openrefine() {
     REFINE_AUTOSAVE_PERIOD=1440 "${scriptpath}/refine" -d "$OPENREFINE_TMPDIR" ${args[--memory]:+-m "${args[--memory]}"} -p "${args[--port]}" -x refine.headless=true -v warn &>"$OPENREFINE_TMPDIR/openrefine.log" &
     OPENREFINE_PID="$!"
     disown "$OPENREFINE_PID" # no job status message when killed on exit
-    # update trap to kill OpenRefine on error or exit
-    trap '{ kill -9 "$OPENREFINE_PID"; rm -rf "$OPENREFINE_TMPDIR" /tmp/jetty-127_0_0_1-"${OPENREFINE_URL##*:}"*; }' 0 2 3 15
+    # update trap to kill OpenRefine and remove Jetty's tmp dir on error or exit
+    # (Java's tmp dir is /tmp on Linux and $TMPDIR on macOS)
+    trap '{ kill -9 "$OPENREFINE_PID"; rm -rf "$OPENREFINE_TMPDIR" /tmp/jetty-127_0_0_1-"${OPENREFINE_URL##*:}"-* "${TMPDIR:-/tmp}"/jetty-127_0_0_1-"${OPENREFINE_URL##*:}"-*; }' 0 2 3 15
     export OPENREFINE_TMPDIR OPENREFINE_URL OPENREFINE_PID
     # wait until OpenRefine is running (fail early if it exits)
     for ((i = 0; i < args[--timeout] * 4; i++)); do
@@ -2595,7 +2607,7 @@ orcli_export_jsonl_command() {
           skip=
           for j in "${columns_mv[@]}"; do
               if [[ "$i" == "$j" ]]; then
-                  grel_string "$j⊌" # add special character that is used in template below
+                  grel_string "${j}⊌" # add special character that is used in template below
                   skip=1; break
               fi
           done
@@ -2781,7 +2793,7 @@ orcli_run_command() {
           if ! read -u 0 -t 0; then
               # case 1: interactive mode if stdin is selected but not present
               bash --rcfile <(
-                  cat ~/.bashrc
+                  [[ -f ~/.bashrc ]] && cat ~/.bashrc
                   echo "alias orcli=${scriptpath}/orcli"
                   interactive
               ) -i </dev/tty
@@ -2792,7 +2804,7 @@ orcli_run_command() {
   if [[ ${args[--interactive]} ]]; then
       # case 2: execute scripts and keep shell running
       bash --rcfile <(
-          cat ~/.bashrc
+          [[ -f ~/.bashrc ]] && cat ~/.bashrc
           echo "alias orcli=${scriptpath}/orcli"
           for i in "${!files[@]}"; do
               log "executing script ${files[$i]}..."
@@ -2810,8 +2822,9 @@ orcli_run_command() {
               awk 1 "${files[$i]}"
           )
       done
-      # print stats
-      log "used $(($(ps --no-headers -o rss -p "$OPENREFINE_PID") / 1024)) MB RAM and $(ps --no-headers -o cputime -p "$OPENREFINE_PID") CPU time"
+      # print stats (POSIX ps options, read trims the padding)
+      read -r rss cputime < <(ps -o rss= -o time= -p "$OPENREFINE_PID")
+      log "used $((rss / 1024)) MB RAM and ${cputime} CPU time"
   fi
 
 }
@@ -5869,7 +5882,7 @@ orcli_run_parse_requirements() {
 
 # :command.initialize
 initialize() {
-  declare -g version="0.6.2"
+  declare -g version="0.6.3"
   set -e
 
   # :command.environment_variables_default

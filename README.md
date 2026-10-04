@@ -21,21 +21,36 @@ Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org
 
 ## Requirements
 
-* GNU/Linux with Bash 4+
-* [jq](https://stedolan.github.io/jq)
+* GNU/Linux or macOS with Bash 4.2+
+* [jq](https://jqlang.org)
 * [curl](https://curl.se)
 * [OpenRefine](https://openrefine.org) 😉 (3.3 or later)
 
+On macOS, install a recent Bash with [Homebrew](https://brew.sh) (macOS ships Bash 3.2) and make sure Homebrew's `bin` directory comes first in your `PATH` (which `brew shellenv` does). jq is preinstalled since macOS 15 (Sequoia), on older versions install it with Homebrew, too:
+
+```sh
+brew install bash jq
+```
+
 ## Install
 
-1. Navigate to the OpenRefine program directory
+1. Navigate to the OpenRefine program directory (the one with OpenRefine's startup script `refine`)
 
 2. Download bash script there and make it executable
 
   ```sh
-  wget https://github.com/opencultureconsulting/orcli/raw/main/orcli
+  curl -fsSLO https://github.com/opencultureconsulting/orcli/raw/main/orcli
   chmod +x orcli
   ```
+
+On macOS, the OpenRefine app (`.dmg`) does not contain the startup script `refine` that orcli needs to start OpenRefine. Use the Linux release (`openrefine-linux-*.tar.gz`) instead, which runs on macOS with an installed Java 11 or later (e.g. `brew install --cask temurin@21`), and put orcli next to its `refine` script:
+
+```sh
+curl -fsSL https://github.com/OpenRefine/OpenRefine/releases/download/3.10.1/openrefine-linux-3.10.1.tar.gz | tar -xz
+cd openrefine-3.10.1
+curl -fsSLO https://github.com/opencultureconsulting/orcli/raw/main/orcli
+chmod +x orcli
+```
 
 Optional:
 
@@ -90,7 +105,7 @@ Optional:
 
   ```sh
   history -a "example.sh"
-  sed -i '$ d' example.sh
+  sed -i.bak '$ d' example.sh && rm example.sh.bak
   ```
 
 6. Exit playground
@@ -165,7 +180,7 @@ orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-
   ./test-versions.sh 3.10.1 3.11.0   # or any other releases
   ```
 
-  GitHub Actions ([ci.yml](.github/workflows/ci.yml)) runs shellcheck, checks that `orcli` is up to date with `src` and runs the tests with all supported OpenRefine releases on every pull request.
+  GitHub Actions ([ci.yml](.github/workflows/ci.yml)) runs shellcheck, checks that `orcli` is up to date with `src` and runs the tests with all supported OpenRefine releases on every pull request (and the tests with the latest release on macOS).
 
 5. Generate docs
 

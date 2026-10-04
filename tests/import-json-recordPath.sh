@@ -30,8 +30,12 @@ cat << "DATA" > "${tmpdir}/${t}.json"
 DATA
 
 # assertion
-cp data/example.tsv "${tmpdir}/${t}.assert"
-sed -i 's/a	b	c/_ - a	_ - b	_ - c/' "${tmpdir}/${t}.assert"
+cat << "DATA" > "${tmpdir}/${t}.assert"
+_ - a	_ - b	_ - c
+1	2	3
+0	0	0
+$	/	'
+DATA
 
 # action
 cd "${tmpdir}" || exit 1

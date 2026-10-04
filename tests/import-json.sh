@@ -10,8 +10,12 @@ trap '{ rm -rf "${tmpdir}"; }' 0 2 3 15
 cp data/example.json "${tmpdir}/${t}.json"
 
 # assertion
-cp data/example.tsv "${tmpdir}/${t}.assert"
-sed -i 's/a	b	c/_ - a	_ - b	_ - c/' "${tmpdir}/${t}.assert"
+cat << "DATA" > "${tmpdir}/${t}.assert"
+_ - a	_ - b	_ - c
+1	2	3
+0	0	0
+$	/	'
+DATA
 
 # action
 cd "${tmpdir}" || exit 1
