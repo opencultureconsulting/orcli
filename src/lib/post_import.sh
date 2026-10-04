@@ -2,7 +2,9 @@
 # shellcheck shell=bash disable=SC2154
 function post_import() {
     local curloptions projectid projectname rows
-    for d in "$@"; do
+    # add options of flags shared by import commands
+    import_options
+    for d in "$@" "options={ ${options} }"; do
         curloptions+=("--form-string")
         curloptions+=("$d")
     done
@@ -40,7 +42,9 @@ function post_import() {
         error "importing ${args[file]} failed!"
     fi
     projectname=$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-project-metadata" | jq -r '.name')
-    rows=$(curl -fs --get --data project="$projectid" --data limit=0 --data start=0 "${OPENREFINE_URL}/command/core/get-rows" | tr "," "\n" | grep '"total"' | cut -d ":" -f 2)
+    rows=$(curl -fs --get --data project="$projectid" --data limit=0 --data start=0 "${OPENREFINE_URL}/command/core/get-rows")
+    rows="${rows#*\"total\":}"
+    rows="${rows%%[,\}]*}"
     if [[ "$rows" = "0" ]]; then
         error "import of ${args[file]} contains 0 rows!"
     else

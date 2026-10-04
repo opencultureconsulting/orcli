@@ -2,26 +2,22 @@
 # shellcheck shell=bash
 function get_id() {
   local response projects projectid
-  if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
+  if ! response="$(curl -fs "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
     error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
   fi
-  if ! projects="$(echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"' | grep -e ":$1$" -e "^$1:")"; then
+  # exact match on project id or name (as id:name lines)
+  if ! projects="$(jq -er --arg p "$1" '.projects | to_entries[] | select(.key == $p or .value.name == $p) | "\(.key):\(.value.name)"' <<<"$response")"; then
     error "project $1 not found"
   fi
-  projectid=$(echo "$projects" | cut -d : -f 1)
-  if ! [[ "${#projectid}" == 13 ]]; then
+  if [[ $2 != "all" && $projects == *$'\n'* ]]; then
     error "multiple projects found" "$projects"
   fi
-  echo "$projectid"
+  while IFS=: read -r projectid _; do
+    echo "$projectid"
+  done <<<"$projects"
 }
 
+# get ids of all projects with the same name
 function get_ids() {
-  local response projects
-  if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
-    error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
-  fi
-  if ! projects="$(echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"' | grep -e ":$1$" -e "^$1:")"; then
-    error "project $1 not found"
-  fi
-  echo "$projects" | cut -d : -f 1
+  get_id "$1" all
 }

@@ -6,7 +6,7 @@
 #
 # Downloads each OpenRefine release (Linux) once into ${ORCLI_CACHE}
 # (default: ~/.cache/orcli), copies ./orcli and tests/ next to it and runs
-# `orcli test` there. Requires Java and a free port 3333.
+# `orcli test` there. Requires Java and a free port 3333 (or ORCLI_PORT).
 
 set -uo pipefail
 
@@ -37,7 +37,7 @@ for version in "${versions[@]}"; do
   rm -rf "${dir}/tests"
   cp -r "${repo}/tests" "${dir}/"
   echo "=== OpenRefine ${version}"
-  if ! "${dir}/orcli" test; then
+  if ! "${dir}/orcli" test --port "${ORCLI_PORT:-3333}"; then
     failed+=("${version}")
   fi
 done

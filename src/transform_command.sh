@@ -1,52 +1,25 @@
 # shellcheck shell=bash disable=SC2154 disable=SC2155
 
-# exit if stdin is selected but not present
-if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]]; then
-    if ! read -u 0 -t 0; then
-        sleep 1
-        if ! read -u 0 -t 0; then
-            orcli_transform_usage
-            exit 1
-        fi
-    fi
-fi
-
 # catch args, convert the space delimited string to an array
 files=()
 eval "files=(${args[file]})"
 
+# check existence of files and stdin
+for i in "${!files[@]}"; do
+    if [[ "${files[$i]}" == '-' ]]; then
+        # exit if stdin is selected but not present
+        require_stdin
+    elif [[ ${files[$i]} != "http://"* ]] && [[ ${files[$i]} != "https://"* ]] && ! [[ -f "${files[$i]}" ]]; then
+        # exit if file does not exist
+        error "cannot open ${files[$i]} (no such file)!"
+    fi
+done
+
 # get project id
 projectid="$(get_id "${args[project]}")"
 
-# create tmp directory
-tmpdir="$(mktemp -d)"
-trap 'rm -rf "$tmpdir"' 0 2 3 15
-
 # download files if name starts with http:// or https://
-for i in "${!files[@]}"; do
-    if [[ ${files[$i]} == "http://"* ]] || [[ ${files[$i]} == "https://"* ]]; then
-        if ! curl -fs --location "${files[$i]}" >"${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"; then
-            error "download of ${files[$i]} failed!"
-        fi
-        files[i]="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
-    fi
-done
-
-# check existence of files and stdin
-for i in "${!files[@]}"; do
-    if [[ "${files[$i]}" == '-' ]] || [[ "${files[$i]}" == '"-"' ]]; then
-        # exit if stdin is selected but not present
-        if ! read -u 0 -t 0; then
-            orcli_transform_usage
-            exit 1
-        fi
-    else
-        # exit if file does not exist
-        if ! [[ -f "${files[$i]}" ]]; then
-            error "cannot open ${files[$i]} (no such file)!"
-        fi
-    fi
-done
+fetch_files
 
 # number of history entries (to check whether an operation was applied, because
 # OpenRefine before 3.9 silently ignores unknown and invalid operations)

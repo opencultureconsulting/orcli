@@ -96,12 +96,14 @@ commands:
             long: --headerLines
             help: parse x line(s) as column headers
             arg: headerLines
+            validate: integer
             default: "1"
             conflicts: [--columnNames]
           - &ignoreLines
             long: --ignoreLines
             help: ignore first x line(s) at beginning of file
             arg: ignoreLines
+            validate: integer
             default: "-1"
           - &ignoreQuoteCharacter
             long: --ignoreQuoteCharacter
@@ -116,6 +118,7 @@ commands:
             long: --limit
             help: load at most x row(s) of data
             arg: limit
+            validate: integer
             default: "-1"
           - &quoteCharacter
             long: --quoteCharacter
@@ -129,6 +132,7 @@ commands:
             long: --skipDataLines
             help: discard initial x row(s) of data
             arg: skipDataLines
+            validate: integer
             default: "0"
           - &trimStrings
             long: --trimStrings
@@ -219,6 +223,7 @@ commands:
               parse x line(s) as column headers
               default: 1 (fixed-width only, line-based import has no header lines)
             arg: headerLines
+            validate: integer
             needs: [--columnWidths]
             conflicts: [--columnNames]
           - *ignoreLines
@@ -228,6 +233,7 @@ commands:
           - long: --linesPerRow
             help: number of lines that make up one row (line-based only)
             arg: linesPerRow
+            validate: positive_integer
             default: "1"
             conflicts: [--columnWidths]
           - *skipBlankRows
@@ -375,6 +381,19 @@ commands:
 
   - name: test
     help: run functional tests on tmp OpenRefine workspace
+    flags:
+      - &port
+        long: --port
+        help: PORT on which OpenRefine should listen
+        arg: port
+        validate: positive_integer
+        default: "3333"
+      - &timeout
+        long: --timeout
+        help: maximum seconds to wait for OpenRefine to start
+        arg: seconds
+        validate: positive_integer
+        default: "60"
 
   - name: transform
     help: apply undo/redo JSON file(s) to an OpenRefine project
@@ -527,10 +546,8 @@ commands:
         help: maximum RAM for OpenRefine java heap space
         arg: ram
         default: "2048M"
-      - long: --port
-        help: PORT on which OpenRefine should listen
-        arg: port
-        default: "3333"
+      - *port
+      - *timeout
       - long: --interactive
         help: do not exit on error and keep bash shell open
       - *quiet

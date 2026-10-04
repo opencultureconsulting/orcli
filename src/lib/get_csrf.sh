@@ -3,13 +3,11 @@
 function get_csrf() {
   local response
   if ! response="$(curl -fs "${OPENREFINE_URL}/command/core/get-csrf-token")"; then
-    if ! response="$(curl -fs "${OPENREFINE_URL}/command/core/get-version")"; then
-      error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
-    fi
-  else
-    if ! [[ "${response}" == '{"token":"'* ]]; then
-      error "getting CSRF token failed!"
-    fi
-    echo "?csrf_token=$(echo "$response" | cut -d \" -f 4)"
+    error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
   fi
+  if ! [[ "${response}" == '{"token":"'* ]]; then
+    error "getting CSRF token failed!"
+  fi
+  response="${response#'{"token":"'}"
+  echo "?csrf_token=${response%%\"*}"
 }
