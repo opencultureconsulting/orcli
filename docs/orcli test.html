@@ -10,9 +10,49 @@
 <h1>orcli test </h1>
 
 <p>run functional tests on tmp OpenRefine workspace</p>
+<h2>Usage</h2>
+<form action="#" method="get">
+  <fieldset>
+    <legend>Options</legend>
+    <table>
+      <tr>
+        <td><label for="--port">--port PORT</label></td>
+        <td>
+          <input type="text" id="--port" name="--port" placeholder="3333">
+        </td>
+        <td>
+          <code>PORT on which OpenRefine should listen</code>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="--timeout">--timeout SECONDS</label></td>
+        <td>
+          <input type="text" id="--timeout" name="--timeout" placeholder="60">
+        </td>
+        <td>
+          <code>maximum seconds to wait for OpenRefine to start</code>
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+ 
+ <fieldset> 
+ <legend>Parent Environment Variables</legend> 
+ <table> 
+  
+ <tr> 
+ <td><label for="parent-OPENREFINE_URL">OPENREFINE_URL</label></td> 
+ <td><input type="text" id="parent-OPENREFINE_URL" name="parent_OPENREFINE_URL" placeholder="http://localhost:3333"></td> 
+ <td><code>URL to OpenRefine server</code></td> 
+ </tr> 
+  
+ </table> 
+ </fieldset> 
+ 
+</form>
 <hr>
 <footer>
-Code: <a href="https://github.com/opencultureconsulting/orcli">https://github.com/opencultureconsulting/orcli</a>
+Code: <a href="https://github.com/opencultureconsulting/orcli/blob/main/src/test_command.sh">https://github.com/opencultureconsulting/orcli/blob/main/src/test_command.sh</a>
 </footer>
 </body>
 </html>

@@ -980,7 +980,7 @@ orcli_test_usage() {
   printf "orcli test - run functional tests on tmp OpenRefine workspace\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  orcli test\n"
+  printf "  orcli test [OPTIONS]\n"
   printf "  orcli test --help | -h\n"
   echo
 
@@ -988,6 +988,19 @@ orcli_test_usage() {
   if [[ -n "$long_usage" ]]; then
     # :command.usage_options
     printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--port PORT"
+    printf "    PORT on which OpenRefine should listen\n"
+    printf "    %s\n" "Default: 3333"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--timeout SECONDS"
+    printf "    maximum seconds to wait for OpenRefine to start\n"
+    printf "    %s\n" "Default: 60"
+    echo
 
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
@@ -1426,6 +1439,12 @@ orcli_run_usage() {
     echo
 
     # :flag.usage
+    printf "  %s\n" "--timeout SECONDS"
+    printf "    maximum seconds to wait for OpenRefine to start\n"
+    printf "    %s\n" "Default: 60"
+    echo
+
+    # :flag.usage
     printf "  %s\n" "--interactive"
     printf "    do not exit on error and keep bash shell open\n"
     echo
@@ -1526,21 +1545,44 @@ inspect_args() {
 }
 
 # :command.user_lib
+# src/lib/fetch_files.sh
+# download files given as http(s) URLs (array files) into a tmp dir
+# shellcheck shell=bash disable=SC2154
+function fetch_files() {
+  local i path
+  for i in "${!files[@]}"; do
+    if [[ ${files[$i]} == "http://"* ]] || [[ ${files[$i]} == "https://"* ]]; then
+      init_tmpdir
+      path="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
+      if ! curl -fs --location -o "${path}" "${files[$i]}"; then
+        error "download of ${files[$i]} failed!"
+      fi
+      files[i]="${path}"
+    fi
+  done
+}
+
+# create tmp directory (once) that is removed on exit
+function init_tmpdir() {
+  if ! [[ ${tmpdir} ]]; then
+    tmpdir="$(mktemp -d)"
+    trap 'rm -rf "$tmpdir"' 0 2 3 15
+  fi
+}
+
 # src/lib/get_csrf.sh
 # get CSRF token (introduced in OpenRefine 3.3)
 # shellcheck shell=bash
 function get_csrf() {
   local response
   if ! response="$(curl -fs "${OPENREFINE_URL}/command/core/get-csrf-token")"; then
-    if ! response="$(curl -fs "${OPENREFINE_URL}/command/core/get-version")"; then
-      error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
-    fi
-  else
-    if ! [[ "${response}" == '{"token":"'* ]]; then
-      error "getting CSRF token failed!"
-    fi
-    echo "?csrf_token=$(echo "$response" | cut -d \" -f 4)"
+    error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
   fi
+  if ! [[ "${response}" == '{"token":"'* ]]; then
+    error "getting CSRF token failed!"
+  fi
+  response="${response#'{"token":"'}"
+  echo "?csrf_token=${response%%\"*}"
 }
 
 # src/lib/get_id.sh
@@ -1548,28 +1590,96 @@ function get_csrf() {
 # shellcheck shell=bash
 function get_id() {
   local response projects projectid
-  if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
+  if ! response="$(curl -fs "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
     error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
   fi
-  if ! projects="$(echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"' | grep -e ":$1$" -e "^$1:")"; then
+  # exact match on project id or name (as id:name lines)
+  if ! projects="$(jq -er --arg p "$1" '.projects | to_entries[] | select(.key == $p or .value.name == $p) | "\(.key):\(.value.name)"' <<<"$response")"; then
     error "project $1 not found"
   fi
-  projectid=$(echo "$projects" | cut -d : -f 1)
-  if ! [[ "${#projectid}" == 13 ]]; then
+  if [[ $2 != "all" && $projects == *$'\n'* ]]; then
     error "multiple projects found" "$projects"
   fi
-  echo "$projectid"
+  while IFS=: read -r projectid _; do
+    echo "$projectid"
+  done <<<"$projects"
 }
 
+# get ids of all projects with the same name
 function get_ids() {
-  local response projects
-  if ! response="$(curl -fs --get "${OPENREFINE_URL}/command/core/get-all-project-metadata")"; then
-    error "no OpenRefine reachable/running at ${OPENREFINE_URL}"
+  get_id "$1" all
+}
+
+# src/lib/import_options.sh
+# add "key": value (valid json) to the options of an import
+# shellcheck shell=bash disable=SC2154
+function option() {
+  options+="${options:+, }\"$1\": $2"
+}
+
+# add options of flags shared by import commands (if the command has them)
+function import_options() {
+  if [[ ${args[--encoding]} ]]; then
+    option encoding "$(json_string "${args[--encoding]}")"
   fi
-  if ! projects="$(echo "$response" | jq -r '.projects | keys[] as $k | "\($k):\(.[$k] | .name)"' | grep -e ":$1$" -e "^$1:")"; then
-    error "project $1 not found"
+  if [[ ${args[--blankCellsAsStrings]} ]]; then
+    option storeBlankCellsAsNulls false
   fi
-  echo "$projects" | cut -d : -f 1
+  if [[ ${args[--columnNames]} ]]; then
+    option columnNames "$(json_array "${args[--columnNames]}")"
+  fi
+  if [[ ${args[--headerLines]} ]]; then
+    option headerLines "${args[--headerLines]}"
+  fi
+  # importers (except line-based txt) apply ignoreLines after inserting the
+  # column names, so skip the ignored lines as data lines instead
+  local skipDataLines="${args[--skipDataLines]}"
+  if [[ ${args[--columnNames]} ]] && ((args[--ignoreLines] > 0)) && [[ ${args[--columnWidths]} || ! ${args[--linesPerRow]} ]]; then
+    skipDataLines=$((skipDataLines + args[--ignoreLines]))
+  elif [[ ${args[--ignoreLines]} ]]; then
+    option ignoreLines "${args[--ignoreLines]}"
+  fi
+  if [[ ${skipDataLines} ]]; then
+    option skipDataLines "${skipDataLines}"
+  fi
+  if [[ ${args[--ignoreQuoteCharacter]} ]]; then
+    option processQuotes false
+  elif [[ ${args[--quoteCharacter]} ]]; then
+    option quoteCharacter "$(json_string "${args[--quoteCharacter]}")"
+  fi
+  if [[ ${args[--includeFileSources]} ]]; then
+    option includeFileSources true
+  fi
+  if [[ ${args[--includeArchiveFileName]} ]]; then
+    option includeArchiveFileName true
+  fi
+  if [[ ${args[--limit]} ]]; then
+    option limit "${args[--limit]}"
+  fi
+  if [[ ${args[--skipBlankRows]} ]]; then
+    option storeBlankRows false
+  fi
+  if [[ ${args[--storeEmptyStrings]} ]]; then
+    option storeEmptyStrings true
+  fi
+  if [[ ${args[--projectName]} ]]; then
+    option projectName "$(json_string "${args[--projectName]}")"
+  fi
+  if [[ ${args[--projectTags]} ]]; then
+    option projectTags "$(json_array "${args[--projectTags]}")"
+  fi
+  # always send booleans that tree importers (json) default to true if missing
+  # (parse default of tabular importers is false)
+  if [[ ${args[--guessCellValueTypes]} ]]; then
+    option guessCellValueTypes true
+  else
+    option guessCellValueTypes false
+  fi
+  if [[ ${args[--trimStrings]} ]]; then
+    option trimStrings true
+  else
+    option trimStrings false
+  fi
 }
 
 # src/lib/init_import.sh
@@ -1577,23 +1687,14 @@ function get_ids() {
 # shellcheck shell=bash disable=SC2154
 function init_import() {
     # catch args, convert the space delimited string to an array
-    local files=()
+    files=()
     eval "files=(${args[file]})"
-    # create tmp directory
-    tmpdir="$(mktemp -d)"
-    trap 'rm -rf "$tmpdir"' 0 2 3 15
     # download files if name starts with http:// or https://
-    for i in "${!files[@]}"; do
-        if [[ ${files[$i]} == "http://"* ]] || [[ ${files[$i]} == "https://"* ]]; then
-            if ! curl -fs --location "${files[$i]}" >"${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"; then
-                error "download of ${files[$i]} failed!"
-            fi
-            files[i]="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
-        fi
-    done
+    fetch_files
     # read pipes if name starts with /dev/fd
     for i in "${!files[@]}"; do
         if [[ ${files[$i]} == "/dev/fd"* ]]; then
+            init_tmpdir
             if ! cat "${files[$i]}" >"${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"; then
                 error "reading of ${files[$i]} failed!"
             fi
@@ -1602,12 +1703,17 @@ function init_import() {
     done
     # create a zip archive if there are multiple files
     if [[ ${#files[@]} -gt 1 ]]; then
+        init_tmpdir
         file="$tmpdir/Untitled.zip"
         if ! zip --quiet --must-match "$file" "${files[@]}"; then
             error "creating zip archive with ${files[*]} failed!"
         fi
     else
         file="${files[0]}"
+    fi
+    # exit if stdin is selected but not present
+    if [[ ${file} == '-' ]]; then
+        require_stdin
     fi
 }
 
@@ -1628,14 +1734,52 @@ EOF
 
 # src/lib/json.sh
 # encode values as json to build options safely (quotes, backslashes etc.)
+# in pure bash for speed, with jq only for rare control characters
 # shellcheck shell=bash
 function json_string() {
-  jq -n --arg s "$1" '$s'
+  local s="${1//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\n'/\\n}"
+  s="${s//$'\r'/\\r}"
+  s="${s//$'\t'/\\t}"
+  if [[ $s == *[[:cntrl:]]* ]]; then
+    jq -n --arg s "$1" '$s'
+  else
+    echo "\"${s}\""
+  fi
 }
 
 # convert a comma separated list into a json array of strings
 function json_array() {
-  jq -cn --arg s "$1" '$s | split(",")'
+  local s="$1," a=""
+  while [[ $s ]]; do
+    a+="${a:+,}$(json_string "${s%%,*}")"
+    s="${s#*,}"
+  done
+  echo "[${a}]"
+}
+
+# quote a string literal for GREL expressions (escape backslashes and quotes)
+function grel_string() {
+  local s="${1//\\/\\\\}"
+  echo "\"${s//\"/\\\"}\""
+}
+
+# quote a regular expression literal for GREL expressions (escape unescaped slashes)
+function grel_regex() {
+  local s="$1" r="" c i escaped=""
+  for ((i = 0; i < ${#s}; i++)); do
+    c="${s:i:1}"
+    if [[ $escaped ]]; then
+      escaped=""
+    elif [[ $c == "\\" ]]; then
+      escaped=1
+    elif [[ $c == '/' ]]; then
+      c='\/'
+    fi
+    r+="$c"
+  done
+  echo "/${r}/"
 }
 
 # src/lib/logging.sh
@@ -1705,7 +1849,9 @@ function post_export() {
 # shellcheck shell=bash disable=SC2154
 function post_import() {
     local curloptions projectid projectname rows
-    for d in "$@"; do
+    # add options of flags shared by import commands
+    import_options
+    for d in "$@" "options={ ${options} }"; do
         curloptions+=("--form-string")
         curloptions+=("$d")
     done
@@ -1743,7 +1889,9 @@ function post_import() {
         error "importing ${args[file]} failed!"
     fi
     projectname=$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-project-metadata" | jq -r '.name')
-    rows=$(curl -fs --get --data project="$projectid" --data limit=0 --data start=0 "${OPENREFINE_URL}/command/core/get-rows" | tr "," "\n" | grep '"total"' | cut -d ":" -f 2)
+    rows=$(curl -fs --get --data project="$projectid" --data limit=0 --data start=0 "${OPENREFINE_URL}/command/core/get-rows")
+    rows="${rows#*\"total\":}"
+    rows="${rows%%[,\}]*}"
     if [[ "$rows" = "0" ]]; then
         error "import of ${args[file]} contains 0 rows!"
     else
@@ -1760,6 +1908,19 @@ function post_import() {
         done
         log "renamed columns in ${projectname}"
     fi
+}
+
+# src/lib/require_stdin.sh
+# exit with usage of the current command if stdin is selected but not present
+# shellcheck shell=bash disable=SC2154
+function require_stdin() {
+  if ! read -u 0 -t 0; then
+    sleep 1
+    if ! read -u 0 -t 0; then
+      "orcli_${action// /_}_usage"
+      exit 1
+    fi
+  fi
 }
 
 # src/lib/send_completions.sh
@@ -1897,7 +2058,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'test\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--help --port --timeout -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'sort\'*)'
@@ -1913,7 +2074,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'run\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--help --interactive --memory --port --quiet -h -q")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_orcli_completions_filter "--help --interactive --memory --port --quiet --timeout -h -q")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    *)'
@@ -1925,6 +2086,55 @@ send_completions() {
   echo $'  complete -F _orcli_completions orcli'
   echo $''
   echo $'# ex: filetype=sh'
+}
+
+# src/lib/start_openrefine.sh
+# start OpenRefine with tmp workspace in the background and wait until it is running
+# shellcheck shell=bash disable=SC2154
+function start_openrefine() {
+    local i
+    # locate orcli and OpenRefine
+    scriptpath=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+    if ! [[ -x "${scriptpath}/refine" ]]; then
+        error "OpenRefine's startup script (refine) not found!" "Did you put orcli in your OpenRefine app dir?"
+    fi
+    # check if OpenRefine is already running
+    OPENREFINE_URL="http://localhost:${args[--port]}"
+    if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
+        error "OpenRefine is already running on port ${args[--port]}." "Hint: Stop the other process or use another port."
+    fi
+    # create tmp directory
+    OPENREFINE_TMPDIR="$(mktemp -d)"
+    trap '{ rm -rf "$OPENREFINE_TMPDIR"; }' 0 2 3 15
+    # start OpenRefine with tmp workspace and autosave period 25 hours
+    REFINE_AUTOSAVE_PERIOD=1440 "${scriptpath}/refine" -d "$OPENREFINE_TMPDIR" ${args[--memory]:+-m "${args[--memory]}"} -p "${args[--port]}" -x refine.headless=true -v warn &>"$OPENREFINE_TMPDIR/openrefine.log" &
+    OPENREFINE_PID="$!"
+    disown "$OPENREFINE_PID" # no job status message when killed on exit
+    # update trap to kill OpenRefine on error or exit
+    trap '{ kill -9 "$OPENREFINE_PID"; rm -rf "$OPENREFINE_TMPDIR" /tmp/jetty-127_0_0_1-"${OPENREFINE_URL##*:}"*; }' 0 2 3 15
+    export OPENREFINE_TMPDIR OPENREFINE_URL OPENREFINE_PID
+    # wait until OpenRefine is running (fail early if it exits)
+    for ((i = 0; i < args[--timeout] * 4; i++)); do
+        if curl -fs "${OPENREFINE_URL}/command/core/get-version" &>/dev/null; then
+            log "started OpenRefine with tmp workspace ${OPENREFINE_TMPDIR}"
+            return
+        fi
+        if ! kill -0 "$OPENREFINE_PID" 2>/dev/null; then
+            break
+        fi
+        sleep 0.25
+    done
+    error "starting OpenRefine server failed!"
+}
+
+# src/lib/validations/validate_integer.sh
+# shellcheck shell=bash
+validate_integer() {
+  [[ "$1" =~ ^-?[0-9]+$ ]] || echo "must be an integer"
+}
+
+validate_positive_integer() {
+  [[ "$1" =~ ^[1-9][0-9]*$ ]] || echo "must be a positive integer"
 }
 
 # :command.command_functions
@@ -1978,101 +2188,17 @@ orcli_import_csv_command() {
   # call init_import function to eval args and to set basic post data
   init_import
 
-  # exit if stdin is selected but not present
-  if [[ ${file} == '-' ]]; then
-      if ! read -u 0 -t 0; then
-          sleep 1
-          if ! read -u 0 -t 0; then
-              orcli_import_csv_usage
-              exit 1
-          fi
-      fi
-  fi
-
-  # assemble specific post data (some options require json format)
-  data+=("format=text/line-based/*sv")
-  options='{ '
-  options+="\"separator\": $(json_string "${args[--separator]}")"
-  if [[ ${args[--encoding]} ]]; then
-      options+=', '
-      options+="\"encoding\": $(json_string "${args[--encoding]}")"
-  fi
-  if [[ ${args[--blankCellsAsStrings]} ]]; then
-      options+=', '
-      options+='"storeBlankCellsAsNulls": false'
-  fi
-  if [[ ${args[--columnNames]} ]]; then
-      options+=', '
-      options+="\"columnNames\": $(json_array "${args[--columnNames]}")"
-  fi
-  if [[ ${args[--guessCellValueTypes]} ]]; then
-      options+=', '
-      options+='"guessCellValueTypes": true'
-  fi
-  if [[ ${args[--headerLines]} ]]; then
-      options+=', '
-      options+="\"headerLines\": ${args[--headerLines]}"
-  fi
-  # importer applies ignoreLines after inserting the column names,
-  # so skip the ignored lines as data lines instead
-  skipDataLines="${args[--skipDataLines]}"
-  if [[ ${args[--columnNames]} ]] && ((args[--ignoreLines] > 0)); then
-      skipDataLines=$((skipDataLines + args[--ignoreLines]))
-  elif [[ ${args[--ignoreLines]} ]]; then
-      options+=', '
-      options+="\"ignoreLines\": ${args[--ignoreLines]}"
-  fi
-  if [[ ${args[--ignoreQuoteCharacter]} ]]; then
-      options+=', '
-      options+='"processQuotes": false'
-  fi
-  if [[ ${args[--includeFileSources]} ]]; then
-      options+=', '
-      options+='"includeFileSources": true'
-  fi
-  if [[ ${args[--includeArchiveFileName]} ]]; then
-      options+=', '
-      options+='"includeArchiveFileName": true'
-  fi
-  if [[ ${args[--limit]} ]]; then
-      options+=', '
-      options+="\"limit\": ${args[--limit]}"
-  fi
+  # set format specific options (shared options are added by post_import)
+  option separator "$(json_string "${args[--separator]}")"
   # OpenRefine 3.8 to 3.10.1 still parse quotes without processQuotes, so also
   # set NUL as quote character to treat quotes as normal characters
   # https://github.com/OpenRefine/OpenRefine/issues/7042
   if [[ ${args[--ignoreQuoteCharacter]} ]]; then
-      options+=', '
-      options+='"quoteCharacter": "\u0000"'
-  elif [[ ${args[--quoteCharacter]} ]]; then
-      options+=', '
-      options+="\"quoteCharacter\": $(json_string "${args[--quoteCharacter]}")"
+      option quoteCharacter '"\u0000"'
   fi
-  if [[ ${args[--skipBlankRows]} ]]; then
-      options+=', '
-      options+='"storeBlankRows": false'
-  fi
-  if [[ ${skipDataLines} ]]; then
-      options+=', '
-      options+="\"skipDataLines\": ${skipDataLines}"
-  fi
-  if [[ ${args[--projectName]} ]]; then
-      options+=', '
-      options+="\"projectName\": $(json_string "${args[--projectName]}")"
-  fi
-  if [[ ${args[--projectTags]} ]]; then
-      options+=', '
-      options+="\"projectTags\": $(json_array "${args[--projectTags]}")"
-  fi
-  if [[ ${args[--trimStrings]} ]]; then
-      options+=', '
-      options+='"trimStrings": true'
-  fi
-  options+=' }'
-  data+=("options=${options}")
 
   # call post_import function to post data and validate results
-  post_import "${data[@]}"
+  post_import "format=text/line-based/*sv"
 
 }
 
@@ -2085,95 +2211,11 @@ orcli_import_tsv_command() {
   # call init_import function to eval args and to set basic post data
   init_import
 
-  # exit if stdin is selected but not present
-  if [[ ${file} == '-' ]]; then
-      if ! read -u 0 -t 0; then
-          sleep 1
-          if ! read -u 0 -t 0; then
-              orcli_import_tsv_usage
-              exit 1
-          fi
-      fi
-  fi
-
-  # assemble specific post data (some options require json format)
-  data+=("format=text/line-based/*sv")
-  options='{ '
-  options+="\"separator\": \"\\t\""
-  if [[ ${args[--encoding]} ]]; then
-      options+=', '
-      options+="\"encoding\": $(json_string "${args[--encoding]}")"
-  fi
-  if [[ ${args[--blankCellsAsStrings]} ]]; then
-      options+=', '
-      options+='"storeBlankCellsAsNulls": false'
-  fi
-  if [[ ${args[--columnNames]} ]]; then
-      options+=', '
-      options+="\"columnNames\": $(json_array "${args[--columnNames]}")"
-  fi
-  if [[ ${args[--guessCellValueTypes]} ]]; then
-      options+=', '
-      options+='"guessCellValueTypes": true'
-  fi
-  if [[ ${args[--headerLines]} ]]; then
-      options+=', '
-      options+="\"headerLines\": ${args[--headerLines]}"
-  fi
-  # importer applies ignoreLines after inserting the column names,
-  # so skip the ignored lines as data lines instead
-  skipDataLines="${args[--skipDataLines]}"
-  if [[ ${args[--columnNames]} ]] && ((args[--ignoreLines] > 0)); then
-      skipDataLines=$((skipDataLines + args[--ignoreLines]))
-  elif [[ ${args[--ignoreLines]} ]]; then
-      options+=', '
-      options+="\"ignoreLines\": ${args[--ignoreLines]}"
-  fi
-  if [[ ${args[--ignoreQuoteCharacter]} ]]; then
-      options+=', '
-      options+='"processQuotes": false'
-  fi
-  if [[ ${args[--includeFileSources]} ]]; then
-      options+=', '
-      options+='"includeFileSources": true'
-  fi
-  if [[ ${args[--includeArchiveFileName]} ]]; then
-      options+=', '
-      options+='"includeArchiveFileName": true'
-  fi
-  if [[ ${args[--limit]} ]]; then
-      options+=', '
-      options+="\"limit\": ${args[--limit]}"
-  fi
-  if [[ ${args[--quoteCharacter]} ]]; then
-      options+=', '
-      options+="\"quoteCharacter\": $(json_string "${args[--quoteCharacter]}")"
-  fi
-  if [[ ${args[--skipBlankRows]} ]]; then
-      options+=', '
-      options+='"storeBlankRows": false'
-  fi
-  if [[ ${skipDataLines} ]]; then
-      options+=', '
-      options+="\"skipDataLines\": ${skipDataLines}"
-  fi
-  if [[ ${args[--projectName]} ]]; then
-      options+=', '
-      options+="\"projectName\": $(json_string "${args[--projectName]}")"
-  fi
-  if [[ ${args[--projectTags]} ]]; then
-      options+=', '
-      options+="\"projectTags\": $(json_array "${args[--projectTags]}")"
-  fi
-  if [[ ${args[--trimStrings]} ]]; then
-      options+=', '
-      options+='"trimStrings": true'
-  fi
-  options+=' }'
-  data+=("options=${options}")
+  # set format specific options (shared options are added by post_import)
+  option separator '"\t"'
 
   # call post_import function to post data and validate results
-  post_import "${data[@]}"
+  post_import "format=text/line-based/*sv"
 
 }
 
@@ -2186,101 +2228,22 @@ orcli_import_txt_command() {
   # call init_import function to eval args and to set basic post data
   init_import
 
-  # exit if stdin is selected but not present
-  if [[ ${file} == '-' ]]; then
-      if ! read -u 0 -t 0; then
-          sleep 1
-          if ! read -u 0 -t 0; then
-              orcli_import_txt_usage
-              exit 1
-          fi
-      fi
-  fi
-
-  # assemble specific post data (some options require json format)
-  options='{ '
+  # set format specific options (shared options are added by post_import)
   if [[ ${args[--columnWidths]} ]]; then
       # fixed-width: validate column widths (numbers separated by comma, whitespace allowed)
       columnWidths="${args[--columnWidths]//[[:space:]]/}"
       if ! [[ ${columnWidths} =~ ^[0-9]+(,[0-9]+)*$ ]]; then
           error "invalid --columnWidths ${args[--columnWidths]} (numbers separated by comma expected)!"
       fi
-      data+=("format=text/line-based/fixed-width")
-      options+="\"columnWidths\": [ ${columnWidths} ]"
+      format="text/line-based/fixed-width"
+      option columnWidths "[ ${columnWidths} ]"
   else
-      # line-based: validate lines per row (positive number)
-      if ! [[ ${args[--linesPerRow]} =~ ^[1-9][0-9]*$ ]]; then
-          error "invalid --linesPerRow ${args[--linesPerRow]} (positive number expected)!"
-      fi
-      data+=("format=text/line-based")
-      options+="\"linesPerRow\": ${args[--linesPerRow]}"
+      format="text/line-based"
+      option linesPerRow "${args[--linesPerRow]}"
   fi
-  if [[ ${args[--encoding]} ]]; then
-      options+=', '
-      options+="\"encoding\": $(json_string "${args[--encoding]}")"
-  fi
-  if [[ ${args[--blankCellsAsStrings]} ]]; then
-      options+=', '
-      options+='"storeBlankCellsAsNulls": false'
-  fi
-  if [[ ${args[--columnNames]} ]]; then
-      options+=', '
-      options+="\"columnNames\": $(json_array "${args[--columnNames]}")"
-  fi
-  if [[ ${args[--guessCellValueTypes]} ]]; then
-      options+=', '
-      options+='"guessCellValueTypes": true'
-  fi
-  if [[ ${args[--headerLines]} ]]; then
-      options+=', '
-      options+="\"headerLines\": ${args[--headerLines]}"
-  fi
-  # fixed-width importer applies ignoreLines after inserting the column names,
-  # so skip the ignored lines as data lines instead (same result as line-based)
-  skipDataLines="${args[--skipDataLines]}"
-  if [[ ${args[--columnWidths]} && ${args[--columnNames]} ]] && ((args[--ignoreLines] > 0)); then
-      skipDataLines=$((skipDataLines + args[--ignoreLines]))
-  elif [[ ${args[--ignoreLines]} ]]; then
-      options+=', '
-      options+="\"ignoreLines\": ${args[--ignoreLines]}"
-  fi
-  if [[ ${args[--includeFileSources]} ]]; then
-      options+=', '
-      options+='"includeFileSources": true'
-  fi
-  if [[ ${args[--includeArchiveFileName]} ]]; then
-      options+=', '
-      options+='"includeArchiveFileName": true'
-  fi
-  if [[ ${args[--limit]} ]]; then
-      options+=', '
-      options+="\"limit\": ${args[--limit]}"
-  fi
-  if [[ ${args[--skipBlankRows]} ]]; then
-      options+=', '
-      options+='"storeBlankRows": false'
-  fi
-  if [[ ${skipDataLines} ]]; then
-      options+=', '
-      options+="\"skipDataLines\": ${skipDataLines}"
-  fi
-  if [[ ${args[--projectName]} ]]; then
-      options+=', '
-      options+="\"projectName\": $(json_string "${args[--projectName]}")"
-  fi
-  if [[ ${args[--projectTags]} ]]; then
-      options+=', '
-      options+="\"projectTags\": $(json_array "${args[--projectTags]}")"
-  fi
-  if [[ ${args[--trimStrings]} ]]; then
-      options+=', '
-      options+='"trimStrings": true'
-  fi
-  options+=' }'
-  data+=("options=${options}")
 
   # call post_import function to post data and validate results
-  post_import "${data[@]}"
+  post_import "format=${format}"
 
 }
 
@@ -2293,63 +2256,11 @@ orcli_import_json_command() {
   # call init_import function to eval args and to set basic post data
   init_import
 
-  # exit if stdin is selected but not present
-  if [[ ${file} == '-' ]]; then
-      if ! read -u 0 -t 0; then
-          sleep 1
-          if ! read -u 0 -t 0; then
-              orcli_import_json_usage
-              exit 1
-          fi
-      fi
-  fi
-
-  # assemble specific post data (some options require json format)
-  data+=("format=text/json")
-  options='{ '
-  options+="\"recordPath\": ${args[--recordPath]}"
-  # tree importers default to true if options are missing, so always send them
-  options+=', '
-  if [[ ${args[--guessCellValueTypes]} ]]; then
-      options+='"guessCellValueTypes": true'
-  else
-      options+='"guessCellValueTypes": false'
-  fi
-  if [[ ${args[--includeFileSources]} ]]; then
-      options+=', '
-      options+='"includeFileSources": true'
-  fi
-  if [[ ${args[--includeArchiveFileName]} ]]; then
-      options+=', '
-      options+='"includeArchiveFileName": true'
-  fi
-  if [[ ${args[--limit]} ]]; then
-      options+=', '
-      options+="\"limit\": ${args[--limit]}"
-  fi
-  if [[ ${args[--storeEmptyStrings]} ]]; then
-      options+=', '
-      options+='"storeEmptyStrings": true'
-  fi
-  if [[ ${args[--projectName]} ]]; then
-      options+=', '
-      options+="\"projectName\": $(json_string "${args[--projectName]}")"
-  fi
-  if [[ ${args[--projectTags]} ]]; then
-      options+=', '
-      options+="\"projectTags\": $(json_array "${args[--projectTags]}")"
-  fi
-  options+=', '
-  if [[ ${args[--trimStrings]} ]]; then
-      options+='"trimStrings": true'
-  else
-      options+='"trimStrings": false'
-  fi
-  options+=' }'
-  data+=("options=${options}")
+  # set format specific options (shared options are added by post_import)
+  option recordPath "${args[--recordPath]}"
 
   # call post_import function to post data and validate results
-  post_import "${data[@]}"
+  post_import "format=text/json"
 
 }
 
@@ -2362,63 +2273,11 @@ orcli_import_jsonl_command() {
   # call init_import function to eval args and to set basic post data
   init_import
 
-  # exit if stdin is selected but not present
-  if [[ ${file} == '-' ]]; then
-      if ! read -u 0 -t 0; then
-          sleep 1
-          if ! read -u 0 -t 0; then
-              orcli_import_jsonl_usage
-              exit 1
-          fi
-      fi
-  fi
-
-  # assemble specific post data (some options require json format)
-  data+=("format=text/json")
-  options='{ '
-  options+="\"recordPath\": [\"_\"]"
-  # tree importers default to true if options are missing, so always send them
-  options+=', '
-  if [[ ${args[--guessCellValueTypes]} ]]; then
-      options+='"guessCellValueTypes": true'
-  else
-      options+='"guessCellValueTypes": false'
-  fi
-  if [[ ${args[--includeFileSources]} ]]; then
-      options+=', '
-      options+='"includeFileSources": true'
-  fi
-  if [[ ${args[--includeArchiveFileName]} ]]; then
-      options+=', '
-      options+='"includeArchiveFileName": true'
-  fi
-  if [[ ${args[--limit]} ]]; then
-      options+=', '
-      options+="\"limit\": ${args[--limit]}"
-  fi
-  if [[ ${args[--storeEmptyStrings]} ]]; then
-      options+=', '
-      options+='"storeEmptyStrings": true'
-  fi
-  if [[ ${args[--projectName]} ]]; then
-      options+=', '
-      options+="\"projectName\": $(json_string "${args[--projectName]}")"
-  fi
-  if [[ ${args[--projectTags]} ]]; then
-      options+=', '
-      options+="\"projectTags\": $(json_array "${args[--projectTags]}")"
-  fi
-  options+=', '
-  if [[ ${args[--trimStrings]} ]]; then
-      options+='"trimStrings": true'
-  else
-      options+='"trimStrings": false'
-  fi
-  options+=' }'
-  data+=("options=${options}")
+  # set format specific options (shared options are added by post_import)
+  option recordPath '["_"]'
 
   # call post_import function to post data and validate results
-  post_import "${data[@]}"
+  post_import "format=text/json"
 
 }
 
@@ -2467,20 +2326,20 @@ orcli_search_command() {
   # get project id
   projectid="$(get_id "${args[project]}")"
 
+  # GREL expression to filter columns that match the regex
+  regex="$(grel_regex "${args[regex]}")"
+  columns="filter(row.columnNames, cn, cells[cn].value.find(${regex}).length()>0)"
+
   # set facets config
-  args['--facets']='[ { "type": "list", "expression": "grel:filter(row.columnNames,cn,cells[cn].value.find(/'
-  args['--facets']+="${args[regex]}"
-  args['--facets']+='/).length()>0).length()>0", "columnName": "", "selection": [ { "v": { "v": true } } ] } ]'
+  args['--facets']='[ { "type": "list", "expression": '
+  args['--facets']+="$(json_string "grel:${columns}.length()>0")"
+  args['--facets']+=', "columnName": "", "selection": [ { "v": { "v": true } } ] } ]'
 
   # set template
   template='{{'
-  template+='forEach(filter(row.columnNames, cn, cells[cn].value.find(/'
-  template+="${args[regex]}"
-  template+='/).length()>0), cn,'
+  template+="forEach(${columns}, cn,"
   if [[ ${args[--index]} ]]; then
-      template+='cells["'
-      template+="${args[--index]}"
-      template+='"].value'
+      template+="cells[$(grel_string "${args[--index]}")].value"
   else
       template+='(row.index + 1)'
   fi
@@ -2504,13 +2363,16 @@ orcli_sort_columns_command() {
 
   # src/sort_columns_command.sh
   # get columns, sort and transform with re-order columns
-  # shellcheck shell=bash
+  # shellcheck shell=bash disable=SC2154
 
   # catch args, convert the space delimited string to an array
   first=()
   eval "first=(${args[--first]})"
-  # convert to a comma-separated list of elements
-  columns=$(printf ',"'%s'"' "${first[@]}" | cut -c2-)
+  # convert to a json array
+  columns=""
+  for c in "${first[@]}"; do
+      columns+="${columns:+,}$(json_string "$c")"
+  done
 
   # get project id
   projectid="$(get_id "${args[project]}")"
@@ -2519,10 +2381,11 @@ orcli_sort_columns_command() {
   if ! sorted=$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-columns-info" | jq --argjson columns "[ ${columns} ]" '($columns) + ([ .[].name ] | del (.[] | select (. | IN( $columns[] ))) | sort)'); then
       error "getting columns in ${args[project]} failed!"
   fi
-  if ! curl -fs -o /dev/null --data project="$projectid" --data "columnNames=${sorted}" "${OPENREFINE_URL}/command/core/reorder-columns${csrf}"; then
+  if ! curl -fs -o /dev/null --data project="$projectid" --data-urlencode "columnNames=${sorted}" "${OPENREFINE_URL}/command/core/reorder-columns${csrf}"; then
       error "sorting columns in ${args[project]} failed!"
   fi
   log "sorted columns in ${args[project]}"
+
 }
 
 # :command.function
@@ -2531,22 +2394,8 @@ orcli_test_command() {
   # src/test_command.sh
   # shellcheck shell=bash disable=SC2154
 
-  # locate orcli and OpenRefine
-  scriptpath=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
-  if [[ -x "${scriptpath}/refine" ]]; then
-      openrefine="${scriptpath}/refine"
-  else
-      error "OpenRefine's startup script (refine) not found!" "Did you put orcli in your OpenRefine app dir?"
-  fi
-
-  # check if OpenRefine is already running
-  if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
-      error "OpenRefine is already running on port 3333." "Please stop the other process."
-  fi
-
-  # create tmp directory
-  OPENREFINE_TMPDIR="$(mktemp -d)"
-  trap '{ rm -rf "$OPENREFINE_TMPDIR"; }' 0 2 3 15
+  # start OpenRefine with tmp workspace
+  start_openrefine
 
   # download the test files if needed
   if ! [[ -f "tests/help.sh" ]]; then
@@ -2558,27 +2407,7 @@ orcli_test_command() {
       unzip -q -j orcli.zip "*/tests/data/*" -d "tests/data/"
   fi
 
-  # start OpenRefine with tmp workspace
-  $openrefine -d "$OPENREFINE_TMPDIR" -x refine.headless=true -v warn &>"$OPENREFINE_TMPDIR/openrefine.log" &
-  OPENREFINE_PID="$!"
-
-  # update trap to kill OpenRefine on error or exit
-  trap '{ rm -rf "$OPENREFINE_TMPDIR"; rm -rf /tmp/jetty-127_0_0_1-3333*; kill -9 "$OPENREFINE_PID"; }' 0 2 3 15
-
-  # wait until OpenRefine is running (timeout 20s)
-  for i in {1..20}; do
-      sleep 1
-      if curl -fs "${OPENREFINE_URL}/command/core/get-version" &>/dev/null; then
-          log "started OpenRefine with tmp workspace ${OPENREFINE_TMPDIR}"
-          break
-      fi
-      if [[ $i == 20 ]]; then
-          error "starting OpenRefine server failed!"
-      fi
-  done
-
   # execute tests in subshell
-  export OPENREFINE_TMPDIR OPENREFINE_URL OPENREFINE_PID
   cd "tests"
   files=(*.sh)
   results=()
@@ -2614,53 +2443,26 @@ orcli_transform_command() {
   # src/transform_command.sh
   # shellcheck shell=bash disable=SC2154 disable=SC2155
 
-  # exit if stdin is selected but not present
-  if [[ ${args[file]} == '-' ]] || [[ ${args[file]} == '"-"' ]]; then
-      if ! read -u 0 -t 0; then
-          sleep 1
-          if ! read -u 0 -t 0; then
-              orcli_transform_usage
-              exit 1
-          fi
-      fi
-  fi
-
   # catch args, convert the space delimited string to an array
   files=()
   eval "files=(${args[file]})"
 
+  # check existence of files and stdin
+  for i in "${!files[@]}"; do
+      if [[ "${files[$i]}" == '-' ]]; then
+          # exit if stdin is selected but not present
+          require_stdin
+      elif [[ ${files[$i]} != "http://"* ]] && [[ ${files[$i]} != "https://"* ]] && ! [[ -f "${files[$i]}" ]]; then
+          # exit if file does not exist
+          error "cannot open ${files[$i]} (no such file)!"
+      fi
+  done
+
   # get project id
   projectid="$(get_id "${args[project]}")"
 
-  # create tmp directory
-  tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"' 0 2 3 15
-
   # download files if name starts with http:// or https://
-  for i in "${!files[@]}"; do
-      if [[ ${files[$i]} == "http://"* ]] || [[ ${files[$i]} == "https://"* ]]; then
-          if ! curl -fs --location "${files[$i]}" >"${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"; then
-              error "download of ${files[$i]} failed!"
-          fi
-          files[i]="${tmpdir}/${files[$i]//[^A-Za-z0-9._-]/_}"
-      fi
-  done
-
-  # check existence of files and stdin
-  for i in "${!files[@]}"; do
-      if [[ "${files[$i]}" == '-' ]] || [[ "${files[$i]}" == '"-"' ]]; then
-          # exit if stdin is selected but not present
-          if ! read -u 0 -t 0; then
-              orcli_transform_usage
-              exit 1
-          fi
-      else
-          # exit if file does not exist
-          if ! [[ -f "${files[$i]}" ]]; then
-              error "cannot open ${files[$i]} (no such file)!"
-          fi
-      fi
-  done
+  fetch_files
 
   # number of history entries (to check whether an operation was applied, because
   # OpenRefine before 3.9 silently ignores unknown and invalid operations)
@@ -2742,9 +2544,10 @@ orcli_export_jsonl_command() {
   # get columns that contain multiple values
   if [[ ${args[--separator]} || ${args[--mode]} == "records" ]]; then
       if [[ ${args[--separator]} ]]; then
-          engine='{"facets":[{"type":"list","columnName":"","expression":"grel:filter(row.columnNames,cn,cells[cn].value.contains(\"'
-          engine+="${args[--separator]}"
-          engine+='\"))","selection":[]}],"mode":"row-based"}'
+          separator="$(grel_string "${args[--separator]}")"
+          engine='{"facets":[{"type":"list","columnName":"","expression":'
+          engine+="$(json_string "grel:filter(row.columnNames,cn,cells[cn].value.contains(${separator}))")"
+          engine+=',"selection":[]}],"mode":"row-based"}'
       fi
       if [[ ${args[--mode]} == "records" ]]; then
           engine='{"facets":[{"type":"list","columnName":"","expression":"grel:filter(row.columnNames,cn,row.record.cells[cn].value.length()>1)","selection":[]}],"mode":"row-based"}'
@@ -2755,12 +2558,12 @@ orcli_export_jsonl_command() {
           skip=
           for j in "${columns_mv[@]}"; do
               if [[ "$i" == "$j" ]]; then
-                  echo "\"$j⊌\"" # add special character that is used in template below
+                  grel_string "$j⊌" # add special character that is used in template below
                   skip=1; break
               fi
           done
           if [[ -z $skip ]]; then
-              echo "\"$i\""
+              grel_string "$i"
           fi
       done)
       multivalued=$(IFS=, ; echo "[${columns_mix[*]}]")
@@ -2780,16 +2583,16 @@ orcli_export_jsonl_command() {
   fi
   template+=', cn, forNonBlank('
   if [[ ${args[--separator]} || ${args[--mode]} == "records" ]]; then
-      template+='cells[cn.chomp("⊌")].value, v, if(cn.endsWith("⊌"), "\"" + cn.chomp("⊌") + "\": " +'
+      template+='cells[cn.chomp("⊌")].value, v, if(cn.endsWith("⊌"), cn.chomp("⊌").jsonize() + ": " +'
       if [[ ${args[--separator]} ]]; then
-      template+="v.split(\"${args[--separator]}\").jsonize()"
+      template+="v.split(${separator}).jsonize()"
       fi
       if [[ ${args[--mode]} == "records" ]]; then
       template+='row.record.cells[cn.chomp("⊌")].value.jsonize()'
       fi
-      template+=', "\"" + cn + "\": " + v.jsonize())'
+      template+=', cn.jsonize() + ": " + v.jsonize())'
   else
-      template+='cells[cn].value, v, "\"" + cn + "\": " + v.jsonize()'
+      template+='cells[cn].value, v, cn.jsonize() + ": " + v.jsonize()'
   fi
   template+=', null)'
   template+=').join(", ")'
@@ -2865,33 +2668,18 @@ orcli_export_template_command() {
   # get project id
   projectid="$(get_id "${args[project]}")"
 
-  # create tmp directory
-  tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"' 0 2 3 15
-
   # download file if name starts with http:// or https://
-  if [[ ${args[file]} == "http://"* ]] || [[ ${args[file]} == "https://"* ]]; then
-      if ! curl -fs --location "${args[file]}" >"${tmpdir}/${args[file]//[^A-Za-z0-9._-]/_}"; then
-          error "download of ${args[file]} failed!"
-      fi
-      args[file]="${tmpdir}/${args[file]//[^A-Za-z0-9._-]/_}"
-  fi
+  files=("${args[file]}")
+  fetch_files
+  args[file]="${files[0]}"
 
   # check existence of file or stdin
-  if [[ "${args[file]}" == '-' ]] || [[ "${args[file]}" == '"-"' ]]; then
+  if [[ "${args[file]}" == '-' ]]; then
       # exit if stdin is selected but not present
-      if ! read -u 0 -t 0; then
-          sleep 1
-          if ! read -u 0 -t 0; then
-              orcli_export_template_usage
-              exit 1
-          fi
-      fi
-  else
+      require_stdin
+  elif ! [[ -f "${args[file]}" ]]; then
       # exit if file does not exist
-      if ! [[ -f "${args[file]}" ]]; then
-          error "cannot open ${args[file]} (no such file)!"
-      fi
+      error "cannot open ${args[file]} (no such file)!"
   fi
 
   # read args[file] into variable to remove trailing newline
@@ -2931,13 +2719,7 @@ orcli_run_command() {
       if [[ "${files[$i]}" == '-' ]] || [[ "${files[$i]}" == '"-"' ]]; then
           # exit if stdin is selected but not present
           if ! [[ ${args[--interactive]} ]]; then
-              if ! read -u 0 -t 0; then
-                  sleep 1
-                  if ! read -u 0 -t 0; then
-                      orcli_run_usage
-                      exit 1
-                  fi
-              fi
+              require_stdin
           fi
       else
           # exit if file does not exist
@@ -2952,47 +2734,10 @@ orcli_run_command() {
       export ORCLI_QUIET=1
   fi
 
-  # update OPENREFINE_URL env
-  OPENREFINE_URL="http://localhost:${args[--port]}"
-
-  # locate orcli and OpenRefine
-  scriptpath=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
-  if [[ -x "${scriptpath}/refine" ]]; then
-      openrefine="${scriptpath}/refine"
-  else
-      error "OpenRefine's startup script (refine) not found!" "Did you put orcli in your OpenRefine app dir?"
-  fi
-
-  # check if OpenRefine is already running
-  if curl -fs "${OPENREFINE_URL}" &>/dev/null; then
-      error "OpenRefine is already running on port ${args[--port]}." "Hint: Stop the other process or use another port."
-  fi
-
-  # create tmp directory
-  OPENREFINE_TMPDIR="$(mktemp -d)"
-  trap '{ rm -rf "$OPENREFINE_TMPDIR"; }' 0 2 3 15
-
-  # start OpenRefine with tmp workspace and autosave period 25 hours
-  REFINE_AUTOSAVE_PERIOD=1440 $openrefine -d "$OPENREFINE_TMPDIR" -m "${args[--memory]}" -p "${args[--port]}" -x refine.headless=true -v warn &>"$OPENREFINE_TMPDIR/openrefine.log" &
-  OPENREFINE_PID="$!"
-
-  # update trap to kill OpenRefine on error or exit
-  trap '{ rm -rf "$OPENREFINE_TMPDIR"; rm -rf /tmp/jetty-127_0_0_1-${OPENREFINE_URL##*:}*; kill -9 "$OPENREFINE_PID"; }' 0 2 3 15
-
-  # wait until OpenRefine is running (timeout 20s)
-  for i in {1..20}; do
-      sleep 1
-      if curl -fs "${OPENREFINE_URL}/command/core/get-version" &>/dev/null; then
-          log "started OpenRefine with tmp workspace ${OPENREFINE_TMPDIR}"
-          break
-      fi
-      if [[ $i == 20 ]]; then
-          error "starting OpenRefine server failed!"
-      fi
-  done
+  # start OpenRefine with tmp workspace
+  start_openrefine
 
   # execute script(s) in subshell
-  export OPENREFINE_TMPDIR OPENREFINE_URL OPENREFINE_PID
   if [[ ${args[file]} == '-' || ${args[file]} == '"-"' ]]; then
       if ! read -u 0 -t 0; then
           sleep 1
@@ -3703,6 +3448,43 @@ orcli_import_csv_parse_requirements() {
   [[ -n ${args['--quoteCharacter']:-} ]] || args['--quoteCharacter']="\""
   [[ -n ${args['--skipDataLines']:-} ]] || args['--skipDataLines']="0"
 
+  # :command.validations
+  # :flag.validations
+  if [[ -v args['--headerLines'] ]]; then
+    validation_output="$(validate_integer "${args['--headerLines']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--headerLines HEADERLINES" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--ignoreLines'] ]]; then
+    validation_output="$(validate_integer "${args['--ignoreLines']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--ignoreLines IGNORELINES" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--limit'] ]]; then
+    validation_output="$(validate_integer "${args['--limit']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--limit LIMIT" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--skipDataLines'] ]]; then
+    validation_output="$(validate_integer "${args['--skipDataLines']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--skipDataLines SKIPDATALINES" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
 }
 
 # :command.parse_requirements
@@ -3963,6 +3745,43 @@ orcli_import_tsv_parse_requirements() {
   [[ -n ${args['--limit']:-} ]] || args['--limit']="-1"
   [[ -n ${args['--quoteCharacter']:-} ]] || args['--quoteCharacter']="\""
   [[ -n ${args['--skipDataLines']:-} ]] || args['--skipDataLines']="0"
+
+  # :command.validations
+  # :flag.validations
+  if [[ -v args['--headerLines'] ]]; then
+    validation_output="$(validate_integer "${args['--headerLines']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--headerLines HEADERLINES" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--ignoreLines'] ]]; then
+    validation_output="$(validate_integer "${args['--ignoreLines']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--ignoreLines IGNORELINES" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--limit'] ]]; then
+    validation_output="$(validate_integer "${args['--limit']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--limit LIMIT" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--skipDataLines'] ]]; then
+    validation_output="$(validate_integer "${args['--skipDataLines']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--skipDataLines SKIPDATALINES" "$validation_output" >&2
+      exit 1
+    fi
+  fi
 
 }
 
@@ -4247,6 +4066,52 @@ orcli_import_txt_parse_requirements() {
   [[ -n ${args['--linesPerRow']:-} ]] || args['--linesPerRow']="1"
   [[ -n ${args['--skipDataLines']:-} ]] || args['--skipDataLines']="0"
 
+  # :command.validations
+  # :flag.validations
+  if [[ -v args['--headerLines'] ]]; then
+    validation_output="$(validate_integer "${args['--headerLines']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--headerLines HEADERLINES" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--ignoreLines'] ]]; then
+    validation_output="$(validate_integer "${args['--ignoreLines']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--ignoreLines IGNORELINES" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--limit'] ]]; then
+    validation_output="$(validate_integer "${args['--limit']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--limit LIMIT" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--linesPerRow'] ]]; then
+    validation_output="$(validate_positive_integer "${args['--linesPerRow']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--linesPerRow LINESPERROW" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--skipDataLines'] ]]; then
+    validation_output="$(validate_integer "${args['--skipDataLines']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--skipDataLines SKIPDATALINES" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
 }
 
 # :command.parse_requirements
@@ -4417,6 +4282,16 @@ orcli_import_json_parse_requirements() {
   [[ -n ${args['--recordPath']:-} ]] || args['--recordPath']="[ \"_\" , \"_\" ]"
   [[ -n ${args['--limit']:-} ]] || args['--limit']="-1"
 
+  # :command.validations
+  # :flag.validations
+  if [[ -v args['--limit'] ]]; then
+    validation_output="$(validate_integer "${args['--limit']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--limit LIMIT" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
 }
 
 # :command.parse_requirements
@@ -4571,6 +4446,16 @@ orcli_import_jsonl_parse_requirements() {
   # :command.default_assignments
   [[ -n ${args['file']:-} ]] || args['file']="-"
   [[ -n ${args['--limit']:-} ]] || args['--limit']="-1"
+
+  # :command.validations
+  # :flag.validations
+  if [[ -v args['--limit'] ]]; then
+    validation_output="$(validate_integer "${args['--limit']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--limit LIMIT" "$validation_output" >&2
+      exit 1
+    fi
+  fi
 
 }
 
@@ -4934,6 +4819,33 @@ orcli_test_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+      # :flag.case
+      --port)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--port']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--port requires an argument: --port PORT" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --timeout)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--timeout']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--timeout requires an argument: --timeout SECONDS" >&2
+          exit 1
+        fi
+        ;;
 
       -?*)
         printf "invalid option: %s\n" "$key" >&2
@@ -4950,6 +4862,29 @@ orcli_test_parse_requirements() {
 
     esac
   done
+
+  # :command.default_assignments
+  [[ -n ${args['--port']:-} ]] || args['--port']="3333"
+  [[ -n ${args['--timeout']:-} ]] || args['--timeout']="60"
+
+  # :command.validations
+  # :flag.validations
+  if [[ -v args['--port'] ]]; then
+    validation_output="$(validate_positive_integer "${args['--port']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--port PORT" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--timeout'] ]]; then
+    validation_output="$(validate_positive_integer "${args['--timeout']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--timeout SECONDS" "$validation_output" >&2
+      exit 1
+    fi
+  fi
 
 }
 
@@ -5816,6 +5751,20 @@ orcli_run_parse_requirements() {
         ;;
 
       # :flag.case
+      --timeout)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--timeout']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--timeout requires an argument: --timeout SECONDS" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
       --interactive)
 
         # :flag.case_no_arg
@@ -5858,6 +5807,26 @@ orcli_run_parse_requirements() {
   [[ -n ${args['file']:-} ]] || args['file']="-"
   [[ -n ${args['--memory']:-} ]] || args['--memory']="2048M"
   [[ -n ${args['--port']:-} ]] || args['--port']="3333"
+  [[ -n ${args['--timeout']:-} ]] || args['--timeout']="60"
+
+  # :command.validations
+  # :flag.validations
+  if [[ -v args['--port'] ]]; then
+    validation_output="$(validate_positive_integer "${args['--port']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--port PORT" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--timeout'] ]]; then
+    validation_output="$(validate_positive_integer "${args['--timeout']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--timeout SECONDS" "$validation_output" >&2
+      exit 1
+    fi
+  fi
 
 }
 

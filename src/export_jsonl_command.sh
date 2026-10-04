@@ -4,9 +4,10 @@ projectid="$(get_id "${args[project]}")"
 # get columns that contain multiple values
 if [[ ${args[--separator]} || ${args[--mode]} == "records" ]]; then
     if [[ ${args[--separator]} ]]; then
-        engine='{"facets":[{"type":"list","columnName":"","expression":"grel:filter(row.columnNames,cn,cells[cn].value.contains(\"'
-        engine+="${args[--separator]}"
-        engine+='\"))","selection":[]}],"mode":"row-based"}'
+        separator="$(grel_string "${args[--separator]}")"
+        engine='{"facets":[{"type":"list","columnName":"","expression":'
+        engine+="$(json_string "grel:filter(row.columnNames,cn,cells[cn].value.contains(${separator}))")"
+        engine+=',"selection":[]}],"mode":"row-based"}'
     fi
     if [[ ${args[--mode]} == "records" ]]; then
         engine='{"facets":[{"type":"list","columnName":"","expression":"grel:filter(row.columnNames,cn,row.record.cells[cn].value.length()>1)","selection":[]}],"mode":"row-based"}'
@@ -17,12 +18,12 @@ if [[ ${args[--separator]} || ${args[--mode]} == "records" ]]; then
         skip=
         for j in "${columns_mv[@]}"; do
             if [[ "$i" == "$j" ]]; then
-                echo "\"$j⊌\"" # add special character that is used in template below
+                grel_string "$j⊌" # add special character that is used in template below
                 skip=1; break
             fi
         done
         if [[ -z $skip ]]; then
-            echo "\"$i\""
+            grel_string "$i"
         fi
     done)
     multivalued=$(IFS=, ; echo "[${columns_mix[*]}]")
@@ -42,16 +43,16 @@ else
 fi
 template+=', cn, forNonBlank('
 if [[ ${args[--separator]} || ${args[--mode]} == "records" ]]; then
-    template+='cells[cn.chomp("⊌")].value, v, if(cn.endsWith("⊌"), "\"" + cn.chomp("⊌") + "\": " +'
+    template+='cells[cn.chomp("⊌")].value, v, if(cn.endsWith("⊌"), cn.chomp("⊌").jsonize() + ": " +'
     if [[ ${args[--separator]} ]]; then
-    template+="v.split(\"${args[--separator]}\").jsonize()"
+    template+="v.split(${separator}).jsonize()"
     fi
     if [[ ${args[--mode]} == "records" ]]; then
     template+='row.record.cells[cn.chomp("⊌")].value.jsonize()'
     fi
-    template+=', "\"" + cn + "\": " + v.jsonize())'
+    template+=', cn.jsonize() + ": " + v.jsonize())'
 else
-    template+='cells[cn].value, v, "\"" + cn + "\": " + v.jsonize()'
+    template+='cells[cn].value, v, cn.jsonize() + ": " + v.jsonize()'
 fi
 template+=', null)'
 template+=').join(", ")'

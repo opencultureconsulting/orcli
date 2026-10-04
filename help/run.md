@@ -16,6 +16,10 @@ Options:
     PORT on which OpenRefine should listen
     Default: 3333
 
+  --timeout SECONDS
+    maximum seconds to wait for OpenRefine to start
+    Default: 60
+
   --interactive
     do not exit on error and keep bash shell open
 
