@@ -93,3 +93,25 @@ jobs:
         run: |
           bash --version | head -n 1
           ./test-versions.sh 3.10.1
+      - name: diagnose UTF-8 (temporary)
+        if: failure()
+        run: |
+          set +e -x
+          locale
+          command -v curl; curl --version | head -n 1
+          s='a⊌"\'; printf '%s' "$s" | od -An -tx1 -c
+          source src/lib/json.sh
+          grel_string "$s" | od -An -tx1 -c
+          s2="${s//\\/\\\\}"; printf '%s' "$s2" | od -An -tx1 -c
+          # trace the requests of orcli (curl wrapper)
+          mkdir -p "$RUNNER_TEMP/wrap"
+          printf '#!/bin/sh\nexec %s --trace-ascii "%s/trace-$$.txt" "$@"\n' "$(command -v curl)" "$RUNNER_TEMP" > "$RUNNER_TEMP/wrap/curl"
+          chmod +x "$RUNNER_TEMP/wrap/curl"
+          cd "$ORCLI_CACHE/openrefine-3.10.1/tests"
+          PATH="$RUNNER_TEMP/wrap:$PATH" ../orcli run --port 3337 export-jsonl-records.sh || true
+          for f in $(grep -l "export-rows" "$RUNNER_TEMP"/trace-*.txt); do
+            echo "== $f"
+            grep -A3 "=> Send data" "$f" | head -n 8
+            grep -o '.\{0,40\}%[EeCc8][0-9A-Fa-f].\{0,40\}' "$f" | head -n 20
+            grep -c '%E2%8A%8C' "$f"
+          done
