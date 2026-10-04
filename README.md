@@ -24,56 +24,85 @@ Bash script to control OpenRefine via [its HTTP API](https://docs.openrefine.org
 * GNU/Linux or macOS with Bash 4.2+
 * [jq](https://jqlang.org)
 * [curl](https://curl.se)
-* [OpenRefine](https://openrefine.org) 😉 (3.3 or later)
-
-On macOS, install a recent Bash with [Homebrew](https://brew.sh) (macOS ships Bash 3.2) and make sure Homebrew's `bin` directory comes first in your `PATH` (which `brew shellenv` does). jq is preinstalled since macOS 15 (Sequoia), on older versions install it with Homebrew, too:
-
-```sh
-brew install bash jq
-```
+* [OpenRefine](https://openrefine.org) 😉 (3.3 or later) with Java 11 or later
 
 ## Install
 
-1. Navigate to the OpenRefine program directory (the one with OpenRefine's startup script `refine`)
+orcli needs OpenRefine's startup script `refine` and is therefore placed in the OpenRefine program directory (next to `refine`).
 
-2. Download bash script there and make it executable
+### Linux
+
+1. Install curl, jq and Java with your package manager, e.g. on Debian/Ubuntu
+
+  ```sh
+  sudo apt install curl jq default-jre
+  ```
+
+2. Download and extract OpenRefine (or navigate to the program directory of your existing OpenRefine installation)
+
+  ```sh
+  curl -fsSL https://github.com/OpenRefine/OpenRefine/releases/download/3.10.1/openrefine-linux-3.10.1.tar.gz | tar -xz
+  cd openrefine-3.10.1
+  ```
+
+3. Download orcli and make it executable
 
   ```sh
   curl -fsSLO https://github.com/opencultureconsulting/orcli/raw/main/orcli
   chmod +x orcli
   ```
 
-On macOS, the OpenRefine app (`.dmg`) does not contain the startup script `refine` that orcli needs to start OpenRefine. Use the Linux release (`openrefine-linux-*.tar.gz`) instead, which runs on macOS with an installed Java 11 or later (e.g. `brew install --cask temurin@21`), and put orcli next to its `refine` script:
-
-```sh
-curl -fsSL https://github.com/OpenRefine/OpenRefine/releases/download/3.10.1/openrefine-linux-3.10.1.tar.gz | tar -xz
-cd openrefine-3.10.1
-curl -fsSLO https://github.com/opencultureconsulting/orcli/raw/main/orcli
-chmod +x orcli
-```
-
-Optional:
-
-* Create a symlink in your $PATH (e.g. to ~/.local/bin)
+4. Optional: Create a symlink in your `$PATH` to run `orcli` from anywhere
 
   ```sh
-  ln -s "${PWD}/orcli" ~/.local/bin/
+  sudo ln -s "${PWD}/orcli" /usr/local/bin/
   ```
 
-* Install Bash tab completion
+5. Optional: Install Bash tab completion (requires step 4)
 
-  * temporary
+  ```sh
+  echo 'source <(orcli completions)' >> ~/.bashrc
+  ```
 
-    ```sh
-    source <(orcli completions)
-    ```
+### macOS
 
-  * permanently
+1. Install a recent Bash (macOS ships Bash 3.2), jq (preinstalled since macOS 15 Sequoia) and Java with [Homebrew](https://brew.sh). Make sure Homebrew's `bin` directory comes first in your `PATH` (which `brew shellenv` does, as suggested by the Homebrew installer).
 
-    ```sh
-    mkdir -p ~/.bashrc.d
-    orcli completions > ~/.bashrc.d/orcli
-    ```
+  ```sh
+  brew install bash jq
+  brew install --cask temurin@21
+  ```
+
+2. Download and extract the Linux release of OpenRefine (the macOS app `.dmg` does not contain the startup script `refine`, but the Linux release runs on macOS, too)
+
+  ```sh
+  curl -fsSL https://github.com/OpenRefine/OpenRefine/releases/download/3.10.1/openrefine-linux-3.10.1.tar.gz | tar -xz
+  cd openrefine-3.10.1
+  ```
+
+3. Download orcli and make it executable
+
+  ```sh
+  curl -fsSLO https://github.com/opencultureconsulting/orcli/raw/main/orcli
+  chmod +x orcli
+  ```
+
+4. Optional: Create a symlink in your `$PATH` to run `orcli` from anywhere
+
+  ```sh
+  sudo mkdir -p /usr/local/bin
+  sudo ln -s "${PWD}/orcli" /usr/local/bin/
+  ```
+
+5. Optional: Install zsh tab completion (requires step 4; if your `~/.zshrc` already runs `compinit`, e.g. with Oh My Zsh, add only the last two lines after it)
+
+  ```sh
+  cat >> ~/.zshrc <<'EOT'
+  autoload -Uz compinit && compinit
+  autoload -Uz bashcompinit && bashcompinit
+  source <(orcli completions)
+  EOT
+  ```
 
 ## Getting Started
 
@@ -135,6 +164,8 @@ Optional:
   ```
 
 * If OpenRefine does not have enough memory to process the data, it becomes slow and may even crash. Check the message after the run command finishes to see how much memory was used and adjust the memory allocated to OpenRefine accordingly with the `--memory` flag (default: 2048M).
+
+* OpenRefine names columns without header in the language of the server (e.g. `Spalte 1` instead of `Column 1` on a German system). To get English column names, start OpenRefine with English as Java language, e.g. `JAVA_OPTIONS=-Duser.language=en orcli run` (unless your `refine.ini` sets `JAVA_OPTIONS`).
 
 ## Supported versions
 

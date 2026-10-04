@@ -5882,7 +5882,7 @@ orcli_run_parse_requirements() {
 
 # :command.initialize
 initialize() {
-  declare -g version="0.6.3"
+  declare -g version="0.6.4"
   set -e
 
   # :command.environment_variables_default

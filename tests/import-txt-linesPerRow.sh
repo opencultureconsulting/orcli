@@ -19,7 +19,9 @@ DATA
 # action
 cd "${tmpdir}" || exit 1
 orcli import txt "${t}.txt" --projectName "${t}" --linesPerRow 2
-orcli export tsv "${t}" > "${t}.output"
+# OpenRefine localizes default column names by the server's language
+# (e.g. "Spalte 1"), so normalize them to "Column 1" in the header row
+orcli export tsv "${t}" | sed $'1s/[^\t ]* \\([0-9][0-9]*\\)/Column \\1/g' > "${t}.output"
 
 # test
 diff -u "${t}.assert" "${t}.output"
