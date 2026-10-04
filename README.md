@@ -52,16 +52,17 @@ orcli needs OpenRefine's startup script `refine` and is therefore placed in the 
   chmod +x orcli
   ```
 
-4. Optional: Create a symlink in your `$PATH` to run `orcli` from anywhere
+4. Optional: Create a symlink in your `$PATH` (e.g. to ~/.local/bin) to run `orcli` from anywhere
 
   ```sh
-  sudo ln -s "${PWD}/orcli" /usr/local/bin/
+  ln -s "${PWD}/orcli" ~/.local/bin/
   ```
 
 5. Optional: Install Bash tab completion (requires step 4)
 
   ```sh
-  echo 'source <(orcli completions)' >> ~/.bashrc
+  mkdir -p ~/.bashrc.d
+  orcli completions > ~/.bashrc.d/orcli
   ```
 
 ### macOS
@@ -90,18 +91,7 @@ orcli needs OpenRefine's startup script `refine` and is therefore placed in the 
 4. Optional: Create a symlink in your `$PATH` to run `orcli` from anywhere
 
   ```sh
-  sudo mkdir -p /usr/local/bin
   sudo ln -s "${PWD}/orcli" /usr/local/bin/
-  ```
-
-5. Optional: Install zsh tab completion (requires step 4; if your `~/.zshrc` already runs `compinit`, e.g. with Oh My Zsh, add only the last two lines after it)
-
-  ```sh
-  cat >> ~/.zshrc <<'EOT'
-  autoload -Uz compinit && compinit
-  autoload -Uz bashcompinit && bashcompinit
-  source <(orcli completions)
-  EOT
   ```
 
 ## Getting Started
