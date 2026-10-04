@@ -1805,6 +1805,31 @@ function log() {
   fi
 }
 
+# src/lib/post_command.sh
+# post url-encoded data to an OpenRefine command and check the response code,
+# because OpenRefine responds to many errors with HTTP 200 and {"code":"error"}
+# sets response, response_code and (on failure) response_message
+# returns 0 if the response code is ok
+# shellcheck shell=bash
+function post_command() {
+  local endpoint="$1" d curloptions=()
+  shift
+  for d in "$@"; do
+    curloptions+=("--data-urlencode" "$d")
+  done
+  response_code="" response_message=""
+  if ! response="$(curl -fs "${curloptions[@]}" "${OPENREFINE_URL}/command/core/${endpoint}$(get_csrf)")"; then
+    response_message="request to ${endpoint} failed"
+    return 1
+  fi
+  response_code="$(jq -r '.code // empty' <<<"$response" 2>/dev/null)"
+  if [[ $response_code != "ok" ]]; then
+    response_message="$(jq -r '.message // empty' <<<"$response" 2>/dev/null)"
+    response_message="${response_message:-${response}}"
+    return 1
+  fi
+}
+
 # src/lib/post_export.sh
 # post to export-rows endpoint
 # shellcheck shell=bash disable=SC2154
@@ -1819,7 +1844,10 @@ function post_export() {
         curloptions+=("--data-urlencode")
         curloptions+=("encoding=${args[--encoding]}")
     fi
-    # support filtering result sets with facets
+    # support filtering result sets with facets (OpenRefine ignores invalid json)
+    if [[ ${args[--facets]} != "[]" ]] && ! jq -e 'type == "array"' <<<"${args[--facets]}" &>/dev/null; then
+        error "invalid --facets ${args[--facets]} (json array expected)!"
+    fi
     if [[ ${args[--mode]} == "records" ]]; then
         mode="record-based"
     else
@@ -1897,15 +1925,21 @@ function post_import() {
     else
         log "imported ${args[file]}" "${redirect_url}" "name: ${projectname}" "rows: ${rows}"
     fi
-    # json / jsonl --rename
+    # json / jsonl --rename: remove record path fragments from column names with
+    # one request (first line: rename operations, second line: expected columns)
     if [[ ${args[--rename]} ]]; then
-        csrf="$(get_csrf)"
-        readarray -t columns < <(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-columns-info" | jq -r '.[].name')
-        for c in "${columns[@]}"; do
-            if ! curl -fs -o /dev/null --data project="$projectid" --data "oldColumnName=${c}" --data "newColumnName=${c##_ - }" "${OPENREFINE_URL}/command/core/rename-column${csrf}"; then
-                error "renaming columns in ${projectname} failed!"
+        if ! renaming="$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-columns-info" | jq -c '[ .[].name ] | ([ .[] | select(startswith("_ - ")) | { op: "core/column-rename", description: ("Rename column " + .), oldColumnName: ., newColumnName: ltrimstr("_ - ") } ]), map(ltrimstr("_ - "))')"; then
+            error "renaming columns in ${projectname} failed!"
+        fi
+        if [[ ${renaming%%$'\n'*} != "[]" ]]; then
+            if ! post_command apply-operations "project=${projectid}" "operations=${renaming%%$'\n'*}"; then
+                error "renaming columns in ${projectname} failed!" "Response: ${response_message}"
             fi
-        done
+            # OpenRefine before 3.9 silently skips invalid operations
+            if [[ $(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-columns-info" | jq -c '[ .[].name ]') != "${renaming#*$'\n'}" ]]; then
+                error "renaming columns in ${projectname} failed!" "Response: unexpected column names after renaming (duplicate names?)"
+            fi
+        fi
         log "renamed columns in ${projectname}"
     fi
 }
@@ -2164,16 +2198,10 @@ orcli_delete_command() {
 
   # loop over one or more project ids
   for projectid in ${projectids}; do
-      # get csrf token and post data
-      if response="$(curl -fs --data "project=${projectid}" "${OPENREFINE_URL}/command/core/delete-project$(get_csrf)")"; then
-          response_code="$(jq -r '.code' <<<"$response")"
-          if [[ $response_code == "ok" ]]; then
-              log "deleted ${args[project]} (${projectid})"
-          else
-              error "deleting ${args[project]} failed!"
-          fi
+      if post_command delete-project "project=${projectid}"; then
+          log "deleted ${args[project]} (${projectid})"
       else
-          error "deleting ${args[project]} failed!"
+          error "deleting ${args[project]} failed!" "Response: ${response_message}"
       fi
   done
 
@@ -2377,12 +2405,18 @@ orcli_sort_columns_command() {
   # get project id
   projectid="$(get_id "${args[project]}")"
 
-  csrf="$(get_csrf)"
-  if ! sorted=$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-columns-info" | jq --argjson columns "[ ${columns} ]" '($columns) + ([ .[].name ] | del (.[] | select (. | IN( $columns[] ))) | sort)'); then
+  # put --first column(s) in front of all other columns sorted alphabetically
+  # (first line: --first columns that do not exist, second line: sorted columns)
+  if ! sorting="$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-columns-info" | jq -c --argjson first "[ ${columns} ]" '[ .[].name ] | ($first - .), ($first + ((. - $first) | sort))')"; then
       error "getting columns in ${args[project]} failed!"
   fi
-  if ! curl -fs -o /dev/null --data project="$projectid" --data-urlencode "columnNames=${sorted}" "${OPENREFINE_URL}/command/core/reorder-columns${csrf}"; then
-      error "sorting columns in ${args[project]} failed!"
+  missing="${sorting%%$'\n'*}"
+  sorted="${sorting#*$'\n'}"
+  if [[ $missing != "[]" ]]; then
+      error "sorting columns in ${args[project]} failed!" "Response: column(s) ${missing} not found"
+  fi
+  if ! post_command reorder-columns "project=${projectid}" "columnNames=${sorted}"; then
+      error "sorting columns in ${args[project]} failed!" "Response: ${response_message}"
   fi
   log "sorted columns in ${args[project]}"
 
@@ -2494,10 +2528,9 @@ orcli_transform_command() {
           ' <<<"$line")"
           op="${op#core/}"
           # post each operation separately to apply-operations for logging per operation
-          if ! response="$(curl -fs --data "project=${projectid}" --data-urlencode "operations=[${line}]" "${OPENREFINE_URL}/command/core/apply-operations$(get_csrf)")"; then
-              error "transforming ${args[project]} with ${op} from ${files[$i]} failed!"
+          if ! post_command apply-operations "project=${projectid}" "operations=[${line}]" && [[ $response_code != "pending" ]]; then
+              error "transforming ${args[project]} with ${op} from ${files[$i]} failed!" "Response: ${response_message}"
           fi
-          response_code="$(jq -r '.code' <<<"$response")"
           if [[ $response_code == "pending" ]]; then
               # long-running operations (e.g. fetching URLs, reconciling) are processed asynchronously
               log "transforming ${args[project]} with ${op} (waiting for long-running process)..."
@@ -2518,7 +2551,7 @@ orcli_transform_command() {
               # OpenRefine 3.10+ responds with the new history entries
               history_count=$((history_count + $(jq '.historyEntries | length' <<<"$response")))
               log "transformed ${args[project]} with ${op}" "Response: $(jq -r '.historyEntries[].description' <<<"$response")"
-          elif [[ $response_code == "pending" ]] || [[ $response_code == "ok" ]]; then
+          else
               # long-running operations and OpenRefine before 3.10 respond without history entries
               new_history_count="$(history_length)"
               if [[ ${new_history_count} == "${history_count}" ]]; then
@@ -2526,8 +2559,6 @@ orcli_transform_command() {
               fi
               history_count="${new_history_count}"
               log "transformed ${args[project]} with ${op}" "Response: $(curl -fs --get --data "project=${projectid}" "${OPENREFINE_URL}/command/core/get-history" | jq -r '.past[-1].description')"
-          else
-              error "transforming ${args[project]} with ${op} from ${files[$i]} failed!" "Response: $(jq -r '.message' <<<"$response")"
           fi
       done
   done
@@ -2539,6 +2570,12 @@ orcli_export_jsonl_command() {
 
   # src/export_jsonl_command.sh
   # shellcheck shell=bash disable=SC2154 disable=SC2155
+  # --separator is supported in row mode only
+  if [[ ${args[--separator]} && ${args[--mode]} == "records" ]]; then
+      printf "conflicting options: %s cannot be used with %s\n" "--separator" "--mode records" >&2
+      exit 1
+  fi
+
   projectid="$(get_id "${args[project]}")"
 
   # get columns that contain multiple values

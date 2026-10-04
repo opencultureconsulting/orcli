@@ -11,7 +11,10 @@ function post_export() {
         curloptions+=("--data-urlencode")
         curloptions+=("encoding=${args[--encoding]}")
     fi
-    # support filtering result sets with facets
+    # support filtering result sets with facets (OpenRefine ignores invalid json)
+    if [[ ${args[--facets]} != "[]" ]] && ! jq -e 'type == "array"' <<<"${args[--facets]}" &>/dev/null; then
+        error "invalid --facets ${args[--facets]} (json array expected)!"
+    fi
     if [[ ${args[--mode]} == "records" ]]; then
         mode="record-based"
     else

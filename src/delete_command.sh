@@ -9,15 +9,9 @@ fi
 
 # loop over one or more project ids
 for projectid in ${projectids}; do
-    # get csrf token and post data
-    if response="$(curl -fs --data "project=${projectid}" "${OPENREFINE_URL}/command/core/delete-project$(get_csrf)")"; then
-        response_code="$(jq -r '.code' <<<"$response")"
-        if [[ $response_code == "ok" ]]; then
-            log "deleted ${args[project]} (${projectid})"
-        else
-            error "deleting ${args[project]} failed!"
-        fi
+    if post_command delete-project "project=${projectid}"; then
+        log "deleted ${args[project]} (${projectid})"
     else
-        error "deleting ${args[project]} failed!"
+        error "deleting ${args[project]} failed!" "Response: ${response_message}"
     fi
 done

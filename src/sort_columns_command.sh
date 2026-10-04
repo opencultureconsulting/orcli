@@ -13,11 +13,17 @@ done
 # get project id
 projectid="$(get_id "${args[project]}")"
 
-csrf="$(get_csrf)"
-if ! sorted=$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-columns-info" | jq --argjson columns "[ ${columns} ]" '($columns) + ([ .[].name ] | del (.[] | select (. | IN( $columns[] ))) | sort)'); then
+# put --first column(s) in front of all other columns sorted alphabetically
+# (first line: --first columns that do not exist, second line: sorted columns)
+if ! sorting="$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-columns-info" | jq -c --argjson first "[ ${columns} ]" '[ .[].name ] | ($first - .), ($first + ((. - $first) | sort))')"; then
     error "getting columns in ${args[project]} failed!"
 fi
-if ! curl -fs -o /dev/null --data project="$projectid" --data-urlencode "columnNames=${sorted}" "${OPENREFINE_URL}/command/core/reorder-columns${csrf}"; then
-    error "sorting columns in ${args[project]} failed!"
+missing="${sorting%%$'\n'*}"
+sorted="${sorting#*$'\n'}"
+if [[ $missing != "[]" ]]; then
+    error "sorting columns in ${args[project]} failed!" "Response: column(s) ${missing} not found"
+fi
+if ! post_command reorder-columns "project=${projectid}" "columnNames=${sorted}"; then
+    error "sorting columns in ${args[project]} failed!" "Response: ${response_message}"
 fi
 log "sorted columns in ${args[project]}"
