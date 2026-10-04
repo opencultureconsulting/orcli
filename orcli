@@ -2151,8 +2151,11 @@ function start_openrefine() {
     # create tmp directory
     OPENREFINE_TMPDIR="$(mktemp -d)"
     trap '{ rm -rf "$OPENREFINE_TMPDIR"; }' 0 2 3 15
-    # start OpenRefine with tmp workspace and autosave period 25 hours
-    REFINE_AUTOSAVE_PERIOD=1440 "${scriptpath}/refine" -d "$OPENREFINE_TMPDIR" ${args[--memory]:+-m "${args[--memory]}"} -p "${args[--port]}" -x refine.headless=true -v warn &>"$OPENREFINE_TMPDIR/openrefine.log" &
+    # start OpenRefine with tmp workspace and autosave period 25 hours; set the
+    # JVM language to English, because OpenRefine localizes default column
+    # names (e.g. "Spalte 1" instead of "Column 1") by the system language
+    # (refine accepts only one option in JAVA_OPTIONS, so keep the user's)
+    JAVA_OPTIONS="${JAVA_OPTIONS:--Duser.language=en}" REFINE_AUTOSAVE_PERIOD=1440 "${scriptpath}/refine" -d "$OPENREFINE_TMPDIR" ${args[--memory]:+-m "${args[--memory]}"} -p "${args[--port]}" -x refine.headless=true -v warn &>"$OPENREFINE_TMPDIR/openrefine.log" &
     OPENREFINE_PID="$!"
     disown "$OPENREFINE_PID" # no job status message when killed on exit
     # update trap to kill OpenRefine and remove Jetty's tmp dir on error or exit

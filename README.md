@@ -136,6 +136,8 @@ Optional:
 
 * If OpenRefine does not have enough memory to process the data, it becomes slow and may even crash. Check the message after the run command finishes to see how much memory was used and adjust the memory allocated to OpenRefine accordingly with the `--memory` flag (default: 2048M).
 
+* OpenRefine names columns without header by the system language of the server (e.g. `Spalte 1` instead of `Column 1` on a German system). `orcli run` and `orcli test` start OpenRefine in English (unless `JAVA_OPTIONS` is set); to start OpenRefine yourself in English, use `JAVA_OPTIONS=-Duser.language=en ./refine`.
+
 ## Supported versions
 
 | OpenRefine | tested with | differences |
