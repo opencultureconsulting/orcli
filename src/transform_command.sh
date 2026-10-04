@@ -51,10 +51,9 @@ for i in "${!files[@]}"; do
         ' <<<"$line")"
         op="${op#core/}"
         # post each operation separately to apply-operations for logging per operation
-        if ! response="$(curl -fs --data "project=${projectid}" --data-urlencode "operations=[${line}]" "${OPENREFINE_URL}/command/core/apply-operations$(get_csrf)")"; then
-            error "transforming ${args[project]} with ${op} from ${files[$i]} failed!"
+        if ! post_command apply-operations "project=${projectid}" "operations=[${line}]" && [[ $response_code != "pending" ]]; then
+            error "transforming ${args[project]} with ${op} from ${files[$i]} failed!" "Response: ${response_message}"
         fi
-        response_code="$(jq -r '.code' <<<"$response")"
         if [[ $response_code == "pending" ]]; then
             # long-running operations (e.g. fetching URLs, reconciling) are processed asynchronously
             log "transforming ${args[project]} with ${op} (waiting for long-running process)..."
@@ -75,7 +74,7 @@ for i in "${!files[@]}"; do
             # OpenRefine 3.10+ responds with the new history entries
             history_count=$((history_count + $(jq '.historyEntries | length' <<<"$response")))
             log "transformed ${args[project]} with ${op}" "Response: $(jq -r '.historyEntries[].description' <<<"$response")"
-        elif [[ $response_code == "pending" ]] || [[ $response_code == "ok" ]]; then
+        else
             # long-running operations and OpenRefine before 3.10 respond without history entries
             new_history_count="$(history_length)"
             if [[ ${new_history_count} == "${history_count}" ]]; then
@@ -83,8 +82,6 @@ for i in "${!files[@]}"; do
             fi
             history_count="${new_history_count}"
             log "transformed ${args[project]} with ${op}" "Response: $(curl -fs --get --data "project=${projectid}" "${OPENREFINE_URL}/command/core/get-history" | jq -r '.past[-1].description')"
-        else
-            error "transforming ${args[project]} with ${op} from ${files[$i]} failed!" "Response: $(jq -r '.message' <<<"$response")"
         fi
     done
 done

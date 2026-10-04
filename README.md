@@ -161,9 +161,11 @@ orcli uses [bashly](https://github.com/DannyBen/bashly/) for generating the one-
   To run the tests with all supported OpenRefine releases (downloaded to `~/.cache/orcli`):
 
   ```sh
-  ./test-versions.sh                 # 3.5.2 3.6.2 3.7.9 3.8.7 3.9.5 3.10.1
+  ./test-versions.sh                 # 3.3 3.4.1 3.5.2 3.6.2 3.7.9 3.8.7 3.9.5 3.10.1
   ./test-versions.sh 3.10.1 3.11.0   # or any other releases
   ```
+
+  GitHub Actions ([ci.yml](.github/workflows/ci.yml)) runs shellcheck, checks that `orcli` is up to date with `src` and runs the tests with all supported OpenRefine releases on every pull request.
 
 5. Generate docs
 

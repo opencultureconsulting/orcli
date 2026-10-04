@@ -1,4 +1,4 @@
-# orcli 0.6.1
+# orcli 0.6.2
 
 ## command help screens
 

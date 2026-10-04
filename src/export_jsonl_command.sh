@@ -1,4 +1,10 @@
 # shellcheck shell=bash disable=SC2154 disable=SC2155
+# --separator is supported in row mode only
+if [[ ${args[--separator]} && ${args[--mode]} == "records" ]]; then
+    printf "conflicting options: %s cannot be used with %s\n" "--separator" "--mode records" >&2
+    exit 1
+fi
+
 projectid="$(get_id "${args[project]}")"
 
 # get columns that contain multiple values

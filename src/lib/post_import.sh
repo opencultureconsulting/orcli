@@ -50,15 +50,21 @@ function post_import() {
     else
         log "imported ${args[file]}" "${redirect_url}" "name: ${projectname}" "rows: ${rows}"
     fi
-    # json / jsonl --rename
+    # json / jsonl --rename: remove record path fragments from column names with
+    # one request (first line: rename operations, second line: expected columns)
     if [[ ${args[--rename]} ]]; then
-        csrf="$(get_csrf)"
-        readarray -t columns < <(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-columns-info" | jq -r '.[].name')
-        for c in "${columns[@]}"; do
-            if ! curl -fs -o /dev/null --data project="$projectid" --data "oldColumnName=${c}" --data "newColumnName=${c##_ - }" "${OPENREFINE_URL}/command/core/rename-column${csrf}"; then
-                error "renaming columns in ${projectname} failed!"
+        if ! renaming="$(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-columns-info" | jq -c '[ .[].name ] | ([ .[] | select(startswith("_ - ")) | { op: "core/column-rename", description: ("Rename column " + .), oldColumnName: ., newColumnName: ltrimstr("_ - ") } ]), map(ltrimstr("_ - "))')"; then
+            error "renaming columns in ${projectname} failed!"
+        fi
+        if [[ ${renaming%%$'\n'*} != "[]" ]]; then
+            if ! post_command apply-operations "project=${projectid}" "operations=${renaming%%$'\n'*}"; then
+                error "renaming columns in ${projectname} failed!" "Response: ${response_message}"
             fi
-        done
+            # OpenRefine before 3.9 silently skips invalid operations
+            if [[ $(curl -fs --get --data project="$projectid" "${OPENREFINE_URL}/command/core/get-columns-info" | jq -c '[ .[].name ]') != "${renaming#*$'\n'}" ]]; then
+                error "renaming columns in ${projectname} failed!" "Response: unexpected column names after renaming (duplicate names?)"
+            fi
+        fi
         log "renamed columns in ${projectname}"
     fi
 }
