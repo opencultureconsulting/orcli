@@ -57,7 +57,14 @@ Optional:
 * Create a symlink in your $PATH (e.g. to ~/.local/bin)
 
   ```sh
+  mkdir -p ~/.local/bin
   ln -s "${PWD}/orcli" ~/.local/bin/
+  ```
+
+  On macOS, ~/.local/bin is not in $PATH by default. Add it to your zsh configuration and open a new terminal:
+
+  ```sh
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
   ```
 
 * Install Bash tab completion
