@@ -12,10 +12,10 @@ function post_import() {
     if [[ ${file} == "-" ]]; then
         curloptions+=("--form" "project-file=@-")
     else
-        if ! path=$(readlink -e "${file}"); then
+        if ! [[ -r ${file} ]]; then
             error "cannot open ${file} (no such file)!"
         fi
-        curloptions+=("--form" "project-file=@${path}")
+        curloptions+=("--form" "project-file=@${file}")
     fi
     if [[ ${args[--projectName]} ]]; then
         curloptions+=("--form-string" "project-name=${args[--projectName]}")
@@ -23,7 +23,8 @@ function post_import() {
         if [[ ${file} == "-" ]]; then
             name="Untitled"
         else
-            name="$(basename "${path}" | tr '.' ' ')"
+            name="${file##*/}"
+            name="${name//./ }"
         fi
         curloptions+=("--form-string" "project-name=${name}")
     fi

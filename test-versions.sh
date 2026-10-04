@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Run orcli's tests with several OpenRefine releases.
 #
 # Usage:
 #   ./test-versions.sh [VERSION...]    (default: the supported releases below)
 #
-# Downloads each OpenRefine release (Linux) once into ${ORCLI_CACHE}
+# Downloads each OpenRefine release (Linux, works on macOS too) once into ${ORCLI_CACHE}
 # (default: ~/.cache/orcli), copies ./orcli and tests/ next to it and runs
 # `orcli test` there. Requires Java and a free port 3333 (or ORCLI_PORT).
 
@@ -26,7 +26,7 @@ for version in "${versions[@]}"; do
     # GitHub release asset or, for releases without one (3.6.x), Maven Central
     if ! { curl -fsSL "https://github.com/OpenRefine/OpenRefine/releases/download/${version}/openrefine-linux-${version}.tar.gz" ||
       curl -fsSL "https://repo1.maven.org/maven2/org/openrefine/openrefine/${version}/openrefine-${version}-linux.tar.gz"; } |
-      tar -xz --strip 1 -C "${dir}"; then
+      tar -xz --strip-components 1 -C "${dir}"; then
       echo "download of OpenRefine ${version} failed!" >&2
       rm -rf "${dir}"
       failed+=("${version}")

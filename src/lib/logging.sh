@@ -7,7 +7,7 @@ function error() {
   if [[ -f "$OPENREFINE_TMPDIR/openrefine.log" ]]; then
     echo >&2 "last 50 lines of OpenRefine's server log:"
     echo >&2 "-----------------------------------------"
-    tail >&2 -50 "$OPENREFINE_TMPDIR/openrefine.log"
+    tail >&2 -n 50 "$OPENREFINE_TMPDIR/openrefine.log"
     echo >&2 "-----------------------------------------"
   fi
   exit 1

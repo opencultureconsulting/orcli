@@ -34,7 +34,7 @@ function post_export() {
         error "exporting ${args[project]} failed!"
     else
         if [[ ${args[--output]} ]]; then
-            log "exported ${args[project]}" "file: ${args[--output]}" "lines: $(wc -l <"${args[--output]}")"
+            log "exported ${args[project]}" "file: ${args[--output]}" "lines: $(($(wc -l <"${args[--output]}")))"
         fi
     fi
 }

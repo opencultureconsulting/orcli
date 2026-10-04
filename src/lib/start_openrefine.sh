@@ -1,9 +1,19 @@
 # start OpenRefine with tmp workspace in the background and wait until it is running
 # shellcheck shell=bash disable=SC2154
 function start_openrefine() {
-    local i
-    # locate orcli and OpenRefine
-    scriptpath=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+    local i link
+    # locate orcli and OpenRefine (resolve symlinks like readlink -f, which
+    # macOS lacks before 12.3)
+    scriptpath="${BASH_SOURCE[0]}"
+    while [[ -L ${scriptpath} ]]; do
+        link="$(readlink "${scriptpath}")"
+        if [[ ${link} == /* ]]; then
+            scriptpath="${link}"
+        else
+            scriptpath="$(dirname "${scriptpath}")/${link}"
+        fi
+    done
+    scriptpath="$(cd "$(dirname "${scriptpath}")" && pwd -P)"
     if ! [[ -x "${scriptpath}/refine" ]]; then
         error "OpenRefine's startup script (refine) not found!" "Did you put orcli in your OpenRefine app dir?"
     fi
@@ -19,8 +29,9 @@ function start_openrefine() {
     REFINE_AUTOSAVE_PERIOD=1440 "${scriptpath}/refine" -d "$OPENREFINE_TMPDIR" ${args[--memory]:+-m "${args[--memory]}"} -p "${args[--port]}" -x refine.headless=true -v warn &>"$OPENREFINE_TMPDIR/openrefine.log" &
     OPENREFINE_PID="$!"
     disown "$OPENREFINE_PID" # no job status message when killed on exit
-    # update trap to kill OpenRefine on error or exit
-    trap '{ kill -9 "$OPENREFINE_PID"; rm -rf "$OPENREFINE_TMPDIR" /tmp/jetty-127_0_0_1-"${OPENREFINE_URL##*:}"*; }' 0 2 3 15
+    # update trap to kill OpenRefine and remove Jetty's tmp dir on error or exit
+    # (Java's tmp dir is /tmp on Linux and $TMPDIR on macOS)
+    trap '{ kill -9 "$OPENREFINE_PID"; rm -rf "$OPENREFINE_TMPDIR" /tmp/jetty-127_0_0_1-"${OPENREFINE_URL##*:}"-* "${TMPDIR:-/tmp}"/jetty-127_0_0_1-"${OPENREFINE_URL##*:}"-*; }' 0 2 3 15
     export OPENREFINE_TMPDIR OPENREFINE_URL OPENREFINE_PID
     # wait until OpenRefine is running (fail early if it exits)
     for ((i = 0; i < args[--timeout] * 4; i++)); do

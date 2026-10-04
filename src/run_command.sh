@@ -34,7 +34,7 @@ if [[ ${args[file]} == '-' || ${args[file]} == '"-"' ]]; then
         if ! read -u 0 -t 0; then
             # case 1: interactive mode if stdin is selected but not present
             bash --rcfile <(
-                cat ~/.bashrc
+                [[ -f ~/.bashrc ]] && cat ~/.bashrc
                 echo "alias orcli=${scriptpath}/orcli"
                 interactive
             ) -i </dev/tty
@@ -45,7 +45,7 @@ fi
 if [[ ${args[--interactive]} ]]; then
     # case 2: execute scripts and keep shell running
     bash --rcfile <(
-        cat ~/.bashrc
+        [[ -f ~/.bashrc ]] && cat ~/.bashrc
         echo "alias orcli=${scriptpath}/orcli"
         for i in "${!files[@]}"; do
             log "executing script ${files[$i]}..."
@@ -63,6 +63,7 @@ else
             awk 1 "${files[$i]}"
         )
     done
-    # print stats
-    log "used $(($(ps --no-headers -o rss -p "$OPENREFINE_PID") / 1024)) MB RAM and $(ps --no-headers -o cputime -p "$OPENREFINE_PID") CPU time"
+    # print stats (POSIX ps options, read trims the padding)
+    read -r rss cputime < <(ps -o rss= -o time= -p "$OPENREFINE_PID")
+    log "used $((rss / 1024)) MB RAM and ${cputime} CPU time"
 fi

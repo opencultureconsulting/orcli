@@ -64,3 +64,32 @@ jobs:
           key: openrefine-${{ matrix.openrefine }}
       - name: run tests
         run: ./test-versions.sh "${{ matrix.openrefine }}"
+
+  test-macos:
+    runs-on: macos-latest
+    name: test (OpenRefine 3.10.1, macOS)
+    env:
+      # C.UTF-8 may not exist on macOS
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      ORCLI_CACHE: ${{ github.workspace }}/.cache/orcli
+    steps:
+      - uses: actions/checkout@v4
+      - name: install bash (macOS ships Bash 3.2) and jq
+        run: |
+          brew install bash
+          command -v jq || brew install jq
+          # orcli uses "#!/usr/bin/env bash", so put Homebrew's bash first in PATH
+          echo "$(brew --prefix)/bin" >> "$GITHUB_PATH"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: actions/cache@v4
+        with:
+          path: .cache/orcli/openrefine-3.10.1
+          key: openrefine-3.10.1-macos
+      - name: run tests
+        run: |
+          bash --version | head -n 1
+          ./test-versions.sh 3.10.1
