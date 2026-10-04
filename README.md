@@ -128,8 +128,8 @@ Optional:
 | 3.10 | 3.10.1 | – |
 | 3.9 | 3.9.5 | `transform`: less clear error messages (e.g. `java.lang.IllegalArgumentException: Missing field lengths` instead of `Operation #1: Missing field lengths`) |
 | 3.8 | 3.8.7 | `transform`: OpenRefine skips unknown or invalid operations without an error, so orcli only reports `operation was not applied` (details in OpenRefine's log) |
-| 3.7 | 3.7.9 | as 3.8; `export csv`/`tsv`: special characters are quoted instead of escaped (e.g. `"x"""` instead of `x"`); `import --encoding` is ignored for multiple files |
-| 3.6 | 3.6.2 | as 3.7 |
+| 3.7 | 3.7.9 | as 3.8; `export csv`/`tsv`: special characters are quoted instead of escaped (e.g. `"x"""` instead of `x"`); `import --encoding` is ignored for multiple files; `import tsv --ignoreQuoteCharacter` removes quote characters |
+| 3.6 | 3.6.2 | as 3.7; `import csv --ignoreQuoteCharacter` also removes quote characters |
 | 3.5 | 3.5.2 | as 3.7; `export jsonl`: arrays without spaces (`["a","b"]` instead of `[ "a", "b" ]`) |
 | 3.4 | 3.4.1 | as 3.5; `import --includeArchiveFileName` has no effect |
 | 3.3 | 3.3 | as 3.4; `import --trimStrings` has no effect |

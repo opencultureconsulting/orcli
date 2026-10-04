@@ -2038,7 +2038,13 @@ orcli_import_csv_command() {
       options+=', '
       options+="\"limit\": ${args[--limit]}"
   fi
-  if [[ ${args[--quoteCharacter]} ]]; then
+  # OpenRefine 3.8 to 3.10.1 still parse quotes without processQuotes, so also
+  # set NUL as quote character to treat quotes as normal characters
+  # https://github.com/OpenRefine/OpenRefine/issues/7042
+  if [[ ${args[--ignoreQuoteCharacter]} ]]; then
+      options+=', '
+      options+='"quoteCharacter": "\u0000"'
+  elif [[ ${args[--quoteCharacter]} ]]; then
       options+=', '
       options+="\"quoteCharacter\": $(json_string "${args[--quoteCharacter]}")"
   fi
