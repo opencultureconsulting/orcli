@@ -2,10 +2,6 @@
 
 t="import-csv-ignoreQuoteCharacter"
 
-# disable test temporarily
-# https://github.com/opencultureconsulting/orcli/issues/132
-exit 0
-
 # create tmp directory
 tmpdir="$(mktemp -d)"
 trap '{ rm -rf "${tmpdir}"; }' 0 2 3 15
@@ -21,10 +17,16 @@ DATA
 # assertion
 cat << "DATA" > "${tmpdir}/${t}.assert"
 a	b	c	Column 4
-1	2	0	3
+1	"2	0"	3
 0	0	0	
 $	/	'	
 DATA
+# OpenRefine before 3.7 removes the quote characters
+# and 3.7 quotes special characters on export
+case "$(curl -fs "${OPENREFINE_URL}/command/core/get-version" | jq -r '.version')" in
+  3.[3-6] | 3.[3-6].*) sed -i '2s/.*/1\t2\t0\t3/' "${tmpdir}/${t}.assert" ;;
+  3.7 | 3.7.*) sed -i '2s/.*/1\t"""2"\t"0"""\t3/' "${tmpdir}/${t}.assert" ;;
+esac
 
 # action
 cd "${tmpdir}" || exit 1
